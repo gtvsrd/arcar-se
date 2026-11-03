@@ -174,10 +174,10 @@ export function postPage(p, site) {
 
 /** Página fixa (Sobre, Contato). */
 export function fixedPage(g, site) {
-  const { esc, md } = site.helpers;
+  const { esc, md, plainText } = site.helpers;
   const root = '../../';
   const url = `${site.base}/pagina/${g.slug}/`;
-  const firstText = g.body.replace(/[#*\[\]()]/g, '').replace(/\s+/g, ' ').trim().slice(0, 160);
+  const firstText = plainText(g.body).slice(0, 160);
   const head = headMeta({
     title: g.title,
     description: firstText || site.config.description,

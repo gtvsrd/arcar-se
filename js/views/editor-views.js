@@ -15,7 +15,7 @@ function editor(kind, id) {
     location.hash = '#/';
     return;
   }
-  $('#main').innerHTML = `<div class="art"><h1>${isPage ? 'Editar página' : id ? 'Editar artigo' : 'Novo artigo'}</h1>
+  $('#main').innerHTML = `<div class="art art--edit"><h1>${isPage ? 'Editar página' : id ? 'Editar artigo' : 'Novo artigo'}</h1>
   <form id="f">
    <label for="t">Título</label><input type="text" id="t" required value="${esc(it.title)}">
    ${
@@ -34,9 +34,8 @@ function editor(kind, id) {
      <div class="hint">Aparece no topo do card e do artigo. Imagens enviadas são reduzidas automaticamente.</div>
    </div>`
    }
-   <label for="b">Conteúdo</label>
-   <div class="tb"><button type="button" class="btn sm alt" data-w="**|**">Negrito</button><button type="button" class="btn sm alt" data-w="*|*">Itálico</button><button type="button" class="btn sm alt" data-w="\n\n## |\n\n">Título</button><button type="button" class="btn sm alt" data-w="\n- |">Lista</button><button type="button" class="btn sm alt" data-w="[|](https://)">Link</button></div>
-   <textarea id="b" required>${esc(it.body)}</textarea>
+   <label id="blabel">Conteúdo</label>
+   <div class="rte-wrap" id="rte"></div>
    ${
      isPage
        ? ''
@@ -45,7 +44,8 @@ function editor(kind, id) {
    }
    <div class="acts" style="margin-top:18px"><button class="btn" type="submit">${isPage ? 'Salvar página' : 'Salvar artigo'}</button><a class="btn alt" href="#/">Cancelar</a></div>
   </form></div>`;
-  const ta = $('#b');
+  const rte = createRichEditor($('#rte'), it.body, 'blabel');
+  $('#blabel').onclick = () => rte.focus();
   let img = it.img || ''; // capa atual (endereço da imagem)
   let pending = null; // novo arquivo escolhido, ainda não enviado
   if (!isPage) {
@@ -125,24 +125,22 @@ function editor(kind, id) {
       ? `Já existem ${HERO_MAX} artigos em destaque. Remova o destaque de outro artigo para escolher este.`
       : `Destaques em uso por outros artigos: ${others} de ${HERO_MAX}.`;
   }
-  document.querySelectorAll('[data-w]').forEach(
-    (b) =>
-      (b.onclick = () => {
-        const [a, z] = b.dataset.w.replace(/\\n/g, '\n').split('|'),
-          s = ta.selectionStart,
-          e = ta.selectionEnd;
-        ta.setRangeText(a + (ta.value.slice(s, e) || 'texto') + z, s, e, 'end');
-        ta.focus();
-      }),
-  );
   $('#f').onsubmit = async (ev) => {
     ev.preventDefault();
+    if (rte.isEmpty()) {
+      toast('Escreva o conteúdo antes de salvar');
+      rte.focus();
+      return;
+    }
     const btn = $('#f button[type=submit]');
     btn.disabled = true;
-    let uploaded = '';
+    const uploaded = [];
+    const oldImages = [it.img, ...mdImages(it.body)]; // capa e imagens do texto antes desta edição
     try {
+      const body = await rte.getBody(uploaded);
       if (isPage) {
-        await savePage(id, $('#t').value.trim(), ta.value);
+        await savePage(id, $('#t').value.trim(), body);
+        deleteUnusedImages(oldImages);
         toast('Página salva');
         location.hash = '#/pagina/' + id;
         return;
@@ -151,24 +149,22 @@ function editor(kind, id) {
         title: $('#t').value.trim(),
         slug: uniqueSlug(slugify($('#sl').value) || slugify($('#t').value), pid),
         cat: $('#c').value.trim(),
-        excerpt:
-          $('#e').value.trim() ||
-          ta.value
-            .replace(/[#*\[\]\-]/g, '')
-            .slice(0, 130)
-            .trim() + '…',
-        body: ta.value,
+        excerpt: $('#e').value.trim() || plainText(body).slice(0, 130).trim() + '…',
+        body,
         pub: $('#pub').checked,
         featured: $('#feat').checked,
         img,
       };
-      if (pending) d.img = uploaded = await uploadCover(pending);
+      if (pending) {
+        d.img = await uploadCover(pending);
+        uploaded.push(d.img);
+      }
       await savePost(pid ? { id: pid, ...d } : d);
-      if (it.img && it.img !== d.img) deleteCover(it.img); // capa antiga trocada/removida
+      deleteUnusedImages(oldImages); // imagens trocadas ou removidas nesta edição
       toast(d.pub ? 'Artigo publicado' : 'Rascunho salvo');
       location.hash = '#/';
     } catch (err) {
-      if (uploaded) deleteCover(uploaded);
+      uploaded.forEach(deleteCover);
       toast(
         err.code === '23505'
           ? 'Já existe um artigo com esse endereço. Altere o campo de endereço.'

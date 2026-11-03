@@ -106,7 +106,7 @@ async function changePassword(password) {
   if (error) throw error;
 }
 
-/** Envia a imagem de capa (Blob) para o Storage e devolve o endereço público. */
+/** Envia uma imagem (Blob) de capa ou do texto para o Storage e devolve o endereço público. */
 async function uploadCover(blob) {
   const path = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}.jpg`;
   const { error } = await sb.storage
@@ -116,7 +116,7 @@ async function uploadCover(blob) {
   return sb.storage.from('covers').getPublicUrl(path).data.publicUrl;
 }
 
-/** Apaga uma capa do Storage (ignora endereços de outros sites). */
+/** Apaga uma imagem do Storage (ignora endereços de outros sites). */
 async function deleteCover(url) {
   const m = (url || '').match(/\/covers\/([^?]+)$/);
   if (m)
@@ -124,4 +124,13 @@ async function deleteCover(url) {
       .from('covers')
       .remove([m[1]])
       .catch(() => {});
+}
+
+/** Apaga do Storage as imagens da lista que nenhum artigo ou página usa mais. */
+async function deleteUnusedImages(urls) {
+  const inUse = new Set([
+    ...db.posts.flatMap((p) => [p.img, ...mdImages(p.body)]),
+    ...Object.values(db.pages).flatMap((g) => mdImages(g.body)),
+  ]);
+  await Promise.all(urls.filter((u) => u && !inUse.has(u)).map(deleteCover));
 }

@@ -146,6 +146,18 @@ a.cover-cat:hover {
   line-height: 1.85;
   max-width: 68ch;
 }
+.body img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+.body blockquote {
+  margin: 1em 0;
+  padding: 2px 0 2px 16px;
+  border-left: 4px solid var(--warm);
+  color: var(--mut);
+}
 .draft {
   background: var(--chip);
   color: var(--chip-ink);
@@ -172,6 +184,9 @@ select {
   background: var(--bg);
   color: var(--ink);
 }
+input[type='file'] {
+  max-width: 100%;
+}
 input::placeholder,
 textarea::placeholder {
   color: var(--mut);
@@ -184,16 +199,100 @@ input:-webkit-autofill:focus {
   box-shadow: 0 0 0 100px var(--bg) inset;
   caret-color: var(--ink);
 }
-textarea {
-  min-height: 320px;
-  font-family: ui-monospace, Menlo, monospace;
+/* Editor visual de artigos */
+.art--edit {
+  overflow: visible; /* deixa a barra de ferramentas acompanhar a rolagem */
+}
+.rte-wrap {
+  position: relative;
+  border: 1px solid var(--ln);
+  border-radius: 4px;
+  background: var(--bg);
+}
+.rte-tools {
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
+  padding: 6px 8px;
+  background: var(--sf);
+  border-bottom: 1px solid var(--ln);
+  border-radius: 4px 4px 0 0;
+}
+.rte-tools select {
+  width: auto;
+  padding: 5px 8px;
   font-size: 15px;
 }
-.tb {
+.rte-group {
+  display: inline-flex;
+  gap: 2px;
+}
+.rte-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  padding: 0;
+  background: none;
+  border: 1px solid transparent;
+  border-radius: 4px;
+  cursor: pointer;
+}
+.rte-btn:hover {
+  border-color: var(--ln);
+  background: var(--bg);
+}
+.rte-btn[aria-pressed='true'] {
+  background: var(--ac);
+  color: var(--ac2);
+}
+.art .rte {
+  min-height: 340px;
+  max-width: none;
+  padding: 14px 16px;
+  overflow-wrap: anywhere;
+  border-radius: 0 0 4px 4px;
+}
+.rte:focus-visible {
+  outline-offset: -3px;
+}
+.rte img {
+  cursor: pointer;
+}
+.rte img.rte-sel {
+  outline: 3px solid var(--ac);
+  outline-offset: 2px;
+}
+/* Botões sobre a imagem selecionada e linha que mostra onde a imagem arrastada vai ficar */
+.rte-imgbar {
+  position: absolute;
+  z-index: 1;
   display: flex;
-  gap: 6px;
   flex-wrap: wrap;
-  margin-bottom: 6px;
+  gap: 4px;
+  padding: 4px;
+  background: var(--sf);
+  border: 1px solid var(--ln);
+  border-radius: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.25);
+}
+.rte-drop {
+  position: absolute;
+  left: 8px;
+  right: 8px;
+  height: 4px;
+  border-radius: 2px;
+  background: var(--warm);
+  pointer-events: none;
+}
+.rte-imgbar[hidden],
+.rte-drop[hidden] {
+  display: none;
 }
 dialog {
   border: 1px solid var(--ln);
@@ -255,7 +354,8 @@ label.sub {
   margin-top: 12px;
 }
 .img-prev[hidden],
-#imgrm[hidden] {
+#imgrm[hidden],
+dialog [hidden] {
   display: none;
 }
 .hint {

@@ -61,7 +61,7 @@ function bindDel() {
         try {
           const gone = db.posts.find((p) => p.id === b.dataset.del);
           await deletePost(b.dataset.del);
-          if (gone) deleteCover(gone.img);
+          if (gone) deleteUnusedImages([gone.img, ...mdImages(gone.body)]);
           toast('Artigo excluído');
           location.hash = '#/';
           route();

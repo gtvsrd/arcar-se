@@ -19,7 +19,7 @@ blog/
     ├── vendor/supabase.js   Cliente Supabase 2.45.4 (arquivo local, sem CDN)
     ├── config.js            URL e chave do SEU projeto  <-- você edita
     ├── data/api.js          Artigos, páginas, capas e login
-    ├── utils/               helpers.js, markdown.js
+    ├── utils/               helpers.js, markdown.js, rich-editor.js (editor visual de artigos)
     ├── views/               layout-views.js, post-views.js, featured-views.js, editor-views.js
     ├── theme.js, auth.js, router.js, main.js, static-page.js (usado nas páginas geradas)
 ```
@@ -86,7 +86,8 @@ Atenção: o `robots.txt` só é lido na raiz de um domínio; em `usuario.github
    adicione o domínio em **Authentication > URL Configuration**.
 
 ## Observações
-- Tudo o que você escreve fica salvo no Supabase, e as imagens de capa, no Storage (limite de 5 MB por imagem; o blog já as reduz antes de enviar).
+- Tudo o que você escreve fica salvo no Supabase, e as imagens de capa e do texto, no Storage (limite de 5 MB por imagem; o blog já as reduz antes de enviar).
+- O editor é visual, com botões de negrito, sublinhado, listas, alinhamento, links e imagens. Imagens também podem ser coladas ou arrastadas para o texto, e são enviadas só ao salvar. Clique em uma imagem para subir, descer, editar ou remover; para mudá-la de linha, também dá para arrastá-la. O texto continua guardado em Markdown no banco, então artigos antigos abrem normalmente.
 - Rascunhos só aparecem para o administrador logado.
 - Plano grátis do Supabase: projetos sem uso por cerca de uma semana podem ser pausados; é só reativar no painel.
 - Artigos criados na versão anterior (salvos no navegador) não são migrados. Recrie-os pelo painel.
