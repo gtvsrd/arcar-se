@@ -86,6 +86,9 @@ export function sideHTML(site, root) {
      .join('')}</ul></div>`;
 }
 
+/** Nome com o ponto em destaque (ocre): "Arcar.se" vira Arcar<span>.</span>se. */
+const logoName = (name, esc) => esc(name).replace(/\./, '<span class="logo-dot">.</span>');
+
 /** Documento completo de uma página gerada. `root` é o caminho até a raiz ("../../" ou "/arcar-se/"). */
 export function pageShell({ site, root, title, head, main, adminHref }) {
   const { esc } = site.helpers;
@@ -99,10 +102,11 @@ export function pageShell({ site, root, title, head, main, adminHref }) {
     ${head}
     <link rel="icon" type="image/svg+xml" href="${root}assets/favicon.svg" />
     <link rel="icon" type="image/png" href="${root}assets/favicon.png" />
-    <link rel="apple-touch-icon" href="${root}assets/favicon.png" />
+    <link rel="apple-touch-icon" href="${root}assets/apple-touch-icon.png" />
+    <meta name="theme-color" content="#1e3b3a" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@400;600&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@400;600&family=Fraunces:opsz,wght@9..144,600&family=DM+Sans:wght@500&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="${root}css/variables.css" />
@@ -116,7 +120,7 @@ export function pageShell({ site, root, title, head, main, adminHref }) {
   <body data-root="${esc(root)}">
     <header class="top">
       <div class="bar">
-        <a class="logo" href="${root}">${esc(c.siteName)}<small>${esc(c.tagline)}</small></a>
+        <a class="logo" href="${root}" aria-label="${esc(c.siteName)}, ${esc(c.tagline.toLowerCase())}"><img class="logo-mark" src="${root}assets/logo/arcar-se-simbolo-negativo.svg" alt="" /><span class="logo-text"><span class="logo-name">${logoName(c.siteName, esc)}</span><small>${esc(c.tagline.toLowerCase())}</small></span></a>
         <div class="bar-actions">
           <nav id="nav">${navHTML(site, root)}</nav>
           <button id="theme-toggle" class="theme-btn" type="button"></button>

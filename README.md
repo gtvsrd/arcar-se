@@ -1,4 +1,4 @@
-# Arcar-se
+# Arcar.se
 
 Blog em HTML, CSS e JavaScript puros, com **Supabase** como back-end (banco, login e imagens).
 Funciona no **GitHub Pages** e continua funcionando quando você trocar para um domínio da Hostinger.

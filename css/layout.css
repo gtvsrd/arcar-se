@@ -22,18 +22,40 @@ header.top :focus-visible {
   justify-content: space-between;
 }
 .logo {
-  font:
-    700 26px Merriweather,
-    Georgia,
-    serif;
+  display: flex;
+  align-items: center;
+  gap: 14px;
   color: var(--hd-ink);
   text-decoration: none;
 }
-.logo small {
+.logo-mark {
   display: block;
+  height: 54px;
+  width: auto;
+}
+.logo-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 7px;
+}
+.logo-name {
   font:
-    400 14px 'Source Sans 3',
+    600 34px/1 Fraunces,
+    Georgia,
+    serif;
+  letter-spacing: -0.02em;
+}
+.logo-dot {
+  color: var(--warm);
+}
+.logo small {
+  font:
+    500 10px/1 'DM Sans',
+    Arial,
     sans-serif;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
   color: var(--hd-mut);
 }
 nav a,

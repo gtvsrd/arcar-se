@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="64" height="64" viewBox="0 0 100 100">
+  <title>Arcar.se — favicon (traços reforçados para tamanhos pequenos)</title>
+  <rect id="fundo-arredondado" width="100" height="100" rx="20" fill="#1E3B3A"/>
+  <g id="simbolo-posicao" transform="translate(7 7) scale(0.86)">
+    <g id="simbolo">
+      <g id="arco">
+        <path id="arco-esquerda" d="M6 60 Q12 60 15 53 C20.3 40.88 29.05 32.78 39.5 29.56 L39.5 42.03 C31.1 43.82 24.02 48.11 19 56 Q14 63 6 60 Z" fill="#F3F1EC" stroke="#F3F1EC" stroke-width="4" stroke-linejoin="round"/>
+        <path id="arco-direita" d="M60.5 29.56 C70.95 32.78 79.7 40.88 85 53 Q88 60 94 60 Q86 63 81 56 C75.98 48.11 68.9 43.82 60.5 42.03 Z" fill="#F3F1EC" stroke="#F3F1EC" stroke-width="4" stroke-linejoin="round"/>
+      </g>
+      <g id="corda">
+        <line id="corda-esquerda" x1="8" y1="60" x2="42" y2="60" stroke="#F3F1EC" stroke-width="3.5"/>
+        <line id="corda-direita" x1="58" y1="60" x2="92" y2="60" stroke="#F3F1EC" stroke-width="3.5"/>
+      </g>
+      <g id="flecha">
+        <line id="flecha-haste" x1="50" y1="61" x2="50" y2="24" stroke="#E0A84A" stroke-width="7"/>
+        <polygon id="flecha-ponta-losango" points="50,3 61,19 50,29 39,19" fill="#E0A84A"/>
+      </g>
+      <circle id="ponto" cx="50" cy="81" r="11" fill="#E0A84A"/>
+    </g>
+  </g>
+</svg>

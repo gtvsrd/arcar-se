@@ -1,20 +1,20 @@
-/* Design tokens: paleta teal (principal) + coral (complementar), tema claro/escuro e área segura */
+/* Design tokens: paleta da logo Arcar.se (verde profundo + ocre), tema claro/escuro e área segura */
 
 :root {
-  --bg: #f3f6f6;
+  --bg: #f3f1ec;
   --sf: #ffffff;
-  --ink: #1f2d33;
-  --mut: #566a70;
-  --ac: #2a747c;
+  --ink: #1e2b2a;
+  --mut: #566663;
+  --ac: #2f5e5b;
   --ac2: #ffffff;
-  --warm: #d9836a;
-  --ln: #d9e3e4;
+  --warm: #c98a2b;
+  --ln: #ddd8cc;
   --err: #b4472f;
-  --hd: #14363f;
-  --hd-ink: #ffffff;
-  --hd-mut: #bcd6db;
-  --chip: #fbe6df;
-  --chip-ink: #7a3422;
+  --hd: #1e3b3a;
+  --hd-ink: #f3f1ec;
+  --hd-mut: #bccfcb;
+  --chip: #f4e5c2;
+  --chip-ink: #6a4408;
   color-scheme: light;
   box-sizing: border-box;
   padding-top: env(safe-area-inset-top, 0px);
@@ -22,37 +22,37 @@
 }
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme='light']) {
-    --bg: #0f1a1e;
-    --sf: #172529;
-    --ink: #e4eef0;
-    --mut: #9db4b9;
-    --ac: #6cc3cb;
-    --ac2: #0c2428;
-    --warm: #e9987f;
-    --ln: #27393e;
+    --bg: #0f1917;
+    --sf: #17231f;
+    --ink: #e8eeeb;
+    --mut: #a2b4ae;
+    --ac: #8cc5b8;
+    --ac2: #0c1a17;
+    --warm: #e0a84a;
+    --ln: #27372f;
     --err: #ff9e8a;
-    --hd: #0a1417;
-    --hd-ink: #ffffff;
-    --hd-mut: #a9c6cc;
-    --chip: #3a2620;
-    --chip-ink: #f4c4b5;
+    --hd: #0a1311;
+    --hd-ink: #f3f1ec;
+    --hd-mut: #a9bfb9;
+    --chip: #3a2e15;
+    --chip-ink: #f2ddae;
     color-scheme: dark;
   }
 }
 :root[data-theme='dark'] {
-  --bg: #0f1a1e;
-  --sf: #172529;
-  --ink: #e4eef0;
-  --mut: #9db4b9;
-  --ac: #6cc3cb;
-  --ac2: #0c2428;
-  --warm: #e9987f;
-  --ln: #27393e;
+  --bg: #0f1917;
+  --sf: #17231f;
+  --ink: #e8eeeb;
+  --mut: #a2b4ae;
+  --ac: #8cc5b8;
+  --ac2: #0c1a17;
+  --warm: #e0a84a;
+  --ln: #27372f;
   --err: #ff9e8a;
-  --hd: #0a1417;
-  --hd-ink: #ffffff;
-  --hd-mut: #a9c6cc;
-  --chip: #3a2620;
-  --chip-ink: #f4c4b5;
+  --hd: #0a1311;
+  --hd-ink: #f3f1ec;
+  --hd-mut: #a9bfb9;
+  --chip: #3a2e15;
+  --chip-ink: #f2ddae;
   color-scheme: dark;
 }

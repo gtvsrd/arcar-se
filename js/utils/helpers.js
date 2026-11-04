@@ -12,7 +12,7 @@ const fmt = (d) =>
     month: 'long',
     year: 'numeric',
   });
-const cols = ['#bfe0e0', '#f4cbbd', '#cfe3c9', '#f1dfae', '#d6d4ee', '#bcd6ea'];
+const cols = ['#cfe0d8', '#efddb3', '#d8dcc9', '#e7d3c3', '#c9d9dc', '#ddd6e6'];
 /** Escolhe sempre a mesma cor para uma mesma categoria. */
 const colorOf = (c) => {
   let h = 0;
