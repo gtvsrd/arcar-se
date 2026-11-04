@@ -31,7 +31,7 @@ process.env.TZ = config.timezone || 'America/Sao_Paulo'; // as datas saem no mes
 
 const base = config.siteUrl.replace(/\/+$/, '');
 if (!/^https?:\/\//.test(base)) fail('"siteUrl" em site.config.json precisa começar com https://');
-const basePath = new URL(base).pathname.replace(/\/+$/, ''); // "/diario-de-bordo" ou "" (domínio próprio)
+const basePath = new URL(base).pathname.replace(/\/+$/, ''); // "/arcar-se" ou "" (domínio próprio)
 
 const cfgJs = read('js/config.js');
 const grab = (name) => (cfgJs.match(new RegExp(`const ${name}\\s*=\\s*["']([^"']+)["']`)) || [])[1];

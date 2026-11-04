@@ -1,4 +1,4 @@
--- Diário de Bordo: endereços legíveis (slug) para os artigos.
+-- Arcar-se: endereços legíveis (slug) para os artigos.
 -- Rode UMA vez no Supabase (SQL Editor > New query > Run). Os artigos existentes ganham o slug a partir do título.
 
 -- 1) Coluna (ainda opcional, para podermos preencher os artigos antigos)

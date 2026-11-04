@@ -86,7 +86,7 @@ export function sideHTML(site, root) {
      .join('')}</ul></div>`;
 }
 
-/** Documento completo de uma página gerada. `root` é o caminho até a raiz ("../../" ou "/diario-de-bordo/"). */
+/** Documento completo de uma página gerada. `root` é o caminho até a raiz ("../../" ou "/arcar-se/"). */
 export function pageShell({ site, root, title, head, main, adminHref }) {
   const { esc } = site.helpers;
   const c = site.config;

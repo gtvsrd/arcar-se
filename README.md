@@ -1,4 +1,4 @@
-# Diário de Bordo
+# Arcar-se
 
 Blog em HTML, CSS e JavaScript puros, com **Supabase** como back-end (banco, login e imagens).
 Funciona no **GitHub Pages** e continua funcionando quando você trocar para um domínio da Hostinger.
@@ -84,6 +84,16 @@ Atenção: o `robots.txt` só é lido na raiz de um domínio; em `usuario.github
    - 1 registro **CNAME** `www` apontando para `SEU-USUARIO.github.io`
 3. Troque o `siteUrl` em `site.config.json` para o novo endereço (ex.: `https://meublog.com.br`). Nada muda no Supabase. Só se algum dia usar e-mail de recuperação de senha,
    adicione o domínio em **Authentication > URL Configuration**.
+
+## Renomear o repositório ou trocar o domínio
+O workflow descobre o endereço do site sozinho (usa o que o GitHub Pages informa), então canonical, sitemap e prévias de link se ajustam
+na próxima execução. Depois de renomear o repositório ou ligar um domínio, faça apenas:
+1. Actions > Publicar site > **Run workflow**;
+2. No Supabase, **Authentication > URL Configuration**: ponha o novo endereço em *Site URL* e adicione-o em *Redirect URLs* (e-mails de senha usam esse endereço);
+3. No Search Console, adicione o novo endereço e envie o `sitemap.xml` de novo;
+4. Mude o `siteUrl` em `site.config.json` (só é usado quando você roda o build no seu computador).
+
+Importante: o endereço antigo do GitHub Pages deixa de funcionar quando o repositório é renomeado (o GitHub não redireciona sites).
 
 ## Observações
 - Tudo o que você escreve fica salvo no Supabase, e as imagens de capa e do texto, no Storage (limite de 5 MB por imagem; o blog já as reduz antes de enviar).
