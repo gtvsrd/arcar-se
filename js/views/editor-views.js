@@ -209,6 +209,44 @@ function editor(kind, id) {
     }
   };
 }
+/** Tela aberta pelo link "esqueci a senha" do e-mail: define a nova senha. */
+async function resetPassword() {
+  const { data } = await sb.auth.getSession();
+  if (!data.session || AUTH_LINK.error) {
+    $('#main').innerHTML =
+      '<div class="art"><h1>Link inválido ou expirado</h1><p>O link para criar uma nova senha vale por pouco tempo e só pode ser usado uma vez. Clique em <b>Entrar</b> › <b>Esqueci a senha</b> para receber outro.</p><p><a href="#/">← Voltar aos artigos</a></p></div>';
+    return;
+  }
+  $('#main').innerHTML = `<div class="art"><h1>Criar nova senha</h1><form id="f"><label for="np">Nova senha (mínimo 6 caracteres)</label><input type="password" id="np" minlength="6" required autocomplete="new-password"><label for="np2">Repita a nova senha</label><input type="password" id="np2" minlength="6" required autocomplete="new-password"><div class="err" id="rerr" role="alert"></div><div class="acts" style="margin-top:18px"><button class="btn" type="submit">Salvar nova senha</button></div></form></div>`;
+  $('#f').onsubmit = async (e) => {
+    e.preventDefault();
+    if ($('#np').value !== $('#np2').value) {
+      $('#rerr').textContent = 'As duas senhas não são iguais.';
+      return;
+    }
+    const btn = $('#f button[type=submit]');
+    btn.disabled = true;
+    try {
+      await changePassword($('#np').value);
+      await checkRole();
+      if (staff()) {
+        await loadAll();
+        toast('Senha alterada. Você já está logado.');
+        location.hash = '#/painel';
+      } else {
+        await sb.auth.signOut(); // conta sem acesso à equipe: não deixa sessão aberta
+        toast('Senha alterada.');
+        location.hash = '#/';
+      }
+    } catch (err) {
+      $('#rerr').textContent = /different from the old/i.test(err.message || '')
+        ? 'Escolha uma senha diferente da anterior.'
+        : 'Não foi possível salvar a nova senha. Peça um novo link e tente de novo.';
+      btn.disabled = false;
+    }
+  };
+}
+
 /** Formulário de troca de senha (admin e criadores). */
 function account() {
   $('#main').innerHTML =

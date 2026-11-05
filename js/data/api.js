@@ -6,6 +6,13 @@
 /** Verdadeiro se js/config.js já foi preenchido. */
 const isConfigured = () => !SUPABASE_URL.includes('SEU-PROJETO') && !SUPABASE_ANON_KEY.includes('SUA-CHAVE');
 
+/** O que o link recebido por e-mail trouxe na URL (o supabase-js limpa a URL depois): redefinição de senha, confirmação ou erro. */
+const AUTH_LINK = {
+  recovery: /[#&]type=recovery\b/.test(location.hash),
+  signup: /[#&]type=signup\b/.test(location.hash),
+  error: /[#&]error_code=/.test(location.hash),
+};
+
 const sb = isConfigured() ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 let db = { posts: [], pages: {}, profiles: {}, views: {} }; // cache usado pelas telas
 let admin = false; // true se o administrador está logado
@@ -200,6 +207,12 @@ async function removeCreator(userId) {
 /** Cancela um convite ainda não usado. */
 async function cancelInvite(email) {
   const { error } = await sb.rpc('cancel_invite', { p_email: email });
+  if (error) throw error;
+}
+
+/** Envia por e-mail o link para criar uma nova senha. A resposta é a mesma exista ou não a conta (não revela quem tem acesso). */
+async function sendPasswordReset(email) {
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
   if (error) throw error;
 }
 

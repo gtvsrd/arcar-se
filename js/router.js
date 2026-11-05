@@ -34,6 +34,7 @@ function route() {
   else if (a === 'editar') editor('post', v);
   else if (a === 'editarpagina') editor('page', v);
   else if (a === 'conta') account();
+  else if (a === 'redefinir') resetPassword();
   else if (a === 'painel') panel(v);
   else home();
 }

@@ -113,3 +113,4 @@ Rode `supabase/painel-e-criadores.sql` uma vez no SQL Editor (banco já existent
 - **Liberar um criador**: Painel › Equipe › e-mail. A pessoa usa **Entrar › Primeiro acesso**, escolhe a senha e confirma pelo e-mail. Só e-mails liberados ganham acesso.
 - **Visualizações**: cada artigo soma 1 leitura por visitante a cada 24h (equipe logada não conta). O número aparece no artigo, nos cards e no painel.
 - O build do site tolera o banco sem esse SQL (sai sem autor e sem contador), mas o painel e as leituras dependem dele.
+- **Esqueci a senha**: em **Entrar › Esqueci a senha** a pessoa recebe um e-mail com o link para criar uma nova senha (a resposta é sempre a mesma, exista ou não a conta). No Supabase, em Authentication › URL Configuration, o Site URL e o Redirect URLs devem incluir `https://gtvsrd.github.io/arcar-se/` (e `https://gtvsrd.github.io/arcar-se/**`).

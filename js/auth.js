@@ -1,26 +1,36 @@
 /**
- * Entrada da equipe (janela modal): login de administradores e criadores e primeiro acesso de criadores
+ * Entrada da equipe (janela modal): login de administradores e criadores, primeiro acesso e "esqueci a senha"
  */
 
 /** Liga os eventos da janela de login. */
 function initAuth() {
   const ok = $('#lok'),
-    first = $('#lfirst');
-  let firstMode = false;
+    first = $('#lfirst'),
+    forgot = $('#lforgot');
+  let mode = 'login'; // 'login' | 'first' | 'forgot'
 
-  // alterna entre "Entrar" e "Primeiro acesso"
-  const setMode = (isFirst) => {
-    firstMode = isFirst;
-    $('#ltitle').textContent = isFirst ? 'Primeiro acesso de criador' : 'Entrar';
-    $('#lhelp').hidden = !isFirst;
-    ok.textContent = isFirst ? 'Criar acesso' : 'Entrar';
-    first.textContent = isFirst ? 'Já tenho acesso' : 'Primeiro acesso';
-    $('#p').autocomplete = isFirst ? 'new-password' : 'current-password';
+  // alterna entre "Entrar", "Primeiro acesso" e "Esqueci a senha"
+  const setMode = (m) => {
+    mode = m;
+    $('#ltitle').textContent = { login: 'Entrar', first: 'Primeiro acesso de criador', forgot: 'Esqueci a senha' }[m];
+    $('#lhelp').hidden = m === 'login';
+    $('#lhelp').textContent =
+      m === 'first'
+        ? 'Use o e-mail que o administrador liberou e escolha uma senha. Depois confirme pelo link que chegar no seu e-mail.'
+        : m === 'forgot'
+          ? 'Informe o e-mail da sua conta. Enviaremos um link para você criar uma nova senha.'
+          : '';
+    $('#plabel').hidden = $('#p').hidden = m === 'forgot';
+    ok.textContent = { login: 'Entrar', first: 'Criar acesso', forgot: 'Enviar link' }[m];
+    first.textContent = m === 'first' ? 'Já tenho acesso' : 'Primeiro acesso';
+    forgot.textContent = m === 'forgot' ? 'Voltar para entrar' : 'Esqueci a senha';
+    $('#p').autocomplete = m === 'first' ? 'new-password' : 'current-password';
     $('#lerr').textContent = '';
     $('#lerr').classList.remove('ok');
   };
-  first.onclick = () => setMode(!firstMode);
-  $('#dlg').addEventListener('close', () => setMode(false));
+  first.onclick = () => setMode(mode === 'first' ? 'login' : 'first');
+  forgot.onclick = () => setMode(mode === 'forgot' ? 'login' : 'forgot');
+  $('#dlg').addEventListener('close', () => setMode('login'));
 
   ok.onclick = async () => {
     ok.disabled = true;
@@ -30,7 +40,14 @@ function initAuth() {
     try {
       const email = $('#u').value.trim(),
         pass = $('#p').value;
-      if (firstMode) {
+      if (mode === 'forgot') {
+        if (!email) err.textContent = 'Informe o e-mail da sua conta.';
+        else {
+          await sendPasswordReset(email);
+          err.classList.add('ok');
+          err.textContent = 'Se este e-mail tiver acesso, enviamos um link para criar uma nova senha. Confira também o spam.';
+        }
+      } else if (mode === 'first') {
         if (!email || pass.length < 6) err.textContent = 'Informe o e-mail e uma senha de pelo menos 6 caracteres.';
         else {
           await firstAccess(email, pass);
@@ -49,11 +66,14 @@ function initAuth() {
         else err.textContent = 'E-mail ou senha incorretos.';
       }
     } catch (e) {
-      err.textContent = 'Não foi possível concluir. Tente novamente.';
+      err.textContent =
+        e && (e.status === 429 || /rate.?limit/i.test(e.code || e.message || ''))
+          ? 'Muitas tentativas seguidas. Aguarde alguns minutos e tente de novo.'
+          : 'Não foi possível concluir. Tente novamente.';
     }
     ok.disabled = false;
   };
-  $('#p').onkeydown = (e) => {
+  $('#u').onkeydown = $('#p').onkeydown = (e) => {
     if (e.key === 'Enter') ok.click();
   };
   $('#lcancel').onclick = () => $('#dlg').close();
