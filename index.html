@@ -18,6 +18,7 @@
     <link rel="stylesheet" href="css/layout.css" />
     <link rel="stylesheet" href="css/components.css" />
     <link rel="stylesheet" href="css/featured.css" />
+    <link rel="stylesheet" href="css/panel.css" />
     <link rel="stylesheet" href="css/responsive.css" />
     <script src="js/theme.js"></script>
   </head>
@@ -39,12 +40,25 @@
     <div id="toast" role="status"></div>
 
     <dialog id="dlg">
-      <h2>Entrar como administrador</h2>
+      <h2 id="ltitle">Entrar</h2>
+      <p class="hint" id="lhelp" hidden>
+        Use o e-mail que o administrador liberou e escolha uma senha. Depois confirme pelo link que chegar no seu e-mail.
+      </p>
       <label for="u">E-mail</label><input type="email" id="u" autocomplete="username" /> <label for="p">Senha</label
       ><input type="password" id="p" autocomplete="current-password" />
-      <div class="err" id="lerr"></div>
+      <div class="err" id="lerr" role="status"></div>
       <div class="acts">
         <button class="btn" id="lok">Entrar</button><button class="btn alt" id="lcancel">Cancelar</button>
+      </div>
+      <p class="hint"><button class="linkbtn" id="lfirst" type="button">Primeiro acesso</button></p>
+    </dialog>
+    <dialog id="rdlg">
+      <h2>Devolver ao criador</h2>
+      <p class="hint">O artigo volta para rascunho e o criador vê esta observação ao abrir o painel.</p>
+      <label for="rnote">Observação</label>
+      <textarea id="rnote" rows="4" maxlength="500" placeholder="O que precisa ser ajustado?"></textarea>
+      <div class="acts">
+        <button class="btn" id="rok">Devolver</button><button class="btn alt" id="rcancel">Cancelar</button>
       </div>
     </dialog>
     <script defer src="js/vendor/supabase.js"></script>
@@ -57,6 +71,7 @@
     <script defer src="js/views/post-views.js"></script>
     <script defer src="js/views/featured-views.js"></script>
     <script defer src="js/views/editor-views.js"></script>
+    <script defer src="js/views/panel-views.js"></script>
     <script defer src="js/auth.js"></script>
     <script defer src="js/router.js"></script>
     <script defer src="js/main.js"></script>

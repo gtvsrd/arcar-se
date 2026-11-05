@@ -11,14 +11,35 @@ function coverHTML(p, large) {
   return `<div class="cover${large ? ' cover--lg' : ''}${p.img ? ' has-img' : ''}" style="background:${colorOf(p.cat)}">${img}${cat}</div>`;
 }
 
+/** Selo de situação do artigo (nada se estiver publicado). */
+function badgeHTML(p) {
+  const st = postStatus(p);
+  const label = { draft: 'rascunho', review: 'em revisão', returned: 'devolvido' }[st];
+  return label ? `<span class="draft draft--${st}">${label}</span>` : '';
+}
+
+/** Autor com foto pequena (iniciais se não houver foto). Vazio se o autor não definiu o nome. */
+function bylineHTML(p) {
+  const a = authorOf(p);
+  if (!a) return '';
+  const av = a.avatar_url
+    ? `<img class="avatar" src="${esc(a.avatar_url)}" alt="" width="24" height="24" loading="lazy">`
+    : `<span class="avatar avatar--ph" aria-hidden="true">${esc([...a.display_name][0].toUpperCase())}</span>`;
+  return `<span class="byline">${av}<span>${esc(a.display_name)}</span></span>`;
+}
+
+/** Linha de informações do artigo: autor, data e leituras. */
+const metaHTML = (p) =>
+  `<div class="meta">${bylineHTML(p)}<span>${fmt(p.date)}</span>${p.pub && db.viewsOn ? `<span class="views" data-views="${p.id}">${viewsLabel(viewsOf(p))}</span>` : ''}</div>`;
+
 /** HTML de um card de artigo (usado na grade e no carrossel de destaques). */
 function cardHTML(p) {
   return `
    <article class="card">${coverHTML(p)}
-   <div class="cb"><h2><a href="${postUrl(p)}">${esc(p.title)}</a>${p.pub ? '' : '<span class="draft">rascunho</span>'}</h2>
-   <div class="meta">${fmt(p.date)}</div><p>${esc(p.excerpt)}</p>
+   <div class="cb"><h2><a href="${postUrl(p)}">${esc(p.title)}</a>${badgeHTML(p)}</h2>
+   ${metaHTML(p)}<p>${esc(p.excerpt)}</p>
    <div class="card-foot"><a href="${postUrl(p)}">Ler artigo</a>
-   ${admin ? `<div class="acts"><a class="btn sm alt" href="#/editar/${p.id}">Editar</a><button class="btn sm del" data-del="${p.id}">Excluir</button></div>` : ''}</div></div></article>`;
+   ${canEdit(p) ? `<div class="acts"><a class="btn sm alt" href="#/editar/${p.id}">Editar</a><button class="btn sm del" data-del="${p.id}">Excluir</button></div>` : ''}</div></div></article>`;
 }
 
 /** Desenha a grade de cards (home, categoria e busca). `prefix` é o HTML mostrado acima (destaques). */
@@ -63,7 +84,7 @@ function bindDel() {
           await deletePost(b.dataset.del);
           if (gone) deleteUnusedImages([gone.img, ...mdImages(gone.body)]);
           toast('Artigo excluído');
-          location.hash = '#/';
+          if (!location.hash.startsWith('#/painel')) location.hash = '#/'; // no painel, continua na lista
           route();
         } catch (err) {
           toast('Não foi possível excluir: ' + err.message);
@@ -75,16 +96,20 @@ function bindDel() {
 /** Desenha um artigo completo. */
 function post(key) {
   const p = findPost(key);
-  if (!p || (!p.pub && !admin)) {
+  if (!p || !(p.pub || admin || canEdit(p))) {
     $('#main').innerHTML = '<div class="box">Artigo não encontrado. <a href="#/">Voltar ao início</a></div>';
     return;
   }
   $('#main').innerHTML =
-    `<article class="art">${coverHTML(p, true)}<div class="meta">${fmt(p.date)}${p.pub ? '' : '<span class="draft">rascunho</span>'}</div>
+    `<article class="art">${coverHTML(p, true)}${metaHTML(p).replace('</div>', badgeHTML(p) + '</div>')}
    <h1>${esc(p.title)}</h1><div class="body">${md(p.body)}</div>
-   ${admin ? `<div class="acts"><a class="btn sm alt" href="#/editar/${p.id}">Editar</a><button class="btn sm del" data-del="${p.id}">Excluir</button></div>` : ''}
+   ${canEdit(p) ? `<div class="acts"><a class="btn sm alt" href="#/editar/${p.id}">Editar</a><button class="btn sm del" data-del="${p.id}">Excluir</button></div>` : ''}
    <p><a href="#/">← Voltar aos artigos</a></p></article>`;
   bindDel();
+  registerView(p).then((n) => {
+    const el = document.querySelector('.art [data-views]');
+    if (el && n !== null) el.textContent = viewsLabel(n);
+  });
 }
 /** Desenha uma página fixa (Sobre, Contato). */
 function page(k) {

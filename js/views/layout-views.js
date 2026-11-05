@@ -2,6 +2,9 @@
  * Telas fixas: menu do topo e coluna lateral
  */
 
+/** Quantos artigos de criadores esperam revisão (só o admin vê). */
+const pendingReview = () => (admin ? db.posts.filter((p) => p.submitted && !p.pub).length : 0);
+
 /** Desenha o menu do topo (muda conforme o admin está logado ou não). */
 function renderNav() {
   $('#nav').innerHTML =
@@ -9,7 +12,9 @@ function renderNav() {
     Object.keys(db.pages)
       .map((k) => `<a href="#/pagina/${k}">${esc(db.pages[k].title)}</a>`)
       .join('') +
-    (admin ? '<a href="#/novo">Novo artigo</a><button id="out">Sair</button>' : '<button id="in">Entrar</button>');
+    (staff()
+      ? `<a href="#/painel">Painel${pendingReview() ? ` <span class="pill">${pendingReview()}</span>` : ''}</a><a href="#/novo">Novo artigo</a><button id="out">Sair</button>`
+      : '<button id="in">Entrar</button>');
   const i = $('#in'),
     o = $('#out');
   if (i)
@@ -47,8 +52,8 @@ function renderSide() {
    <div class="box"><h3>Páginas</h3><ul>${Object.keys(db.pages)
      .map((k) => `<li><a href="#/pagina/${k}">${esc(db.pages[k].title)}</a></li>`)
      .join('')}</ul></div>` +
-    (admin
-      ? `<div class="box"><h3>Painel do administrador</h3><div class="acts" style="flex-wrap:wrap"><a class="btn sm" href="#/novo">Novo artigo</a><a class="btn sm alt" href="#/conta">Alterar senha</a></div></div>`
+    (staff()
+      ? `<div class="box"><h3>${admin ? 'Painel do administrador' : 'Área do criador'}</h3><div class="acts" style="flex-wrap:wrap"><a class="btn sm" href="#/painel">Painel</a><a class="btn sm alt" href="#/novo">Novo artigo</a><a class="btn sm alt" href="#/conta">Alterar senha</a></div></div>`
       : '');
   $('#q').onkeydown = (e) => {
     if (e.key === 'Enter' && e.target.value.trim())

@@ -44,6 +44,17 @@ export function coverHTML(p, { large = false, root, site }) {
   return `<div class="cover${large ? ' cover--lg' : ''}${isHttp(p.img) ? ' has-img' : ''}" style="background:${colorOf(p.cat)}">${img}${cat}</div>`;
 }
 
+/** Autor com foto pequena (iniciais se não houver foto); vazio se o autor não definiu o nome. */
+export function bylineHTML(p, site) {
+  const { esc } = site.helpers;
+  const a = p.author_id && site.profiles && site.profiles[p.author_id];
+  if (!a || !a.display_name) return '';
+  const av = isHttp(a.avatar_url)
+    ? `<img class="avatar" src="${esc(a.avatar_url)}" alt="" width="24" height="24" loading="lazy">`
+    : `<span class="avatar avatar--ph" aria-hidden="true">${esc([...a.display_name][0].toUpperCase())}</span>`;
+  return `<span class="byline">${av}<span>${esc(a.display_name)}</span></span>`;
+}
+
 /** Card de artigo (mesmo HTML do app, sem os botões de administrador). */
 export function cardHTML(p, { root, site }) {
   const { esc, fmt } = site.helpers;
@@ -51,7 +62,7 @@ export function cardHTML(p, { root, site }) {
   return `
    <article class="card">${coverHTML(p, { root, site })}
    <div class="cb"><h2><a href="${href}">${esc(p.title)}</a></h2>
-   <div class="meta">${fmt(p.date)}</div><p>${esc(p.excerpt)}</p>
+   <div class="meta">${bylineHTML(p, site)}<span>${fmt(p.date)}</span></div><p>${esc(p.excerpt)}</p>
    <div class="card-foot"><a href="${href}">Ler artigo</a></div></div></article>`;
 }
 
@@ -90,7 +101,7 @@ export function sideHTML(site, root) {
 const logoName = (name, esc) => esc(name).replace(/\./, '<span class="logo-dot">.</span>');
 
 /** Documento completo de uma página gerada. `root` é o caminho até a raiz ("../../" ou "/arcar-se/"). */
-export function pageShell({ site, root, title, head, main, adminHref }) {
+export function pageShell({ site, root, title, head, main, adminHref, bodyAttrs = '', withViews = false }) {
   const { esc } = site.helpers;
   const c = site.config;
   return `<!doctype html>
@@ -117,7 +128,7 @@ export function pageShell({ site, root, title, head, main, adminHref }) {
     <link rel="stylesheet" href="${root}css/responsive.css" />
     <script src="${root}js/theme.js"></script>
   </head>
-  <body data-root="${esc(root)}">
+  <body data-root="${esc(root)}"${bodyAttrs}>
     <header class="top">
       <div class="bar">
         <a class="logo" href="${root}" aria-label="${esc(c.siteName)}, ${esc(c.tagline.toLowerCase())}"><img class="logo-mark" src="${root}assets/logo/arcar-se-simbolo-negativo.svg" alt="" /><span class="logo-text"><span class="logo-name">${logoName(c.siteName, esc)}</span><small>${esc(c.tagline.toLowerCase())}</small></span></a>
@@ -134,7 +145,7 @@ export function pageShell({ site, root, title, head, main, adminHref }) {
     <footer>© <span id="yr">${site.year}</span> ${esc(c.siteName)} · Todos os direitos reservados${
       adminHref ? ` · <a href="${esc(adminHref)}" rel="nofollow">Admin</a>` : ''
     }</footer>
-    <script defer src="${root}js/static-page.js"></script>
+    ${withViews ? `<script src="${root}js/config.js"></script>\n    ` : ''}<script defer src="${root}js/static-page.js"></script>
   </body>
 </html>
 `;
@@ -149,6 +160,7 @@ export function postPage(p, site) {
   const image = isHttp(p.img) ? p.img : `${site.base}/assets/og-default.png`;
   const description = (p.excerpt || '').trim().slice(0, 200) || c.description;
   const title = `${p.title} — ${c.siteName}`;
+  const author = p.author_id && site.profiles && site.profiles[p.author_id] && site.profiles[p.author_id].display_name ? site.profiles[p.author_id] : null;
   const head = headMeta({
     title: p.title,
     description,
@@ -167,13 +179,23 @@ export function postPage(p, site) {
       inLanguage: c.language,
       mainEntityOfPage: url,
       publisher: { '@type': 'Organization', name: c.siteName },
+      author: author ? { '@type': 'Person', name: author.display_name } : { '@type': 'Organization', name: c.siteName },
     },
   }).concat(`\n    <meta property="article:published_time" content="${esc(p.date)}" />`)
     .concat(`\n    <meta property="article:section" content="${esc(p.cat)}" />`);
-  const main = `<article class="art">${coverHTML(p, { large: true, root, site })}<div class="meta">${fmt(p.date)}</div>
+  const main = `<article class="art">${coverHTML(p, { large: true, root, site })}<div class="meta">${bylineHTML(p, site)}<span>${fmt(p.date)}</span><span class="views" id="views" hidden></span></div>
    <h1>${esc(p.title)}</h1><div class="body">${md(p.body)}</div>
    <p><a href="${root}">← Voltar aos artigos</a></p></article>`;
-  return pageShell({ site, root, title, head, main, adminHref: `${root}#/editar/${p.slug}` });
+  return pageShell({
+    site,
+    root,
+    title,
+    head,
+    main,
+    adminHref: `${root}#/editar/${p.slug}`,
+    bodyAttrs: ` data-post="${esc(p.id)}" data-slug="${esc(p.slug)}"`,
+    withViews: true,
+  });
 }
 
 /** Página fixa (Sobre, Contato). */

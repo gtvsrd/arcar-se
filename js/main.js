@@ -20,7 +20,7 @@ async function start() {
   const onHome = !location.hash || location.hash === '#/';
   if (!onHome || !$('#main').children.length) $('#main').innerHTML = '<div class="box">Carregando…</div>';
   try {
-    await checkAdmin();
+    await checkRole();
     await Promise.all([loadAll(), loadManifest()]);
     ready = true;
     route();
