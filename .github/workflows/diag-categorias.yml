@@ -10,10 +10,9 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - run: |
-          mkdir -p fontes
-          css=$(curl -s -A "Mozilla/5.0 Chrome/130" "https://fonts.googleapis.com/css2?family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,700;1,7..72,400&display=swap")
-          echo "$css" > fontes/literata.css
-          i=0; for u in $(echo "$css" | grep -o "https://fonts.gstatic.com/[^)]*"); do i=$((i+1)); curl -s -o fontes/f$i.woff2 "$u"; done
-          ls -la fontes
+          rm -rf fontes2 && mkdir -p fontes2
+          curl -s -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130 Safari/537.36" "https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@400;600&family=Fraunces:opsz,wght@9..144,600&family=DM+Sans:wght@500&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,700;1,7..72,400;1,7..72,700&display=swap" > fontes2/site.css
+          i=0; for u in $(grep -o "https://fonts.gstatic.com/[^)]*" fontes2/site.css | sort -u); do i=$((i+1)); n=$(echo "$u" | md5sum | cut -c1-10); curl -s -o fontes2/$n.woff2 "$u"; echo "$u $n.woff2" >> fontes2/map.txt; done
+          ls fontes2 | wc -l
           git config user.name diag; git config user.email diag@users.noreply.github.com
-          git add fontes && git commit -m "fontes para previa" && git push
+          git add fontes2 && git commit -m "fontes do site para previa" && git push
