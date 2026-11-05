@@ -297,11 +297,23 @@
   .ptable td + td {
     border-left: 1px solid var(--ln);
   }
+  /* primeira coluna: só o título do cabeçalho fica centralizado; o conteúdo alinha à esquerda */
+  .ptable td:first-child {
+    text-align: left;
+  }
+  /* ações: 2 botões por linha; se sobrar um sozinho (ex.: Excluir), ele ocupa a largura dos dois de cima */
   .ptable .pa .acts {
-    justify-content: center;
+    display: grid;
+    grid-template-columns: repeat(2, 104px);
     gap: 6px;
-    max-width: 214px; /* no máximo 2 botões por linha */
+    justify-content: center;
     margin: 0 auto;
+  }
+  .ptable .pa .acts > .btn.sm {
+    width: 100%;
+  }
+  .ptable .pa .acts > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
   }
   .who {
     justify-content: center;
