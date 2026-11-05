@@ -67,8 +67,8 @@
     justify-content: center;
     gap: 6px 20px;
   }
-  nav a,
-  nav button {
+  #nav a,
+  #nav button {
     margin: 0;
   }
 

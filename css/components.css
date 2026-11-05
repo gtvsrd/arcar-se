@@ -203,7 +203,7 @@ a.cover-cat:hover {
   overflow: hidden;
 }
 .art .body {
-  font-family: Georgia, 'Times New Roman', serif; /* texto do artigo e do editor */
+  font-family: Literata, Georgia, 'Times New Roman', serif; /* texto do artigo e do editor */
   font-size: 17px;
   line-height: 1.85;
   max-width: 68ch;
@@ -519,4 +519,65 @@ dialog [hidden] {
 .chip input {
   width: auto;
   margin: 0;
+}
+
+/* Hover suave nos botões do blog */
+.btn,
+.rte-btn,
+.chip,
+.linkbtn,
+.hero-nav {
+  transition:
+    background-color 0.2s ease,
+    color 0.2s ease,
+    border-color 0.2s ease,
+    box-shadow 0.2s ease,
+    opacity 0.2s ease,
+    transform 0.1s ease;
+}
+.btn:hover {
+  background-color: color-mix(in srgb, var(--ac) 82%, #000);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12);
+}
+.btn.alt:hover {
+  background-color: color-mix(in srgb, var(--ac) 12%, transparent);
+}
+.btn.del:hover {
+  background-color: color-mix(in srgb, var(--err) 12%, transparent);
+}
+.btn:active {
+  transform: translateY(1px);
+}
+.btn:disabled,
+.btn[disabled] {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: none;
+  transform: none;
+}
+.btn.alt:disabled:hover,
+.btn.del:disabled:hover {
+  background-color: transparent;
+}
+.btn:not(.alt):not(.del):disabled:hover {
+  background-color: var(--ac);
+}
+.chip:hover {
+  border-color: var(--ac);
+}
+.linkbtn:hover {
+  opacity: 0.75;
+}
+@media (prefers-reduced-motion: reduce) {
+  .btn,
+  .rte-btn,
+  .chip,
+  .linkbtn,
+  .hero-nav,
+  .theme-btn,
+  #nav a,
+  #nav button,
+  .ptabs a {
+    transition: none;
+  }
 }
