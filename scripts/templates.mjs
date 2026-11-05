@@ -64,13 +64,13 @@ export function bylineHTML(p, site) {
 }
 
 /** Card de artigo (mesmo HTML do app, sem os botões de administrador). */
-export function cardHTML(p, { root, site }) {
-  const { esc, fmt } = site.helpers;
+export function cardHTML(p, { root, site, hero = false }) {
+  const { esc, fmt, fmtShort } = site.helpers;
   const href = `${root}post/${p.slug}/`;
   return `
    <article class="card">${coverHTML(p, { root, site })}
    <div class="cb"><h2><a href="${href}">${esc(p.title)}</a></h2>
-   <div class="meta">${bylineHTML(p, site)}<span>${fmt(p.date)}</span></div><p>${esc(p.excerpt)}</p>
+   <div class="meta">${bylineHTML(p, site)}<span>${hero ? fmt(p.date) : fmtShort(p.date)}</span></div><p>${esc(p.excerpt)}</p>
    <div class="card-foot"><a href="${href}">Ler artigo</a></div></div></article>`;
 }
 
@@ -240,10 +240,17 @@ export function notFoundPage(site) {
 /** Conteúdo pré-pronto da home (para buscadores e prévias; o app troca por sua própria versão ao carregar). */
 export function homeMain(site) {
   const root = '';
+  // destaques já saem no HTML (mesmo código do app), para aparecerem junto com o resto da página
+  const feat = site.featured ? site.posts.filter((p) => p.featured).slice(0, site.featured.HERO_MAX) : [];
+  const rest = site.posts.filter((p) => !feat.includes(p));
+  const hero = feat.length ? site.featured.html(feat) : '';
   return (
-    '<h1>Últimos artigos</h1>' +
-    (site.posts.length
-      ? '<div class="grid">' + site.posts.map((p) => cardHTML(p, { root, site })).join('') + '</div>'
-      : '<div class="box">Nenhum artigo encontrado.</div>')
+    hero +
+    (rest.length || !hero ? '<h1>Últimos artigos</h1>' : '') +
+    (rest.length
+      ? '<div class="grid">' + rest.map((p) => cardHTML(p, { root, site })).join('') + '</div>'
+      : hero
+        ? ''
+        : '<div class="box">Nenhum artigo encontrado.</div>')
   );
 }

@@ -12,6 +12,12 @@ const fmt = (d) =>
     month: 'long',
     year: 'numeric',
   });
+/** Data curta para os cards: "16 out 2026". */
+const MESES = ['jan', 'fev', 'mar', 'abr', 'mai', 'jun', 'jul', 'ago', 'set', 'out', 'nov', 'dez'];
+const fmtShort = (d) => {
+  const x = new Date(d);
+  return `${String(x.getDate()).padStart(2, '0')} ${MESES[x.getMonth()]} ${x.getFullYear()}`;
+};
 const cols = ['#cfe0d8', '#efddb3', '#d8dcc9', '#e7d3c3', '#c9d9dc', '#ddd6e6'];
 /** Escolhe sempre a mesma cor para uma mesma categoria. */
 const colorOf = (c) => {
