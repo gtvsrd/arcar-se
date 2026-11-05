@@ -82,14 +82,14 @@ create policy "capas: admin apaga" on storage.objects for delete using (bucket_i
 insert into public.pages (slug, title, body) values
 ('sobre', 'Sobre', $$## Sobre o blog
 
-O **Arcar.se** é um blog pessoal sobre escrita, viagens e curiosidades.$$),
+O **Arcar.se** é um blog de psicologia, com textos para o público em geral, estudantes e profissionais.$$),
 ('contato', 'Contato', $$## Fale comigo
 
 Sugestões, críticas e parcerias são bem-vindas.
 
 E-mail: contato@exemplo.com$$);
 insert into public.posts (title, cat, excerpt, body) values
-('Bem-vindo ao Arcar.se', 'Novidades', 'Um espaço para registrar ideias, projetos e aprendizados.', $$## Olá!
+('Bem-vindo ao Arcar.se', 'Novidades', 'Um espaço de psicologia para se entender melhor e assumir a própria história.', $$## Olá!
 
 Este é o primeiro artigo. Entre como administrador para criar, editar e excluir artigos.$$);
 

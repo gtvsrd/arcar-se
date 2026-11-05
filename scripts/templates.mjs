@@ -69,7 +69,7 @@ export function sideHTML(site, root) {
   const { esc } = site.helpers;
   const cats = {};
   site.posts.forEach((p) => (cats[p.cat] = (cats[p.cat] || 0) + 1));
-  return `<div class="box"><h3>Sobre o blog</h3><p>Textos sobre escrita, viagens e curiosidades. Novos artigos toda semana.</p></div>
+  return `<div class="box"><h3>Sobre o blog</h3><p>Textos de psicologia para quem quer se entender melhor e assumir a própria história. Para o público em geral, estudantes e profissionais.</p></div>
    <div class="box"><h3>Buscar</h3><input type="text" id="q" placeholder="Digite e tecle Enter" aria-label="Buscar artigos"></div>
    <div class="box"><h3>Categorias</h3><ul>${
      Object.keys(cats)
