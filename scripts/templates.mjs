@@ -192,7 +192,7 @@ export function postPage(p, site) {
   }).concat(`\n    <meta property="article:published_time" content="${esc(p.date)}" />`)
     .concat(site.helpers.catsOf(p).map((c) => `\n    <meta property="article:section" content="${esc(c)}" />`).join(''));
   const main = `<article class="art">${coverHTML(p, { large: true, root, site })}<div class="meta">${bylineHTML(p, site)}<span>${fmt(p.date)}</span><span class="views" id="views" hidden></span></div>
-   <h1>${esc(p.title)}</h1><div class="body">${md(p.body)}</div>
+   <h1>${esc(p.title)}</h1><div class="body">${site.helpers.hyphenateJustified(md(p.body))}</div>
    <p><a href="${root}">← Voltar aos artigos</a></p></article>`;
   return pageShell({
     site,
@@ -219,7 +219,7 @@ export function fixedPage(g, site) {
     image: `${site.base}/assets/og-default.png`,
     site,
   });
-  const main = `<article class="art"><h1>${esc(g.title)}</h1><div class="body">${md(g.body)}</div></article>`;
+  const main = `<article class="art"><h1>${esc(g.title)}</h1><div class="body">${site.helpers.hyphenateJustified(md(g.body))}</div></article>`;
   return pageShell({ site, root, title: `${g.title} — ${site.config.siteName}`, head, main });
 }
 

@@ -110,7 +110,7 @@ function post(key) {
   }
   $('#main').innerHTML =
     `<article class="art">${coverHTML(p, true)}${metaHTML(p).replace('</div>', badgeHTML(p) + '</div>')}
-   <h1>${esc(p.title)}</h1><div class="body">${md(p.body)}</div>
+   <h1>${esc(p.title)}</h1><div class="body">${hyphenateJustified(md(p.body))}</div>
    ${canEdit(p) ? `<div class="acts"><a class="btn sm alt" href="#/editar/${p.id}">Editar</a><button class="btn sm del" data-del="${p.id}">Excluir</button></div>` : ''}
    <p><a href="#/">← Voltar aos artigos</a></p></article>`;
   bindDel();
@@ -126,6 +126,6 @@ function page(k) {
     location.hash = '#/';
     return;
   }
-  $('#main').innerHTML = `<article class="art"><h1>${esc(pg.title)}</h1><div class="body">${md(pg.body)}</div>
+  $('#main').innerHTML = `<article class="art"><h1>${esc(pg.title)}</h1><div class="body">${hyphenateJustified(md(pg.body))}</div>
    ${admin ? `<div class="acts"><a class="btn sm alt" href="#/editarpagina/${k}">Editar página</a></div>` : ''}</article>`;
 }

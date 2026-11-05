@@ -581,3 +581,12 @@ dialog [hidden] {
     transition: none;
   }
 }
+
+/* Texto justificado: hifeniza no fim da linha (pelos &shy; do site e pelo dicionário do navegador), sem espaços largos */
+.art .body [style*='text-align:justify'],
+.art .body [style*='text-align: justify'] {
+  -webkit-hyphens: auto;
+  hyphens: auto;
+  hyphenate-limit-chars: 6 2 3;
+  overflow-wrap: break-word;
+}
