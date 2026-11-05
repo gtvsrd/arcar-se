@@ -614,3 +614,81 @@ dialog [hidden] {
   hyphenate-limit-chars: 6 2 3;
   overflow-wrap: break-word;
 }
+
+/* ---------- Artigo: mais respiro no título, nas informações e no texto ---------- */
+.art {
+  --pad: 44px;
+}
+/* coluna de leitura centralizada: título, informações e texto com a mesma largura */
+.art:not(.art--edit) > :not(.cover--lg) {
+  max-width: 700px;
+  margin-left: auto;
+  margin-right: auto;
+}
+.art .cover--lg {
+  margin-bottom: 36px;
+}
+.art > .meta {
+  font-size: 14.5px;
+  gap: 6px 12px;
+  margin-bottom: 18px;
+}
+.art > .meta .avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 13px;
+}
+.art > h1 {
+  font-size: 38px;
+  line-height: 1.2;
+  letter-spacing: -0.01em;
+  margin: 0 auto 32px;
+  padding-bottom: 28px;
+  border-bottom: 1px solid var(--ln);
+}
+.art .body {
+  font-size: 18.5px;
+  line-height: 1.8;
+  max-width: 700px;
+}
+.art .body p,
+.art .body ul,
+.art .body ol {
+  margin: 0 0 1.3em;
+}
+.art .body li + li {
+  margin-top: 0.4em;
+}
+.art .body h2 {
+  font-size: 26px;
+  line-height: 1.3;
+  margin: 1.8em 0 0.7em;
+}
+.art .body h3 {
+  font-size: 21px;
+  line-height: 1.35;
+  margin: 1.6em 0 0.6em;
+}
+.art .body > :first-child {
+  margin-top: 0;
+}
+.art .body blockquote {
+  margin: 1.6em 0;
+  padding: 6px 0 6px 22px;
+  font-style: italic;
+}
+.art .body img {
+  margin: 0.6em 0;
+}
+.art > .acts,
+.art > p:last-child {
+  margin-top: 40px;
+}
+.art .cover--lg {
+  padding: 22px var(--pad); /* categoria alinhada com o texto */
+}
+.art:not(.art--edit) .cover--lg .cover-cats {
+  max-width: 700px;
+  width: 100%;
+  margin: 0 auto;
+}

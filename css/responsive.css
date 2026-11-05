@@ -13,7 +13,18 @@
     gap: 14px;
   }
   .art {
-    --pad: 20px;
+    --pad: 24px;
+  }
+  .art > h1 {
+    font-size: 30px;
+    margin-bottom: 24px;
+    padding-bottom: 22px;
+  }
+  .art .body {
+    font-size: 17.5px;
+  }
+  .art .cover--lg {
+    margin-bottom: 26px;
   }
   .cover--lg {
     height: 180px;
@@ -115,6 +126,13 @@
     padding: 14px;
   }
   .art {
-    --pad: 16px;
+    --pad: 18px;
+  }
+  /* informações do artigo em duas linhas arrumadas: autor; data · leituras */
+  .art > .meta .byline {
+    flex-basis: 100%;
+  }
+  .art > .meta .byline + span::before {
+    content: none;
   }
 }
