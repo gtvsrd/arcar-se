@@ -89,3 +89,6 @@ function squareImage(file, size = 320) {
     reader.readAsDataURL(file);
   });
 }
+
+/** Categorias de um artigo (até 3; a primeira é a principal). Funciona também com o banco antigo, que só tem "cat". */
+const catsOf = (p) => (Array.isArray(p.cats) && p.cats.length ? p.cats : [p.cat]);

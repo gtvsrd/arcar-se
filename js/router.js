@@ -21,7 +21,7 @@ function route() {
   else if (a === 'pagina') page(v);
   else if (a === 'cat')
     cards(
-      visible().filter((p) => p.cat === v),
+      visible().filter((p) => catsOf(p).includes(v)),
       'Categoria: ' + esc(v),
     );
   else if (a === 'busca') {

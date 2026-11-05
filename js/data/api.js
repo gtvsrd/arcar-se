@@ -14,7 +14,7 @@ const AUTH_LINK = {
 };
 
 const sb = isConfigured() ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
-let db = { posts: [], pages: {}, profiles: {}, views: {} }; // cache usado pelas telas
+let db = { posts: [], pages: {}, profiles: {}, views: {}, categories: [] }; // cache usado pelas telas
 let admin = false; // true se o administrador está logado
 let creator = false; // true se um criador (colaborador) está logado
 let me = null; // { id, email } do usuário da equipe logado
@@ -37,11 +37,12 @@ const postStatus = (p) => (p.pub ? 'published' : p.submitted ? 'review' : p.revi
 
 /** Carrega artigos, páginas, perfis e visualizações do banco para o cache (perfis e visualizações são opcionais). */
 async function loadAll() {
-  const [p, g, pr, v] = await Promise.all([
+  const [p, g, pr, v, ct] = await Promise.all([
     sb.from('posts').select('*').order('date', { ascending: false }),
     sb.from('pages').select('*'),
     sb.from('profiles').select('*'),
     sb.from('post_views').select('*'),
+    sb.from('categories').select('name').order('name'),
   ]);
   if (p.error || g.error) throw p.error || g.error;
   db.posts = p.data;
@@ -49,9 +50,34 @@ async function loadAll() {
   g.data.forEach((x) => (db.pages[x.slug] = { title: x.title, body: x.body }));
   db.profiles = {};
   (pr.data || []).forEach((x) => (db.profiles[x.user_id] = x));
+  db.categories = (ct.data || []).map((x) => x.name);
+  db.categoriesOn = !ct.error; // false se o SQL das categorias ainda não foi aplicado
   db.viewsOn = !v.error; // false se o SQL do contador ainda não foi aplicado
   db.views = {};
   (v.data || []).forEach((x) => (db.views[x.post_id] = Number(x.views)));
+}
+
+/** Todas as categorias conhecidas (lista oficial + as já usadas em artigos), em ordem alfabética. */
+const categoryNames = () =>
+  [...new Set([...db.categories, ...db.posts.flatMap(catsOf)])].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+
+/** Cria uma categoria (só admin). */
+async function addCategory(name) {
+  const { error } = await sb.from('categories').insert({ name: name.trim() });
+  if (error) throw error;
+  await loadAll();
+}
+/** Renomeia uma categoria em todos os artigos; se o nome novo já existir, mescla as duas (só admin). */
+async function renameCategory(oldName, newName) {
+  const { error } = await sb.rpc('rename_category', { p_old: oldName, p_new: newName });
+  if (error) throw error;
+  await loadAll();
+}
+/** Exclui uma categoria que nenhum artigo usa (só admin). */
+async function deleteCategory(name) {
+  const { error } = await sb.rpc('delete_category', { p_name: name });
+  if (error) throw error;
+  await loadAll();
 }
 
 /** Perfil (nome e foto) do autor de um artigo, ou null. */

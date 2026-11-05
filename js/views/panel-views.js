@@ -16,10 +16,11 @@ const shortDate = (d) => new Date(d).toLocaleDateString('pt-BR');
 
 /** Desenha o painel e a seção escolhida ('' artigos, 'perfil' ou 'equipe'). */
 function panel(tab) {
-  if (tab !== 'perfil' && tab !== 'equipe') tab = '';
-  if (tab === 'equipe' && !admin) tab = '';
+  if (!['perfil', 'equipe', 'categorias'].includes(tab)) tab = '';
+  if ((tab === 'equipe' || tab === 'categorias') && !admin) tab = '';
   const tabs = [
     ['', 'Artigos'],
+    ...(admin ? [['categorias', 'Categorias']] : []),
     ['perfil', 'Meu perfil'],
     ...(admin ? [['equipe', 'Equipe']] : []),
   ];
@@ -32,6 +33,7 @@ function panel(tab) {
      .join('')}</nav><div id="pbody"></div></div>`;
   if (tab === 'perfil') panelProfile();
   else if (tab === 'equipe') panelTeam();
+  else if (tab === 'categorias') panelCategories();
   else panelPosts();
 }
 
@@ -59,7 +61,7 @@ function panelPosts() {
   const mine = admin ? db.posts : db.posts.filter((p) => me && p.author_id === me.id);
   const count = (...st) => mine.filter((p) => st.includes(postStatus(p))).length;
   const total = mine.reduce((n, p) => n + viewsOf(p), 0);
-  const cats = [...new Set(mine.map((p) => p.cat))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  const cats = categoryNames();
   const authors = [...new Set(mine.map((p) => p.author_id || ''))].sort((a, b) =>
     authorName(a).localeCompare(authorName(b), 'pt-BR'),
   );
@@ -68,7 +70,7 @@ function panelPosts() {
 
   const cols = [
     ['title', 'Título'],
-    ['cat', 'Categoria'],
+    ['cat', 'Categorias'],
     ...(admin ? [['author', 'Autor']] : []),
     ['status', 'Situação'],
     ['feat', 'Destaque'],
@@ -119,7 +121,7 @@ function panelPosts() {
     const t = PF.q.trim().toLowerCase();
     const cmp = {
       title: (a, b) => a.title.localeCompare(b.title, 'pt-BR'),
-      cat: (a, b) => a.cat.localeCompare(b.cat, 'pt-BR'),
+      cat: (a, b) => catsOf(a).join().localeCompare(catsOf(b).join(), 'pt-BR'),
       author: (a, b) => authorName(a.author_id).localeCompare(authorName(b.author_id), 'pt-BR'),
       status: (a, b) => postStatus(a).localeCompare(postStatus(b)),
       feat: (a, b) => Number(a.featured) - Number(b.featured),
@@ -130,8 +132,8 @@ function panelPosts() {
     return mine
       .filter(
         (p) =>
-          (!t || `${p.title} ${p.cat} ${authorName(p.author_id)}`.toLowerCase().includes(t)) &&
-          (!PF.cat || p.cat === PF.cat) &&
+          (!t || `${p.title} ${catsOf(p).join(' ')} ${authorName(p.author_id)}`.toLowerCase().includes(t)) &&
+          (!PF.cat || catsOf(p).includes(PF.cat)) &&
           (!PF.author || (p.author_id || '-') === PF.author || (!p.author_id && PF.author === '-')) &&
           (!PF.status || postStatus(p) === PF.status) &&
           (PF.feat !== '1' || p.featured) &&
@@ -150,7 +152,7 @@ function panelPosts() {
       : '<span class="mut">—</span>';
     return `<tr>
      <td class="pt" data-l="Título"><a href="#/post/${esc(p.slug || p.id)}">${esc(p.title)}</a>${st === 'returned' ? `<div class="pnote">${esc(p.review_note)}</div>` : ''}</td>
-     <td data-l="Categoria">${esc(p.cat)}</td>
+     <td data-l="Categoria">${esc(catsOf(p).join(', '))}</td>
      ${admin ? `<td data-l="Autor"><span class="who">${who}</span></td>` : ''}
      <td data-l="Situação"><span class="st st--${st}">${STATUS_LABEL[st]}</span></td>
      <td data-l="Destaque">${p.featured ? '<span title="Em destaque">★</span>' : '<span class="mut">—</span>'}</td>
@@ -387,6 +389,115 @@ async function panelTeam() {
       toast(/inválido/i.test(err.message || '') ? 'E-mail inválido' : 'Não foi possível liberar: ' + err.message);
     } finally {
       btn.disabled = false;
+    }
+  };
+  draw();
+}
+
+/* ------------------------------------------------------------- Categorias */
+
+/** Gerencia a lista de categorias: criar, renomear (ou mesclar), excluir e ver os artigos de cada uma (só administrador). */
+function panelCategories() {
+  const countOf = (n) => db.posts.filter((p) => catsOf(p).includes(n)).length;
+  $('#pbody').innerHTML = `<div class="box">
+   <h3>Nova categoria</h3>
+   <p class="hint">Só o administrador cria categorias. Criadores e você escolhem entre elas ao editar um artigo (até ${MAX_CATS} por artigo).</p>
+   <form id="ci" class="pinvite"><input type="text" id="cin" required maxlength="40" placeholder="Nome da categoria" aria-label="Nome da nova categoria"><button class="btn" type="submit">Criar</button></form>
+  </div>
+  <div class="ptable-wrap"><table class="ptable ptable--cats"><caption class="sr">Categorias</caption>
+   <thead><tr><th scope="col">Categoria</th><th scope="col" class="num">Artigos</th><th scope="col">Ações</th></tr></thead>
+   <tbody id="crows"></tbody></table></div>
+  <p class="hint">Renomear para um nome que já existe mescla as duas categorias. Só é possível excluir categorias sem artigos.</p>`;
+  const draw = () => {
+    const names = categoryNames();
+    $('#crows').innerHTML =
+      names
+        .map((n) => {
+          const k = countOf(n);
+          return `<tr data-name="${esc(n)}">
+       <td class="pt" data-l="Categoria"><span class="cname">${esc(n)}</span></td>
+       <td class="num" data-l="Artigos">${k ? `<a href="#/painel" data-see="${esc(n)}">${k}</a>` : '0'}</td>
+       <td class="pa"><div class="acts">
+         <button class="btn sm alt" data-ren="${esc(n)}">Renomear</button>
+         <button class="btn sm del" data-delcat="${esc(n)}"${k ? ' disabled title="Em uso: renomeie/mescle antes de excluir"' : ''}>Excluir</button>
+       </div></td></tr>`;
+        })
+        .join('') || '<tr><td colspan="3" class="empty">Nenhuma categoria ainda.</td></tr>';
+  };
+  const fail = (err) => toast('Não foi possível concluir: ' + (err.message || 'erro'));
+  $('#ci').onsubmit = async (e) => {
+    e.preventDefault();
+    const n = $('#cin').value.trim();
+    if (categoryNames().some((x) => x.toLowerCase() === n.toLowerCase())) return toast('Essa categoria já existe');
+    try {
+      await addCategory(n);
+      $('#cin').value = '';
+      toast('Categoria criada');
+      draw();
+    } catch (err) {
+      fail(err);
+    }
+  };
+  $('#crows').onclick = async (e) => {
+    const see = e.target.closest('[data-see]');
+    if (see) {
+      PF.cat = see.dataset.see; // abre a lista de artigos já filtrada por essa categoria
+      return;
+    }
+    const ren = e.target.closest('[data-ren]');
+    if (ren) {
+      const tr = ren.closest('tr'),
+        old = ren.dataset.ren;
+      tr.querySelector('.cname').innerHTML = `<input type="text" class="cedit" maxlength="40" value="${esc(old)}" aria-label="Novo nome de ${esc(old)}">`;
+      tr.querySelector('.acts').innerHTML =
+        '<button class="btn sm" data-save>Salvar</button><button class="btn sm alt" data-cancel>Cancelar</button>';
+      const inp = tr.querySelector('.cedit');
+      inp.focus();
+      inp.select();
+      inp.onkeydown = (ev) => {
+        if (ev.key === 'Enter') tr.querySelector('[data-save]').click();
+        if (ev.key === 'Escape') draw();
+      };
+      tr.querySelector('[data-cancel]').onclick = draw;
+      tr.querySelector('[data-save]').onclick = async (b) => {
+        const nn = inp.value.trim(),
+          btn = b.currentTarget;
+        if (!nn || nn === old) return draw();
+        const exists = categoryNames().find((x) => x !== old && x.toLowerCase() === nn.toLowerCase());
+        if (exists && btn.dataset.ok !== '1') {
+          // nome que já existe: pede confirmação antes de mesclar
+          btn.dataset.ok = '1';
+          btn.textContent = `Mesclar em "${exists}"?`;
+          return;
+        }
+        try {
+          await renameCategory(old, exists || nn);
+          toast(exists ? 'Categorias mescladas' : 'Categoria renomeada');
+          draw();
+        } catch (err) {
+          fail(err);
+        }
+      };
+      return;
+    }
+    const del = e.target.closest('[data-delcat]');
+    if (del && !del.disabled) {
+      if (del.dataset.ok !== '1') {
+        del.dataset.ok = '1';
+        del.textContent = 'Confirmar';
+        setTimeout(() => {
+          del.dataset.ok = '';
+          del.textContent = 'Excluir';
+        }, 3000);
+        return;
+      }
+      try {
+        await deleteCategory(del.dataset.delcat);
+        toast('Categoria excluída');
+        draw();
+      } catch (err) {
+        fail(err);
+      }
     }
   };
   draw();

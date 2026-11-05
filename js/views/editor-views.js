@@ -2,6 +2,9 @@
  * Telas do administrador: editor de artigo/página e troca de senha
  */
 
+/** Máximo de categorias por artigo. */
+const MAX_CATS = 3;
+
 /** Formulário de criação/edição de artigo ou página. */
 function editor(kind, id) {
   const isPage = kind === 'page';
@@ -10,7 +13,7 @@ function editor(kind, id) {
     ? db.pages[id]
     : id
       ? findPost(id)
-      : { title: '', cat: '', excerpt: '', body: '', pub: admin, featured: false, slug: '' };
+      : { title: '', cat: '', cats: [], excerpt: '', body: '', pub: admin, featured: false, slug: '' };
   if (!it || (!isPage && id && !canEdit(it))) {
     location.hash = '#/';
     return;
@@ -22,6 +25,7 @@ function editor(kind, id) {
       : !isPage && admin && it.submitted && !it.pub
         ? `<div class="box notice">Enviado para revisão${authorOf(it) ? ' por <b>' + esc(authorOf(it).display_name) + '</b>' : ''}. Para publicar, marque <b>Publicado</b> abaixo.</div>`
         : '';
+  let picked = isPage ? [] : catsOf(it).filter(Boolean); // categorias escolhidas, na ordem (a primeira é a principal)
   const noName =
     creator && !(me && db.profiles[me.id] && db.profiles[me.id].display_name)
       ? '<div class="hint">Defina seu nome de exibição em <a href="#/painel/perfil">Painel › Perfil</a> para ele aparecer neste artigo.</div>'
@@ -32,7 +36,16 @@ function editor(kind, id) {
    ${
      isPage
        ? ''
-       : `<label for="c">Categoria</label><input type="text" id="c" required value="${esc(it.cat)}" list="cl"><datalist id="cl">${[...new Set(db.posts.map((p) => p.cat))].map((c) => `<option value="${esc(c)}">`).join('')}</datalist>
+       : `<fieldset class="catpick" id="catpick"><legend>Categorias <span class="mut">(escolha de 1 a ${MAX_CATS})</span></legend>${
+           categoryNames().length
+             ? `<div class="chips">${categoryNames()
+                 .map(
+                   (c) =>
+                     `<label class="chip"><input type="checkbox" name="cat" value="${esc(c)}"${picked.includes(c) ? ' checked' : ''}> ${esc(c)}</label>`,
+                 )
+                 .join('')}</div><div class="hint" id="cathint" role="status"></div>`
+             : `<div class="hint">Nenhuma categoria cadastrada.${admin ? ' Crie em <a href="#/painel/categorias">Painel › Categorias</a>.' : ' Peça ao administrador para criar.'}</div>`
+         }</fieldset>
    <label for="sl">Endereço do artigo (slug)</label><input type="text" id="sl" value="${esc(it.slug || '')}" autocomplete="off" spellcheck="false">
    <div class="hint" id="slhint"></div>
    <label for="e">Resumo (aparece no card)</label><input type="text" id="e" maxlength="160" value="${esc(it.excerpt)}">
@@ -137,6 +150,24 @@ function editor(kind, id) {
     });
     showSlug();
   }
+  if (!isPage && $('#catpick .chips')) {
+    // categorias: até MAX_CATS; a primeira escolhida é a principal (mostrada em destaque na capa)
+    const boxes = [...document.querySelectorAll('#catpick input[name=cat]')];
+    const refresh = () => {
+      boxes.forEach((b) => (b.disabled = !b.checked && picked.length >= MAX_CATS));
+      $('#cathint').textContent = picked.length
+        ? `Principal: ${picked[0]}${picked.length > 1 ? ' · outras: ' + picked.slice(1).join(', ') : ''} (${picked.length} de ${MAX_CATS})`
+        : 'Escolha ao menos uma categoria.';
+    };
+    boxes.forEach(
+      (b) =>
+        (b.onchange = () => {
+          picked = b.checked ? [...picked, b.value] : picked.filter((c) => c !== b.value);
+          refresh();
+        }),
+    );
+    refresh();
+  }
   if (admin && !isPage) {
     // limite de destaques: bloqueia a caixa se já houver o máximo em outros artigos
     const others = db.posts.filter((p) => p.featured && p.id !== pid).length;
@@ -167,10 +198,15 @@ function editor(kind, id) {
         location.hash = '#/pagina/' + id;
         return;
       }
+      if (!picked.length) {
+        toast('Escolha ao menos uma categoria');
+        return;
+      }
       const d = {
         title: $('#t').value.trim(),
         slug: uniqueSlug(slugify($('#sl').value) || slugify($('#t').value), pid),
-        cat: $('#c').value.trim(),
+        cat: picked[0],
+        cats: picked,
         excerpt: $('#e').value.trim() || plainText(body).slice(0, 130).trim() + '…',
         body,
         img,
