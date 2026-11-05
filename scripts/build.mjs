@@ -10,6 +10,7 @@
  * Variáveis opcionais: SITE_URL, SUPABASE_URL, SUPABASE_KEY, OUT_DIR
  */
 
+import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
@@ -97,7 +98,18 @@ const site = { config, base, basePath, helpers, posts, pages, profiles, year: ne
 fs.rmSync(OUT, { recursive: true, force: true });
 fs.mkdirSync(OUT, { recursive: true });
 for (const dir of ['assets', 'css', 'js']) fs.cpSync(path.join(ROOT, dir), path.join(OUT, dir), { recursive: true });
+// Cada CSS/JS/imagem do site ganha "?v=<impressão do conteúdo>" no HTML. Quando um arquivo muda, o endereço muda e o
+// navegador é obrigado a baixar a versão nova (sem isso ele pode misturar arquivos novos e antigos do cache por ~10 min).
+const hashes = {};
+const versionOf = (rel) =>
+  (hashes[rel] ??= crypto.createHash('sha1').update(fs.readFileSync(path.join(ROOT, rel))).digest('hex').slice(0, 10));
+const bust = (html) =>
+  html.replace(
+    /((?:href|src)=")([^"#?]*?)((?:css|js|assets)\/[^"#?]+\.(?:css|js|svg|png|ico))"/g,
+    (m, attr, prefix, rel) => (fs.existsSync(path.join(ROOT, rel)) ? `${attr}${prefix}${rel}?v=${versionOf(rel)}"` : m),
+  );
 const write = (rel, text) => {
+  if (rel.endsWith('.html')) text = bust(text);
   const f = path.join(OUT, rel);
   fs.mkdirSync(path.dirname(f), { recursive: true });
   fs.writeFileSync(f, text);
