@@ -264,3 +264,69 @@
   border: 1px solid var(--ln);
   border-radius: 4px;
 }
+
+/* Botões do painel: todos do mesmo tamanho */
+.ptable .btn.sm {
+  box-sizing: border-box;
+  width: 104px;
+  height: 32px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+.pfilters .btn,
+.pinvite .btn {
+  box-sizing: border-box;
+  min-width: 120px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Telas largas: colunas e conteúdos centralizados, com linhas verticais entre as colunas */
+@media (min-width: 761px) {
+  .ptable th,
+  .ptable td,
+  .ptable .num {
+    text-align: center;
+  }
+  .ptable th + th,
+  .ptable td + td {
+    border-left: 1px solid var(--ln);
+  }
+  /* primeira coluna: só o título do cabeçalho fica centralizado; o conteúdo alinha à esquerda */
+  .ptable td:first-child {
+    text-align: left;
+  }
+  /* ações: 2 botões por linha; se sobrar um sozinho (ex.: Excluir), ele ocupa a largura dos dois de cima */
+  .ptable .pa .acts {
+    display: grid;
+    grid-template-columns: repeat(2, 104px);
+    gap: 6px;
+    justify-content: center;
+    margin: 0 auto;
+  }
+  .ptable .pa .acts > .btn.sm {
+    width: 100%;
+  }
+  .ptable .pa .acts > :last-child:nth-child(odd) {
+    grid-column: 1 / -1;
+  }
+  .who {
+    justify-content: center;
+  }
+  .pfilters label {
+    text-align: center;
+  }
+  .pfilters input,
+  .pfilters select {
+    text-align: center;
+    text-align-last: center;
+  }
+  .pfilters .btn {
+    justify-self: center;
+  }
+}

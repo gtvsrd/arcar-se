@@ -338,13 +338,13 @@ async function panelTeam() {
        <td data-l="Nome">${esc(m.display_name) || '<span class="mut">—</span>'}</td>
        <td data-l="E-mail">${esc(m.email)}</td>
        <td data-l="Papel"><span class="st st--${m.role}">${ROLE_LABEL[m.role]}</span></td>
-       <td class="pa">${
+       <td class="pa"><div class="acts">${
          m.role === 'creator'
            ? `<button class="btn sm del" data-rm="${esc(m.user_id)}">Remover acesso</button>`
            : m.role === 'invite'
              ? `<button class="btn sm del" data-cancel="${esc(m.email)}">Cancelar convite</button>`
              : ''
-       }</td></tr>`,
+       }</div></td></tr>`,
       )
       .join('');
   };
