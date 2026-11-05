@@ -33,6 +33,34 @@
     justify-content: center;
     gap: 12px;
   }
+  /* Logo centralizada: símbolo rente ao nome e a frase centralizada embaixo de tudo */
+  .logo {
+    display: grid;
+    grid-template-columns: max-content max-content;
+    grid-template-areas:
+      'mark name'
+      'tag tag';
+    justify-content: center;
+    align-items: center;
+    column-gap: 8px;
+    row-gap: 8px;
+  }
+  .logo-text {
+    display: contents; /* o nome e a frase passam a ser itens da grade do .logo */
+  }
+  .logo-mark {
+    grid-area: mark;
+    height: 46px;
+  }
+  .logo-name {
+    grid-area: name;
+  }
+  .logo small {
+    grid-area: tag;
+    justify-self: stretch;
+    margin-inline: -32px; /* a frase não alarga a coluna do símbolo e do nome */
+    text-align: center;
+  }
   nav {
     display: flex;
     flex-wrap: wrap;
