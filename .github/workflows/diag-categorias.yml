@@ -1,0 +1,17 @@
+name: Diagnostico categorias (temporario)
+on:
+  push:
+    branches: [diag-categorias]
+jobs:
+  diag:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: |
+          U=$(grep -o "https://[a-z0-9]*\.supabase\.co" js/config.js)
+          K=$(node -e "const fs=require('fs');const s=fs.readFileSync('js/config.js','utf8');const m=s.match(/SUPABASE_ANON_KEY\s*=\s*['\"]([^'\"]+)/);console.log(m?m[1]:'')")
+          echo "key ok: ${#K}"
+          for t in "categories?select=*" "posts?select=slug,cat,cats,pub&order=date.desc" "post_views?select=*&limit=3" "profiles?select=display_name"; do
+            echo "== $t"; curl -s -w "\nHTTP %{http_code}\n" "$U/rest/v1/$t" -H "apikey: $K"
+          done
+          echo "== rpc delete_category (anon, deve recusar)"; curl -s -w "\nHTTP %{http_code}\n" -X POST "$U/rest/v1/rpc/delete_category" -H "apikey: $K" -H "Content-Type: application/json" -d '{"p_name":"__inexistente__"}'
