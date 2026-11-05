@@ -1,20 +1,19 @@
--- Arcar.se: passa a autoria dos artigos do administrador atual para o OUTRO administrador.
--- Cole TODO o conteúdo no SQL Editor e clique em Run. Só funciona quando existem exatamente 2 administradores.
--- Artigos de criadores (colaboradores) não são alterados. O resultado final mostra quantos artigos cada administrador tem.
+-- Arcar.se: passa a autoria dos artigos para um administrador escolhido pelo e-mail.
+-- Passo 1: rode como está. Aparece a lista de administradores (com e-mail) e quantos artigos cada um tem; "(sem autor)" são os artigos antigos.
+-- Passo 2: troque o e-mail na linha marcada abaixo pelo do administrador que vai assinar os artigos e rode de novo.
+-- Artigos de criadores (colaboradores) não são alterados.
 
 do $$
-declare antigo uuid; novo uuid; n int;
+declare
+  novo_email text := 'COLOQUE-AQUI-O-EMAIL-DO-ADMINISTRADOR';  -- <<< troque só este texto, mantendo as aspas
+  novo uuid;
 begin
-  select count(*) into n from public.admins;
-  if n <> 2 then
-    raise exception 'Esperava exatamente 2 administradores, mas existem %. Me peça a versão com o e-mail escolhido.', n;
+  if novo_email like 'COLOQUE-AQUI%' then return; end if; -- passo 1: só mostra a lista
+  select a.user_id into novo from public.admins a join auth.users u on u.id = a.user_id
+   where lower(u.email) = lower(btrim(novo_email));
+  if novo is null then
+    raise exception 'O e-mail % não é de um administrador. Confira a lista do passo 1.', novo_email;
   end if;
-  -- "antigo" = o administrador que hoje mais assina artigos; "novo" = o outro
-  select author_id into antigo from public.posts
-   where author_id in (select user_id from public.admins)
-   group by author_id order by count(*) desc limit 1;
-  if antigo is null then raise exception 'Nenhum artigo de administrador para trocar.'; end if;
-  select user_id into novo from public.admins where user_id <> antigo;
   -- o gatilho posts_guard protege o autor contra alterações; aqui a troca é intencional, então ele fica desligado só durante o UPDATE
   alter table public.posts disable trigger posts_guard;
   update public.posts set author_id = novo
@@ -28,4 +27,6 @@ select u.email, coalesce(p.display_name, '(sem nome de exibição)') as nome,
   from public.admins a
   join auth.users u on u.id = a.user_id
   left join public.profiles p on p.user_id = a.user_id
- order by u.email;
+union all
+select '(sem autor)', '', count(*) from public.posts where author_id is null
+order by 1;
