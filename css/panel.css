@@ -264,3 +264,57 @@
   border: 1px solid var(--ln);
   border-radius: 4px;
 }
+
+/* Botões do painel: todos do mesmo tamanho */
+.ptable .btn.sm {
+  box-sizing: border-box;
+  width: 104px;
+  height: 32px;
+  padding: 0 8px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  white-space: nowrap;
+}
+.pfilters .btn,
+.pinvite .btn {
+  box-sizing: border-box;
+  min-width: 120px;
+  height: 38px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Telas largas: colunas e conteúdos centralizados, com linhas verticais entre as colunas */
+@media (min-width: 761px) {
+  .ptable th,
+  .ptable td,
+  .ptable .num {
+    text-align: center;
+  }
+  .ptable th + th,
+  .ptable td + td {
+    border-left: 1px solid var(--ln);
+  }
+  .ptable .pa .acts {
+    justify-content: center;
+    gap: 6px;
+    max-width: 214px; /* no máximo 2 botões por linha */
+    margin: 0 auto;
+  }
+  .who {
+    justify-content: center;
+  }
+  .pfilters label {
+    text-align: center;
+  }
+  .pfilters input,
+  .pfilters select {
+    text-align: center;
+    text-align-last: center;
+  }
+  .pfilters .btn {
+    justify-self: center;
+  }
+}

@@ -203,7 +203,7 @@ a.cover-cat:hover {
   overflow: hidden;
 }
 .art .body {
-  font-family: Merriweather, Georgia, serif;
+  font-family: Georgia, 'Times New Roman', serif; /* texto do artigo e do editor */
   font-size: 17px;
   line-height: 1.85;
   max-width: 68ch;
