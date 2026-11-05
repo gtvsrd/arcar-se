@@ -75,12 +75,32 @@
   /* Destaques: setas sobre a imagem (sem cobrir o texto), então o texto usa a largura toda */
   .hero {
     --k: 1.2;
-    --side: calc(16px * var(--k));
+    --side: 20px;
+    --hero-cover: 150px;
+  }
+  .hero .cover-cat {
+    font-size: 22px;
+  }
+  .hero .cover .cover-cat--more {
+    font-size: 15px;
+  }
+  .hero .cb {
+    padding: 22px var(--side) 20px;
+  }
+  .hero .cb h2 {
+    font-size: 25px;
+  }
+  .hero .meta {
+    font-size: 13.5px;
+  }
+  .hero .cb p {
+    font-size: 16.5px;
+    margin: 12px 0 18px;
   }
   .hero-nav {
     width: 38px;
     height: 38px;
-    top: calc(65px * var(--k));
+    top: calc(var(--hero-cover) / 2); /* no meio da faixa colorida, sem cobrir o texto */
   }
 }
 

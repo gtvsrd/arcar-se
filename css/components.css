@@ -14,7 +14,7 @@
   height: 130px;
   display: flex;
   align-items: flex-end;
-  padding: 12px 14px;
+  padding: 14px 22px;
   color: #1f2d33;
   overflow: hidden;
 }
@@ -64,13 +64,15 @@ a.cover-cat:hover {
   font-size: 16px;
 }
 .cb {
-  padding: 16px;
+  padding: 20px 22px 18px;
   display: flex;
   flex-direction: column;
   flex: 1;
 }
 .cb h2 {
-  font-size: 19px;
+  font-size: 21px;
+  line-height: 1.3;
+  margin: 0 0 10px;
 }
 .cb h2 a {
   color: var(--ink);
@@ -131,9 +133,21 @@ a.cover-cat:hover {
   object-fit: cover;
 }
 
+.cb .meta {
+  font-size: 13.5px;
+}
 .cb p {
-  margin: 0.4em 0 14px;
+  margin: 12px 0 18px;
   flex: 1;
+  font-size: 16px;
+  line-height: 1.65;
+  color: color-mix(in srgb, var(--ink) 82%, var(--sf));
+}
+.grid .cb p {
+  display: -webkit-box;
+  -webkit-line-clamp: 4;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
 }
 .acts {
   display: flex;
@@ -433,6 +447,16 @@ dialog [hidden] {
   align-items: center;
   justify-content: space-between;
   gap: 8px 12px;
+  padding-top: 14px;
+  border-top: 1px solid var(--ln);
+}
+.card-foot .more {
+  font-weight: 600;
+  font-size: 15px;
+}
+.card-foot .views {
+  font-size: 13.5px;
+  color: var(--mut);
 }
 .card-foot .acts {
   margin: 0 0 0 auto;

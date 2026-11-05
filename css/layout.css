@@ -93,7 +93,7 @@ header.top :focus-visible {
 .grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(min(250px, 100%), 1fr));
-  gap: 22px;
+  gap: 26px;
 }
 footer {
   text-align: center;

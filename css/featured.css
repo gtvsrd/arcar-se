@@ -28,7 +28,7 @@
 .hero-slide {
   flex: 0 0 100%;
   min-width: 0;
-  height: calc(var(--card-h) * var(--k));
+  min-height: calc(var(--card-h) * var(--k));
 }
 .hero .card {
   height: 100%;
@@ -36,36 +36,51 @@
   border: 0;
   border-radius: 0;
 }
+/* Destaque: tamanhos próprios (título bem maior que as informações e o resumo) */
+.hero {
+  --hero-cover: 170px;
+}
 .hero .cover {
-  height: calc(130px * var(--k));
-  padding: calc(12px * var(--k)) calc(14px * var(--k));
+  height: var(--hero-cover);
+  padding: 18px var(--side);
 }
 .hero .cover-cat {
-  font-size: calc(20px * var(--k));
+  font-size: 28px;
 }
 .hero .cover .cover-cat--more {
-  font-size: calc(14px * var(--k));
+  font-size: 17px;
 }
 .hero .cb {
-  padding: calc(16px * var(--k)) var(--side);
+  padding: 28px var(--side) 24px;
 }
 .hero .cb h2 {
-  font-size: calc(19px * var(--k));
+  font-size: 34px;
+  line-height: 1.22;
+  margin-bottom: 14px;
 }
 .hero .meta {
-  font-size: calc(14px * var(--k));
+  font-size: 15px;
+}
+.hero .meta .avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 13px;
 }
 .hero .cb p {
-  font-size: calc(17px * var(--k));
+  font-size: 18.5px;
+  line-height: 1.6;
+  margin: 16px 0 22px;
   display: -webkit-box;
   -webkit-line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
-.hero .card-foot > a {
-  font-size: calc(17px * var(--k));
+.hero .card-foot .more {
+  font-size: 16.5px;
 }
-
+.hero .card-foot .views {
+  font-size: 15px;
+}
 /* Setas dos dois lados */
 .hero-nav {
   position: absolute;
