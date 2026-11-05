@@ -36,11 +36,19 @@ const isHttp = (u) => /^https?:\/\//i.test(u || '');
 
 /** Faixa do topo do card/artigo: imagem de capa (se houver) ou cor da categoria. `root` é o caminho até a raiz do site. */
 export function coverHTML(p, { large = false, root, site }) {
-  const { esc, colorOf } = site.helpers;
+  const { esc, colorOf, catsOf } = site.helpers;
   const img = isHttp(p.img) ? `<img src="${esc(p.img)}" alt="" loading="lazy">` : '';
-  const cat = large
-    ? `<a class="cover-cat" href="${root}#/cat/${encodeURIComponent(p.cat)}">${esc(p.cat)}</a>`
-    : `<span class="cover-cat">${esc(p.cat)}</span>`;
+  const cat =
+    '<div class="cover-cats">' +
+    catsOf(p)
+      .map((c, i) => {
+        const cls = 'cover-cat' + (i ? ' cover-cat--more' : '');
+        return large
+          ? `<a class="${cls}" href="${root}#/cat/${encodeURIComponent(c)}">${esc(c)}</a>`
+          : `<span class="${cls}">${esc(c)}</span>`;
+      })
+      .join('') +
+    '</div>';
   return `<div class="cover${large ? ' cover--lg' : ''}${isHttp(p.img) ? ' has-img' : ''}" style="background:${colorOf(p.cat)}">${img}${cat}</div>`;
 }
 
@@ -52,7 +60,7 @@ export function bylineHTML(p, site) {
   const av = isHttp(a.avatar_url)
     ? `<img class="avatar" src="${esc(a.avatar_url)}" alt="" width="24" height="24" loading="lazy">`
     : `<span class="avatar avatar--ph" aria-hidden="true">${esc([...a.display_name][0].toUpperCase())}</span>`;
-  return `<span class="byline">${av}<span>${esc(a.display_name)}</span></span>`;
+  return `<span class="byline">${av}<span>Por <strong>${esc(a.display_name)}</strong></span></span>`;
 }
 
 /** Card de artigo (mesmo HTML do app, sem os botões de administrador). */
@@ -79,7 +87,7 @@ export function navHTML(site, root) {
 export function sideHTML(site, root) {
   const { esc } = site.helpers;
   const cats = {};
-  site.posts.forEach((p) => (cats[p.cat] = (cats[p.cat] || 0) + 1));
+  site.posts.forEach((p) => site.helpers.catsOf(p).forEach((c) => (cats[c] = (cats[c] || 0) + 1)));
   return `<div class="box"><h3>Sobre o blog</h3><p>Textos de psicologia para quem quer se entender melhor e assumir a própria história. Para o público em geral, estudantes e profissionais.</p></div>
    <div class="box"><h3>Buscar</h3><input type="text" id="q" placeholder="Digite e tecle Enter" aria-label="Buscar artigos"></div>
    <div class="box"><h3>Categorias</h3><ul>${
@@ -175,14 +183,14 @@ export function postPage(p, site) {
       description,
       image: [image],
       datePublished: p.date,
-      articleSection: p.cat,
+      articleSection: site.helpers.catsOf(p),
       inLanguage: c.language,
       mainEntityOfPage: url,
       publisher: { '@type': 'Organization', name: c.siteName },
       author: author ? { '@type': 'Person', name: author.display_name } : { '@type': 'Organization', name: c.siteName },
     },
   }).concat(`\n    <meta property="article:published_time" content="${esc(p.date)}" />`)
-    .concat(`\n    <meta property="article:section" content="${esc(p.cat)}" />`);
+    .concat(site.helpers.catsOf(p).map((c) => `\n    <meta property="article:section" content="${esc(c)}" />`).join(''));
   const main = `<article class="art">${coverHTML(p, { large: true, root, site })}<div class="meta">${bylineHTML(p, site)}<span>${fmt(p.date)}</span><span class="views" id="views" hidden></span></div>
    <h1>${esc(p.title)}</h1><div class="body">${md(p.body)}</div>
    <p><a href="${root}">← Voltar aos artigos</a></p></article>`;

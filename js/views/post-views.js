@@ -5,9 +5,17 @@
 /** Faixa do topo do card/artigo: imagem de capa (se houver) ou cor da categoria, com a categoria em destaque. */
 function coverHTML(p, large) {
   const img = p.img ? `<img src="${esc(p.img)}" alt="" loading="lazy">` : '';
-  const cat = large
-    ? `<a class="cover-cat" href="#/cat/${encodeURIComponent(p.cat)}">${esc(p.cat)}</a>`
-    : `<span class="cover-cat">${esc(p.cat)}</span>`;
+  const cat =
+    '<div class="cover-cats">' +
+    catsOf(p)
+      .map((c, i) => {
+        const cls = 'cover-cat' + (i ? ' cover-cat--more' : '');
+        return large
+          ? `<a class="${cls}" href="#/cat/${encodeURIComponent(c)}">${esc(c)}</a>`
+          : `<span class="${cls}">${esc(c)}</span>`;
+      })
+      .join('') +
+    '</div>';
   return `<div class="cover${large ? ' cover--lg' : ''}${p.img ? ' has-img' : ''}" style="background:${colorOf(p.cat)}">${img}${cat}</div>`;
 }
 
@@ -25,7 +33,7 @@ function bylineHTML(p) {
   const av = a.avatar_url
     ? `<img class="avatar" src="${esc(a.avatar_url)}" alt="" width="24" height="24" loading="lazy">`
     : `<span class="avatar avatar--ph" aria-hidden="true">${esc([...a.display_name][0].toUpperCase())}</span>`;
-  return `<span class="byline">${av}<span>${esc(a.display_name)}</span></span>`;
+  return `<span class="byline">${av}<span>Por <strong>${esc(a.display_name)}</strong></span></span>`;
 }
 
 /** Linha de informações do artigo: autor, data e leituras. */

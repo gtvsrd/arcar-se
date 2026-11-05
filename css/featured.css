@@ -43,6 +43,9 @@
 .hero .cover-cat {
   font-size: calc(20px * var(--k));
 }
+.hero .cover .cover-cat--more {
+  font-size: calc(14px * var(--k));
+}
 .hero .cb {
   padding: calc(16px * var(--k)) var(--side);
 }

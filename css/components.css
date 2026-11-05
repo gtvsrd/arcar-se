@@ -42,12 +42,26 @@
 a.cover-cat:hover {
   text-decoration: underline;
 }
+.cover-cats {
+  position: relative;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 12px;
+}
+.cover .cover-cat--more {
+  font-size: 14px;
+  font-weight: 600;
+}
 .cover--lg {
   height: 260px;
   margin: calc(var(--pad) * -1) calc(var(--pad) * -1) 24px;
 }
 .cover--lg .cover-cat {
   font-size: 26px;
+}
+.cover--lg .cover-cat--more {
+  font-size: 16px;
 }
 .cb {
   padding: 16px;
@@ -85,8 +99,11 @@ a.cover-cat:hover {
   display: inline-flex;
   align-items: center;
   gap: 7px;
+  color: var(--mut);
+}
+.byline strong {
   color: var(--ink);
-  font-weight: 600;
+  font-weight: 700;
 }
 .avatar {
   width: 24px;
@@ -460,4 +477,46 @@ dialog [hidden] {
 .draft--returned {
   background: var(--err);
   color: var(--bg);
+}
+
+/* Escolha de categorias no editor */
+.catpick {
+  border: 0;
+  padding: 0;
+  margin: 14px 0 0;
+}
+.catpick legend {
+  font-weight: 600;
+  padding: 0;
+  margin-bottom: 6px;
+}
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin: 0;
+  padding: 5px 12px;
+  border: 1px solid var(--ln);
+  border-radius: 16px;
+  background: var(--bg);
+  font-weight: 400;
+  cursor: pointer;
+}
+.chip:has(input:checked) {
+  background: var(--chip);
+  border-color: var(--ac);
+  font-weight: 600;
+}
+.chip:has(input:disabled) {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+.chip input {
+  width: auto;
+  margin: 0;
 }
