@@ -15,7 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
-import { homeMain, headMeta, navHTML, sideHTML, postPage, fixedPage, notFoundPage } from './templates.mjs';
+import { cardHTML, homeMain, headMeta, navHTML, sideHTML, postPage, fixedPage, notFoundPage } from './templates.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.resolve(ROOT, process.env.OUT_DIR || '_site');
@@ -43,7 +43,7 @@ if (!SUPABASE_URL || !SUPABASE_KEY || /SEU-PROJETO|SUA-CHAVE/.test(SUPABASE_URL 
 
 // ---------- funções compartilhadas com o app (mesmo código do navegador, para o texto sair idêntico) ----------
 const helpers = vm.runInNewContext(
-  read('js/utils/helpers.js') + '\n' + read('js/utils/markdown.js') + '\n({ esc, fmt, colorOf, md, plainText, slugify, catsOf })',
+  read('js/utils/helpers.js') + '\n' + read('js/utils/markdown.js') + '\n({ esc, fmt, fmtShort, colorOf, md, plainText, slugify, catsOf })',
   {},
 );
 
@@ -92,7 +92,16 @@ pages.sort((a, b) => {
   return i(a) - i(b) || a.slug.localeCompare(b.slug);
 });
 
+// Carrossel de destaques: usa o mesmo featured-views.js do app, com o card estático do build
+const featCtx = {};
+vm.createContext(featCtx);
+vm.runInContext(
+  fs.readFileSync(path.join(ROOT, 'js/views/featured-views.js'), 'utf8') + '\n;this.featuredHTML = featuredHTML; this.HERO_MAX = HERO_MAX;',
+  featCtx,
+);
 const site = { config, base, basePath, helpers, posts, pages, profiles, year: new Date().getFullYear() };
+featCtx.cardHTML = (p, hero) => cardHTML(p, { root: '', site, hero });
+site.featured = { HERO_MAX: featCtx.HERO_MAX, html: (list) => featCtx.featuredHTML(list) };
 
 // ---------- saída ----------
 fs.rmSync(OUT, { recursive: true, force: true });

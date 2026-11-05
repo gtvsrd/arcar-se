@@ -18,7 +18,7 @@ function featuredHTML(list) {
       <div class="hero-viewport"><div class="hero-track">${list
         .map(
           (p, i) =>
-            `<div class="hero-slide" role="group" aria-roledescription="slide" aria-label="${i + 1} de ${list.length}">${cardHTML(p)}</div>`,
+            `<div class="hero-slide" role="group" aria-roledescription="slide" aria-label="${i + 1} de ${list.length}">${cardHTML(p, true)}</div>`,
         )
         .join('')}</div></div>
       ${
@@ -31,7 +31,9 @@ function featuredHTML(list) {
     ${
       nav
         ? `<div class="hero-dots">${list
-            .map((p, i) => `<button type="button" class="hero-dot" aria-label="Ir para o destaque ${i + 1}"></button>`)
+            .map((p, i) =>
+                `<button type="button" class="hero-dot${i ? '' : ' on'}" aria-label="Ir para o destaque ${i + 1}" aria-current="${i === 0}"></button>`,
+            )
             .join('')}</div>`
         : ''
     }
