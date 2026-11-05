@@ -43,7 +43,7 @@ if (!SUPABASE_URL || !SUPABASE_KEY || /SEU-PROJETO|SUA-CHAVE/.test(SUPABASE_URL 
 
 // ---------- funções compartilhadas com o app (mesmo código do navegador, para o texto sair idêntico) ----------
 const helpers = vm.runInNewContext(
-  read('js/utils/helpers.js') + '\n' + read('js/utils/markdown.js') + '\n({ esc, fmt, fmtShort, colorOf, md, plainText, slugify, catsOf })',
+  read('js/utils/helpers.js') + '\n' + read('js/utils/markdown.js') + '\n({ esc, fmt, fmtShort, colorOf, md, plainText, slugify, catsOf, hyphenateJustified })',
   {},
 );
 

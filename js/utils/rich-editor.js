@@ -19,7 +19,7 @@ const rteEscape = (t) =>
 /** Escapa o começo das linhas que virariam título, lista, citação ou alinhamento sem ninguém pedir. */
 const rteEscapeStarts = (t) =>
   t
-    .replace(/^(#{2,3} |- |> |\{(?:centro|direita)\})/gm, '\\$1')
+    .replace(/^(#{2,3} |- |> |\{(?:centro|direita|justificado)\})/gm, '\\$1')
     .replace(/^(\d+)\. /gm, '$1\\. ');
 
 /** Codifica o que encerraria o endereço antes da hora no Markdown: espaços e parênteses. */
@@ -78,6 +78,7 @@ function rteAlign(el, inherited = '') {
   const a = (el.style && el.style.textAlign) || (el.getAttribute && el.getAttribute('align')) || '';
   if (a === 'center') return '{centro} ';
   if (a === 'right' || a === 'end') return '{direita} ';
+  if (a === 'justify') return '{justificado} ';
   return a ? '' : inherited;
 }
 
@@ -173,6 +174,7 @@ const RTE_TOOLS = [
     ['justifyLeft', 'Alinhar à esquerda', rteIcon('M4 6h16M4 12h10M4 18h13')],
     ['justifyCenter', 'Centralizar', rteIcon('M4 6h16M7 12h10M6 18h12')],
     ['justifyRight', 'Alinhar à direita', rteIcon('M4 6h16M10 12h10M7 18h13')],
+    ['justifyFull', 'Justificar', rteIcon('M4 6h16M4 12h16M4 18h16')],
   ],
   [
     ['link', 'Inserir link (Ctrl+K)', rteIcon('M10 14a4 4 0 0 0 6 0l3-3a4 4 0 0 0-6-6l-1 1M14 10a4 4 0 0 0-6 0l-3 3a4 4 0 0 0 6 6l1-1')],
