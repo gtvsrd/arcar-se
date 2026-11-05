@@ -68,7 +68,52 @@ a.cover-cat:hover {
 .meta {
   font-size: 14px;
   color: var(--mut);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 10px;
 }
+.meta > span + span:not(.draft)::before {
+  content: '·';
+  margin-right: 10px;
+}
+.meta .draft {
+  margin-left: 0;
+}
+/* Autor com foto pequena (artigo, card e painel) */
+.byline {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: var(--ink);
+  font-weight: 600;
+}
+.avatar {
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: none;
+  background: var(--chip);
+  color: var(--chip-ink);
+  display: inline-grid;
+  place-items: center;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 1;
+}
+.avatar--lg {
+  width: 96px;
+  height: 96px;
+  font-size: 38px;
+  overflow: hidden;
+}
+.avatar--lg img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
 .cb p {
   margin: 0.4em 0 14px;
   flex: 1;
@@ -374,4 +419,45 @@ dialog [hidden] {
 }
 .card-foot .acts {
   margin: 0 0 0 auto;
+}
+
+/* Avisos, contador no menu e botão com cara de link */
+.notice {
+  border-left: 4px solid var(--warm);
+  padding: 12px 16px;
+}
+.notice ul {
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+.pill {
+  display: inline-block;
+  min-width: 18px;
+  padding: 0 5px;
+  border-radius: 9px;
+  background: var(--warm);
+  color: #1e2b2a;
+  font-size: 12px;
+  font-weight: 700;
+  line-height: 18px;
+  text-align: center;
+}
+.linkbtn {
+  background: none;
+  border: 0;
+  padding: 0;
+  color: var(--ac);
+  text-decoration: underline;
+  cursor: pointer;
+}
+.err.ok {
+  color: var(--ac);
+}
+.draft--review {
+  background: var(--warm);
+  color: #1e2b2a;
+}
+.draft--returned {
+  background: var(--err);
+  color: var(--bg);
 }

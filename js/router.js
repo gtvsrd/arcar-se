@@ -8,11 +8,12 @@ function route() {
     a = h[0],
     v = decodeURIComponent(h.slice(1).join('/'));
   stopCarousel();
+  document.body.classList.toggle('on-panel', a === 'painel');
   renderNav();
   renderSide();
   window.scrollTo(0, 0);
-  const guard = ['novo', 'editar', 'editarpagina', 'conta'];
-  if (guard.includes(a) && !admin) {
+  const guard = ['novo', 'editar', 'editarpagina', 'conta', 'painel'];
+  if (guard.includes(a) && (a === 'editarpagina' ? !admin : !staff())) {
     $('#main').innerHTML = '<div class="box">Esta área é restrita. Use o botão <b>Entrar</b> no topo da página.</div>';
     return;
   }
@@ -33,5 +34,7 @@ function route() {
   else if (a === 'editar') editor('post', v);
   else if (a === 'editarpagina') editor('page', v);
   else if (a === 'conta') account();
+  else if (a === 'redefinir') resetPassword();
+  else if (a === 'painel') panel(v);
   else home();
 }

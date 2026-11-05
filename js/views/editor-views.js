@@ -10,12 +10,23 @@ function editor(kind, id) {
     ? db.pages[id]
     : id
       ? findPost(id)
-      : { title: '', cat: '', excerpt: '', body: '', pub: true, featured: false, slug: '' };
-  if (!it) {
+      : { title: '', cat: '', excerpt: '', body: '', pub: admin, featured: false, slug: '' };
+  if (!it || (!isPage && id && !canEdit(it))) {
     location.hash = '#/';
     return;
   }
-  $('#main').innerHTML = `<div class="art art--edit"><h1>${isPage ? 'Editar página' : id ? 'Editar artigo' : 'Novo artigo'}</h1>
+  // avisos no topo: devolução do admin (para o criador) e pedido de revisão (para o admin)
+  const note =
+    !isPage && it.review_note
+      ? `<div class="box notice"><b>Devolvido pelo administrador:</b> ${esc(it.review_note)}</div>`
+      : !isPage && admin && it.submitted && !it.pub
+        ? `<div class="box notice">Enviado para revisão${authorOf(it) ? ' por <b>' + esc(authorOf(it).display_name) + '</b>' : ''}. Para publicar, marque <b>Publicado</b> abaixo.</div>`
+        : '';
+  const noName =
+    creator && !(me && db.profiles[me.id] && db.profiles[me.id].display_name)
+      ? '<div class="hint">Defina seu nome de exibição em <a href="#/painel/perfil">Painel › Perfil</a> para ele aparecer neste artigo.</div>'
+      : '';
+  $('#main').innerHTML = `<div class="art art--edit"><h1>${isPage ? 'Editar página' : id ? 'Editar artigo' : 'Novo artigo'}</h1>${note}${noName}
   <form id="f">
    <label for="t">Título</label><input type="text" id="t" required value="${esc(it.title)}">
    ${
@@ -39,10 +50,20 @@ function editor(kind, id) {
    ${
      isPage
        ? ''
-       : `<label><input type="checkbox" id="pub" ${it.pub ? 'checked' : ''}> Publicado (desmarque para salvar como rascunho)</label>
+       : admin
+         ? `<label><input type="checkbox" id="pub" ${it.pub ? 'checked' : ''}> Publicado (desmarque para salvar como rascunho)</label>
    <label><input type="checkbox" id="feat" ${it.featured ? 'checked' : ''}> Destacar na página inicial (máximo de ${HERO_MAX})</label><div class="hint" id="feathint"></div>`
+         : it.pub
+           ? '<div class="hint">Este artigo está publicado. As alterações vão ao ar assim que você salvar.</div>'
+           : '<div class="hint">Criadores não publicam: salve como rascunho ou envie para revisão e o administrador publica.</div>'
    }
-   <div class="acts" style="margin-top:18px"><button class="btn" type="submit">${isPage ? 'Salvar página' : 'Salvar artigo'}</button><a class="btn alt" href="#/">Cancelar</a></div>
+   <div class="acts" style="margin-top:18px">${
+     isPage || admin
+       ? `<button class="btn" type="submit">${isPage ? 'Salvar página' : 'Salvar artigo'}</button>`
+       : it.pub
+         ? '<button class="btn" type="submit" data-act="save">Salvar alterações</button>'
+         : '<button class="btn" type="submit" data-act="review">Enviar para revisão</button><button class="btn alt" type="submit" data-act="draft">Salvar rascunho</button>'
+   }<a class="btn alt" href="${admin ? '#/' : '#/painel'}">Cancelar</a></div>
   </form></div>`;
   const rte = createRichEditor($('#rte'), it.body, 'blabel');
   $('#blabel').onclick = () => rte.focus();
@@ -116,7 +137,7 @@ function editor(kind, id) {
     });
     showSlug();
   }
-  if (!isPage) {
+  if (admin && !isPage) {
     // limite de destaques: bloqueia a caixa se já houver o máximo em outros artigos
     const others = db.posts.filter((p) => p.featured && p.id !== pid).length;
     const full = others >= HERO_MAX && !it.featured;
@@ -132,8 +153,9 @@ function editor(kind, id) {
       rte.focus();
       return;
     }
-    const btn = $('#f button[type=submit]');
-    btn.disabled = true;
+    const act = ev.submitter && ev.submitter.dataset.act;
+    const btns = [...document.querySelectorAll('#f button[type=submit]')];
+    btns.forEach((b) => (b.disabled = true));
     const uploaded = [];
     const oldImages = [it.img, ...mdImages(it.body)]; // capa e imagens do texto antes desta edição
     try {
@@ -151,18 +173,30 @@ function editor(kind, id) {
         cat: $('#c').value.trim(),
         excerpt: $('#e').value.trim() || plainText(body).slice(0, 130).trim() + '…',
         body,
-        pub: $('#pub').checked,
-        featured: $('#feat').checked,
         img,
       };
+      if (admin) {
+        d.pub = $('#pub').checked;
+        d.featured = $('#feat').checked;
+      } else if (!it.pub) d.submitted = act === 'review'; // criador: rascunho ou envio para revisão (publicar é com o admin)
       if (pending) {
         d.img = await uploadCover(pending);
         uploaded.push(d.img);
       }
       await savePost(pid ? { id: pid, ...d } : d);
       deleteUnusedImages(oldImages); // imagens trocadas ou removidas nesta edição
-      toast(d.pub ? 'Artigo publicado' : 'Rascunho salvo');
-      location.hash = '#/';
+      toast(
+        admin
+          ? d.pub
+            ? 'Artigo publicado'
+            : 'Rascunho salvo'
+          : d.submitted
+            ? 'Enviado para revisão'
+            : it.pub
+              ? 'Alterações salvas'
+              : 'Rascunho salvo',
+      );
+      location.hash = admin ? '#/' : '#/painel';
     } catch (err) {
       uploaded.forEach(deleteCover);
       toast(
@@ -171,11 +205,49 @@ function editor(kind, id) {
           : 'Não foi possível salvar: ' + (err.message || 'erro desconhecido'),
       );
     } finally {
+      btns.forEach((b) => (b.disabled = false));
+    }
+  };
+}
+/** Tela aberta pelo link "esqueci a senha" do e-mail: define a nova senha. */
+async function resetPassword() {
+  const { data } = await sb.auth.getSession();
+  if (!data.session || AUTH_LINK.error) {
+    $('#main').innerHTML =
+      '<div class="art"><h1>Link inválido ou expirado</h1><p>O link para criar uma nova senha vale por pouco tempo e só pode ser usado uma vez. Clique em <b>Entrar</b> › <b>Esqueci a senha</b> para receber outro.</p><p><a href="#/">← Voltar aos artigos</a></p></div>';
+    return;
+  }
+  $('#main').innerHTML = `<div class="art"><h1>Criar nova senha</h1><form id="f"><label for="np">Nova senha (mínimo 6 caracteres)</label><input type="password" id="np" minlength="6" required autocomplete="new-password"><label for="np2">Repita a nova senha</label><input type="password" id="np2" minlength="6" required autocomplete="new-password"><div class="err" id="rerr" role="alert"></div><div class="acts" style="margin-top:18px"><button class="btn" type="submit">Salvar nova senha</button></div></form></div>`;
+  $('#f').onsubmit = async (e) => {
+    e.preventDefault();
+    if ($('#np').value !== $('#np2').value) {
+      $('#rerr').textContent = 'As duas senhas não são iguais.';
+      return;
+    }
+    const btn = $('#f button[type=submit]');
+    btn.disabled = true;
+    try {
+      await changePassword($('#np').value);
+      await checkRole();
+      if (staff()) {
+        await loadAll();
+        toast('Senha alterada. Você já está logado.');
+        location.hash = '#/painel';
+      } else {
+        await sb.auth.signOut(); // conta sem acesso à equipe: não deixa sessão aberta
+        toast('Senha alterada.');
+        location.hash = '#/';
+      }
+    } catch (err) {
+      $('#rerr').textContent = /different from the old/i.test(err.message || '')
+        ? 'Escolha uma senha diferente da anterior.'
+        : 'Não foi possível salvar a nova senha. Peça um novo link e tente de novo.';
       btn.disabled = false;
     }
   };
 }
-/** Formulário de troca de senha do admin. */
+
+/** Formulário de troca de senha (admin e criadores). */
 function account() {
   $('#main').innerHTML =
     `<div class="art"><h1>Alterar senha</h1><form id="f"><label for="np">Nova senha (mínimo 6 caracteres)</label><input type="password" id="np" minlength="6" required autocomplete="new-password"><div class="acts" style="margin-top:18px"><button class="btn" type="submit">Salvar senha</button><a class="btn alt" href="#/">Cancelar</a></div></form></div>`;

@@ -14,7 +14,7 @@ blog/
 ├── .nojekyll            Faz o GitHub Pages servir os arquivos como estão
 ├── .github/workflows/   publicar-site.yml: gera as páginas e publica no GitHub Pages
 ├── scripts/             build.mjs e templates.mjs: gerador das páginas de cada artigo
-├── supabase/            schema.sql (banco novo) e migracao-slugs.sql (banco já existente)
+├── supabase/            schema.sql (banco novo) e arquivos de migração (banco já existente), incl. painel-e-criadores.sql
 ├── assets/              favicon.svg, favicon.png e og-default.png (imagem padrão de prévia de link)
 ├── css/                 variables, base, layout, components, featured, responsive
 └── js/
@@ -103,3 +103,14 @@ Importante: o endereço antigo do GitHub Pages deixa de funcionar quando o repos
 - Rascunhos só aparecem para o administrador logado.
 - Plano grátis do Supabase: projetos sem uso por cerca de uma semana podem ser pausados; é só reativar no painel.
 - Artigos criados na versão anterior (salvos no navegador) não são migrados. Recrie-os pelo painel.
+
+## Painel, criadores e visualizações
+
+Rode `supabase/painel-e-criadores.sql` uma vez no SQL Editor (banco já existente; em banco novo o `schema.sql` já inclui tudo).
+
+- **Painel** (`#/painel`): lista compacta de artigos com filtros (busca, categoria, autor, situação, destaque, período) e ordenação; aba **Meu perfil** (nome de exibição e foto) e aba **Equipe** (só administrador).
+- **Papéis**: administrador (tudo) e criador (cria artigos, envia para revisão, edita e exclui só os seus; não publica nem destaca). O administrador publica ou devolve com observação.
+- **Liberar um criador**: Painel › Equipe › e-mail. A pessoa usa **Entrar › Primeiro acesso**, escolhe a senha e confirma pelo e-mail. Só e-mails liberados ganham acesso.
+- **Visualizações**: cada artigo soma 1 leitura por visitante a cada 24h (equipe logada não conta). O número aparece no artigo, nos cards e no painel.
+- O build do site tolera o banco sem esse SQL (sai sem autor e sem contador), mas o painel e as leituras dependem dele.
+- **Esqueci a senha**: em **Entrar › Esqueci a senha** a pessoa recebe um e-mail com o link para criar uma nova senha (a resposta é sempre a mesma, exista ou não a conta). No Supabase, em Authentication › URL Configuration, o Site URL e o Redirect URLs devem incluir `https://gtvsrd.github.io/arcar-se/` (e `https://gtvsrd.github.io/arcar-se/**`).

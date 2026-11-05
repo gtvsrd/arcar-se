@@ -47,9 +47,9 @@ const helpers = vm.runInNewContext(
 );
 
 // ---------- dados ----------
-async function getJson(url) {
+async function getJson(url, tries = 3) {
   let last;
-  for (let i = 1; i <= 3; i++) {
+  for (let i = 1; i <= tries; i++) {
     try {
       const r = await fetch(url, { headers: { apikey: SUPABASE_KEY } });
       if (r.ok) return await r.json();
@@ -71,6 +71,14 @@ try {
 } catch (e) {
   fail('não foi possível ler os dados do Supabase (' + e.message + ').\nSe a mensagem citar a coluna "slug", rode supabase/migracao-slugs.sql no SQL Editor.');
 }
+// perfis (nome e foto dos autores): opcionais; se o SQL do painel ainda não foi aplicado, o site sai sem autor
+let profileRows = [];
+try {
+  profileRows = await getJson(`${SUPABASE_URL}/rest/v1/profiles?select=*`, 1);
+} catch (e) {
+  console.warn('Aviso: perfis indisponíveis (rode supabase/painel-e-criadores.sql). O site sai sem nome de autor.');
+}
+const profiles = Object.fromEntries(profileRows.map((x) => [x.user_id, x]));
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 for (const p of posts)
   if (!SLUG.test(p.slug || '')) fail(`o artigo "${p.title}" não tem um slug válido. Rode supabase/migracao-slugs.sql no Supabase.`);
@@ -83,7 +91,7 @@ pages.sort((a, b) => {
   return i(a) - i(b) || a.slug.localeCompare(b.slug);
 });
 
-const site = { config, base, basePath, helpers, posts, pages, year: new Date().getFullYear() };
+const site = { config, base, basePath, helpers, posts, pages, profiles, year: new Date().getFullYear() };
 
 // ---------- saída ----------
 fs.rmSync(OUT, { recursive: true, force: true });

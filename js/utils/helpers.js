@@ -62,3 +62,30 @@ function resizeImage(file, maxW = 1600) {
     reader.readAsDataURL(file);
   });
 }
+
+/** "1 leitura", "1.234 leituras". */
+const viewsLabel = (n) => (n === 1 ? '1 leitura' : n.toLocaleString('pt-BR') + ' leituras');
+
+/** Recorta o centro da imagem em quadrado (padrão 320px) e devolve um Blob JPEG — usado na foto de perfil. */
+function squareImage(file, size = 320) {
+  return new Promise((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = reject;
+    reader.onload = () => {
+      const im = new Image();
+      im.onerror = reject;
+      im.onload = () => {
+        const side = Math.min(im.width, im.height);
+        const c = document.createElement('canvas');
+        c.width = c.height = Math.min(size, side);
+        const ctx = c.getContext('2d');
+        ctx.fillStyle = '#fff';
+        ctx.fillRect(0, 0, c.width, c.height);
+        ctx.drawImage(im, (im.width - side) / 2, (im.height - side) / 2, side, side, 0, 0, c.width, c.height);
+        c.toBlob((b) => (b ? resolve(b) : reject()), 'image/jpeg', 0.88);
+      };
+      im.src = reader.result;
+    };
+    reader.readAsDataURL(file);
+  });
+}

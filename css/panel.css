@@ -1,0 +1,266 @@
+/* Painel de gestão (#/painel): abas, resumo, filtros e tabela compacta */
+
+.on-panel .wrap {
+  grid-template-columns: minmax(0, 1fr);
+}
+.on-panel #side {
+  display: none;
+}
+.sr {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  white-space: nowrap;
+}
+.mut {
+  color: var(--mut);
+}
+
+.ptabs {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+  border-bottom: 1px solid var(--ln);
+  margin-bottom: 18px;
+}
+.ptabs a {
+  padding: 8px 16px;
+  text-decoration: none;
+  font-weight: 600;
+  color: var(--mut);
+  border-bottom: 3px solid transparent;
+  margin-bottom: -1px;
+}
+.ptabs a.on {
+  color: var(--ink);
+  border-bottom-color: var(--warm);
+}
+
+.pstats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(110px, 1fr));
+  gap: 10px;
+  margin-bottom: 16px;
+}
+.pstats div {
+  background: var(--sf);
+  border: 1px solid var(--ln);
+  border-radius: 6px;
+  padding: 10px 14px;
+}
+.pstats b {
+  display: block;
+  font: 700 24px/1.2 Merriweather, Georgia, serif;
+}
+.pstats span {
+  font-size: 13px;
+  color: var(--mut);
+}
+
+.pfilters {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 0 12px;
+  align-items: end;
+  margin-bottom: 8px;
+}
+.pfilters label {
+  font-size: 13px;
+  margin: 8px 0 0;
+}
+.pfilters input,
+.pfilters select {
+  width: 100%;
+  margin-top: 3px;
+  padding: 6px 9px;
+  font-weight: 400;
+}
+.pfilters .btn {
+  margin-top: 8px;
+  justify-self: start;
+}
+.pcount {
+  font-size: 14px;
+  color: var(--mut);
+  margin: 6px 0;
+}
+
+.ptable-wrap {
+  overflow-x: auto;
+  background: var(--sf);
+  border: 1px solid var(--ln);
+  border-radius: 6px;
+}
+.ptable {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+.ptable th,
+.ptable td {
+  padding: 8px 10px;
+  text-align: left;
+  vertical-align: middle;
+  border-bottom: 1px solid var(--ln);
+}
+.ptable tbody tr:last-child td {
+  border-bottom: 0;
+}
+.ptable th {
+  font-size: 12px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--mut);
+  white-space: nowrap;
+}
+.ptable th button {
+  all: unset;
+  cursor: pointer;
+}
+.ptable th button:focus-visible {
+  outline: 3px solid var(--ac);
+  outline-offset: 2px;
+}
+.ptable .pt {
+  min-width: 200px;
+  font-weight: 600;
+}
+.ptable .pt a {
+  color: var(--ink);
+  text-decoration: none;
+}
+.ptable .pt a:hover {
+  color: var(--ac);
+  text-decoration: underline;
+}
+.ptable .num {
+  text-align: right;
+  font-variant-numeric: tabular-nums;
+}
+.ptable .pa .acts {
+  margin: 0;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+.ptable .empty {
+  text-align: center;
+  color: var(--mut);
+  padding: 22px;
+}
+.pnote {
+  font-weight: 400;
+  font-size: 13px;
+  color: var(--err);
+  margin-top: 2px;
+}
+.who {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  white-space: nowrap;
+}
+.who .avatar {
+  width: 20px;
+  height: 20px;
+  font-size: 11px;
+}
+.st {
+  display: inline-block;
+  padding: 1px 8px;
+  border-radius: 10px;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+  background: var(--chip);
+  color: var(--chip-ink);
+}
+.st--published,
+.st--admin {
+  background: var(--ac);
+  color: var(--ac2);
+}
+.st--review {
+  background: var(--warm);
+  color: #1e2b2a;
+}
+.st--returned {
+  background: var(--err);
+  color: var(--bg);
+}
+
+.avatar-edit {
+  display: flex;
+  gap: 18px;
+  align-items: center;
+  flex-wrap: wrap;
+}
+.pinvite {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+.pinvite input {
+  flex: 1 1 220px;
+}
+.panel > h1 {
+  margin-top: 0;
+}
+
+/* Telas estreitas: cada artigo vira um bloco com os rótulos ao lado dos valores */
+@media (max-width: 760px) {
+  .ptable thead {
+    display: none;
+  }
+  .ptable,
+  .ptable tbody,
+  .ptable tr,
+  .ptable td {
+    display: block;
+  }
+  .ptable tr {
+    padding: 8px 10px;
+    border-bottom: 1px solid var(--ln);
+  }
+  .ptable td {
+    border: 0;
+    padding: 2px 0;
+    display: flex;
+    justify-content: space-between;
+    gap: 12px;
+  }
+  .ptable td[data-l]::before {
+    content: attr(data-l);
+    color: var(--mut);
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .ptable .pt {
+    display: block;
+    min-width: 0;
+    font-size: 16px;
+    padding-bottom: 4px;
+  }
+  .ptable td.pt[data-l]::before {
+    content: none;
+  }
+  .ptable .pa {
+    display: block;
+    padding-top: 6px;
+  }
+  .ptable .pa .acts {
+    justify-content: flex-start;
+  }
+  .ptable .empty {
+    display: block;
+  }
+}
+
+.pfilters input[type='date'] {
+  background: var(--bg);
+  color: var(--ink);
+  border: 1px solid var(--ln);
+  border-radius: 4px;
+}
