@@ -58,24 +58,26 @@ header.top :focus-visible {
   text-transform: uppercase;
   color: var(--hd-mut);
 }
-nav a,
-nav button {
+/* Menu do topo (só o #nav: outras <nav>, como as abas do painel, têm estilo próprio) */
+#nav a,
+#nav button {
   color: var(--hd-ink);
   font-weight: 600;
-  text-decoration: none;
   margin-left: 18px;
   background: none;
   border: 0;
   cursor: pointer;
   padding: 4px 0;
-}
-nav a:hover,
-nav button:hover {
-  color: var(--hd-ink);
   text-decoration: underline;
-  text-decoration-color: var(--warm);
+  text-decoration-color: transparent; /* o sublinhado aparece suavemente no hover */
   text-underline-offset: 6px;
   text-decoration-thickness: 2px;
+  transition: text-decoration-color 0.2s ease;
+}
+#nav a:hover,
+#nav button:hover {
+  color: var(--hd-ink);
+  text-decoration-color: var(--warm);
 }
 .wrap {
   max-width: 1120px;

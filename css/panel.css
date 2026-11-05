@@ -33,6 +33,15 @@
   border-bottom: 3px solid transparent;
   margin-bottom: -1px;
 }
+.ptabs a {
+  transition:
+    color 0.2s ease,
+    border-color 0.2s ease;
+}
+.ptabs a:hover {
+  color: var(--ink);
+  border-bottom-color: var(--ln);
+}
 .ptabs a.on {
   color: var(--ink);
   border-bottom-color: var(--warm);
@@ -118,6 +127,10 @@
 .ptable th button {
   all: unset;
   cursor: pointer;
+  transition: color 0.2s ease;
+}
+.ptable th button:hover {
+  color: var(--ink);
 }
 .ptable th button:focus-visible {
   outline: 3px solid var(--ac);

@@ -125,7 +125,7 @@ export function pageShell({ site, root, title, head, main, adminHref, bodyAttrs 
     <meta name="theme-color" content="#1e3b3a" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link
-      href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@400;600&family=Fraunces:opsz,wght@9..144,600&family=DM+Sans:wght@500&display=swap"
+      href="https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@400;600&family=Fraunces:opsz,wght@9..144,600&family=DM+Sans:wght@500&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,700;1,7..72,400;1,7..72,700&display=swap"
       rel="stylesheet"
     />
     <link rel="stylesheet" href="${root}css/variables.css" />
