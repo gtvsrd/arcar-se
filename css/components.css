@@ -692,3 +692,11 @@ dialog [hidden] {
   width: 100%;
   margin: 0 auto;
 }
+
+/* Tab no texto: um caractere que avança até a próxima parada (a cada 5 espaços), como num editor de texto */
+.art .body {
+  tab-size: 5;
+}
+.body .tab {
+  white-space: pre;
+}

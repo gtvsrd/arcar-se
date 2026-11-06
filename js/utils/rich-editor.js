@@ -11,8 +11,8 @@ const RTE_SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'META', 'LINK', 'TITLE', 'HEAD
 /** Escapa os símbolos que o Markdown leria como formatação. */
 const rteEscape = (t) =>
   t
-    // espaços seguidos viram um só, exceto o recuo do Tab (2+ espaços fixos), que é mantido do mesmo tamanho
-    .replace(/[\s\u00A0\u200B]+/g, (w) => ((w.match(/\u00A0/g) || []).length >= 2 ? '\u00A0'.repeat(w.replace(/\u200B/g, '').length) : ' '))
+    // espaços seguidos viram um só; o Tab (\t) é mantido como está
+    .replace(/(?:[^\S\t]|\u200B)+/g, ' ')
     .replace(/[\\*\[\]]/g, '\\$&')
     .replace(/~~/g, '\\~\\~')
     .replace(/\+\+/g, '\\+\\+');
@@ -74,9 +74,9 @@ function rteInline(node, resolve, active = []) {
 /** Arruma os espaços e quebras de linha de um bloco. */
 const rteClean = (s) =>
   s
-    .replace(/[ \t]*\n[ \t]*/g, '\n')
+    .replace(/ *\n */g, '\n')
     .replace(/ {2,}/g, ' ')
-    .replace(/^[ \t\n]+|[ \t\n]+$/g, ''); // não usa trim(): ele apagaria o recuo do Tab (espaços fixos)
+    .replace(/^[ \n]+|[ \n]+$/g, ''); // não usa trim(): ele apagaria o Tab do começo do parágrafo
 
 /** Prefixo de alinhamento de um elemento ("" se for o padrão, à esquerda). */
 function rteAlign(el, inherited = '') {
@@ -624,9 +624,32 @@ function createRichEditor(mount, body, labelId) {
 
   // ---------- teclado, cliques, colar e arrastar ----------
   const SHORTCUTS = { b: 'bold', i: 'italic', u: 'underline' };
-  const TAB = '\u00A0'.repeat(5); // Tab = 5 espaços fixos (espaços comuns seriam juntados em um só na página)
   let tabExits = false; // depois de Esc, o Tab volta a sair do editor (para quem navega só pelo teclado)
   root.addEventListener('blur', () => (tabExits = false));
+  /** Insere um Tab de verdade (um caractere, com largura de 5 espaços até a próxima parada de tabulação). */
+  const insertTab = () => {
+    const sel = getSelection();
+    if (!sel.rangeCount || !root.contains(sel.anchorNode)) return;
+    const r = sel.getRangeAt(0);
+    r.deleteContents();
+    const span = document.createElement('span');
+    span.className = 'tab';
+    span.textContent = '\t';
+    r.insertNode(span);
+    r.setStartAfter(span);
+    r.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(r);
+    root.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+  /** Shift+Tab: apaga o Tab logo antes do cursor, se houver. */
+  const removeTab = () => {
+    const sel = getSelection();
+    if (!sel.rangeCount || !sel.isCollapsed) return;
+    const r = sel.getRangeAt(0).cloneRange();
+    r.setStart(root, 0);
+    if (r.toString().endsWith('\t')) document.execCommand('delete');
+  };
   root.addEventListener('keydown', (e) => {
     if (e.key === 'Escape') {
       tabExits = true;
@@ -634,17 +657,8 @@ function createRichEditor(mount, body, labelId) {
     }
     if (e.key === 'Tab' && !e.ctrlKey && !e.metaKey && !e.altKey && !tabExits) {
       e.preventDefault();
-      if (e.shiftKey) {
-        // Shift+Tab: tira até 5 espaços fixos logo antes do cursor
-        const sel = getSelection();
-        const n = sel.rangeCount && sel.getRangeAt(0).startContainer;
-        const off = sel.rangeCount ? sel.getRangeAt(0).startOffset : 0;
-        if (sel.isCollapsed && n && n.nodeType === 3) {
-          const w = (n.nodeValue.slice(0, off).match(/[\u00A0 ]{1,5}$/) || [''])[0]; // o navegador alterna espaço fixo e comum
-          const k = w.includes('\u00A0') ? w.length : 0;
-          for (let i = 0; i < k; i++) document.execCommand('delete');
-        }
-      } else document.execCommand('insertText', false, TAB);
+      if (e.shiftKey) removeTab();
+      else insertTab();
       return;
     }
     if (e.key !== 'Shift') tabExits = false;
