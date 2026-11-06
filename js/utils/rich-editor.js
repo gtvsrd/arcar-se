@@ -11,7 +11,8 @@ const RTE_SKIP_TAGS = new Set(['SCRIPT', 'STYLE', 'META', 'LINK', 'TITLE', 'HEAD
 /** Escapa os símbolos que o Markdown leria como formatação. */
 const rteEscape = (t) =>
   t
-    .replace(/[\s ​]+/g, ' ')
+    // espaços seguidos viram um só; o Tab (\t) é mantido como está
+    .replace(/(?:[^\S\t]|\u200B)+/g, ' ')
     .replace(/[\\*\[\]]/g, '\\$&')
     .replace(/~~/g, '\\~\\~')
     .replace(/\+\+/g, '\\+\\+');
@@ -71,7 +72,11 @@ function rteInline(node, resolve, active = []) {
 }
 
 /** Arruma os espaços e quebras de linha de um bloco. */
-const rteClean = (s) => s.replace(/[ \t]*\n[ \t]*/g, '\n').replace(/ {2,}/g, ' ').trim();
+const rteClean = (s) =>
+  s
+    .replace(/ *\n */g, '\n')
+    .replace(/ {2,}/g, ' ')
+    .replace(/^[ \n]+|[ \n]+$/g, ''); // não usa trim(): ele apagaria o Tab do começo do parágrafo
 
 /** Prefixo de alinhamento de um elemento ("" se for o padrão, à esquerda). */
 function rteAlign(el, inherited = '') {
@@ -619,7 +624,44 @@ function createRichEditor(mount, body, labelId) {
 
   // ---------- teclado, cliques, colar e arrastar ----------
   const SHORTCUTS = { b: 'bold', i: 'italic', u: 'underline' };
+  let tabExits = false; // depois de Esc, o Tab volta a sair do editor (para quem navega só pelo teclado)
+  root.addEventListener('blur', () => (tabExits = false));
+  /** Insere um Tab de verdade (um caractere, com largura de 5 espaços até a próxima parada de tabulação). */
+  const insertTab = () => {
+    const sel = getSelection();
+    if (!sel.rangeCount || !root.contains(sel.anchorNode)) return;
+    const r = sel.getRangeAt(0);
+    r.deleteContents();
+    const span = document.createElement('span');
+    span.className = 'tab';
+    span.textContent = '\t';
+    r.insertNode(span);
+    r.setStartAfter(span);
+    r.collapse(true);
+    sel.removeAllRanges();
+    sel.addRange(r);
+    root.dispatchEvent(new Event('input', { bubbles: true }));
+  };
+  /** Shift+Tab: apaga o Tab logo antes do cursor, se houver. */
+  const removeTab = () => {
+    const sel = getSelection();
+    if (!sel.rangeCount || !sel.isCollapsed) return;
+    const r = sel.getRangeAt(0).cloneRange();
+    r.setStart(root, 0);
+    if (r.toString().endsWith('\t')) document.execCommand('delete');
+  };
   root.addEventListener('keydown', (e) => {
+    if (e.key === 'Escape') {
+      tabExits = true;
+      return;
+    }
+    if (e.key === 'Tab' && !e.ctrlKey && !e.metaKey && !e.altKey && !tabExits) {
+      e.preventDefault();
+      if (e.shiftKey) removeTab();
+      else insertTab();
+      return;
+    }
+    if (e.key !== 'Shift') tabExits = false;
     if (selectedImg && e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
       e.preventDefault();
       moveImage(selectedImg, e.key === 'ArrowUp' ? 'up' : 'down');

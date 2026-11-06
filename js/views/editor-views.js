@@ -60,6 +60,7 @@ function editor(kind, id) {
    }
    <label id="blabel">Conteúdo</label>
    <div class="rte-wrap" id="rte"></div>
+   <div class="hint">Tab insere uma tabulação (Shift+Tab remove). Para sair do texto só pelo teclado, aperte Esc e depois Tab.</div>
    ${
      isPage
        ? ''

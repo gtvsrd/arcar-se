@@ -66,8 +66,8 @@ function md(t) {
   return esc(t)
     .split(/\n{2,}/)
     .map((b) => {
-      b = b.trim();
-      if (!b) return '';
+      b = b.replace(/^[ \r\n]+|[ \r\n]+$/g, ''); // não usa trim(): ele apagaria o Tab do começo do parágrafo
+      if (!b.trim()) return '';
       const al = b.match(/^\{(centro|direita|justificado)\} */);
       const st = al ? ` style="text-align:${{ centro: 'center', direita: 'right', justificado: 'justify' }[al[1]]}"` : '';
       if (al) b = b.slice(al[0].length);
@@ -82,7 +82,8 @@ function md(t) {
         return `<blockquote${st}>` + ls.map((l) => mdInline(l.slice(5))).join('<br>') + '</blockquote>';
       return `<p${st}>` + mdInline(b).replace(/\n/g, '<br>') + '</p>';
     })
-    .join('');
+    .join('')
+    .replace(/\t/g, '<span class="tab">\t</span>'); // Tab: um caractere com largura de 5 espaços (ver .tab no CSS)
 }
 
 /** Tira a formatação do Markdown e devolve só o texto (usado em resumos e descrições). */
