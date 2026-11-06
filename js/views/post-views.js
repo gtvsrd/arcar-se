@@ -37,16 +37,18 @@ function bylineHTML(p) {
 }
 
 /** Linha de informações do artigo: autor, data e leituras. */
-const metaHTML = (p, short = false) =>
-  `<div class="meta">${bylineHTML(p)}<span>${short ? fmtShort(p.date) : fmt(p.date)}</span>${p.pub && db.viewsOn ? `<span class="views" data-views="${p.id}">${viewsLabel(viewsOf(p))}</span>` : ''}</div>`;
+const viewsHTML = (p) =>
+  p.pub && db.viewsOn ? `<span class="views" data-views="${p.id}">${viewsLabel(viewsOf(p))}</span>` : '';
+const metaHTML = (p, short = false, withViews = true) =>
+  `<div class="meta">${bylineHTML(p)}<span>${short ? fmtShort(p.date) : fmt(p.date)}</span>${withViews ? viewsHTML(p) : ''}</div>`;
 
 /** HTML de um card de artigo (usado na grade e no carrossel de destaques). */
 function cardHTML(p, hero = false) {
   return `
    <article class="card">${coverHTML(p)}
    <div class="cb"><h2><a href="${postUrl(p)}">${esc(p.title)}</a>${badgeHTML(p)}</h2>
-   ${metaHTML(p, !hero)}<p>${esc(p.excerpt)}</p>
-   <div class="card-foot"><a href="${postUrl(p)}">Ler artigo</a>
+   ${metaHTML(p, !hero, false)}<p>${esc(p.excerpt)}</p>
+   <div class="card-foot"><a class="more" href="${postUrl(p)}">Ler artigo</a>${viewsHTML(p)}
    ${canEdit(p) ? `<div class="acts"><a class="btn sm alt" href="#/editar/${p.id}">Editar</a><button class="btn sm del" data-del="${p.id}">Excluir</button></div>` : ''}</div></div></article>`;
 }
 

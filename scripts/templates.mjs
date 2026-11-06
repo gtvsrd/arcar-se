@@ -71,7 +71,7 @@ export function cardHTML(p, { root, site, hero = false }) {
    <article class="card">${coverHTML(p, { root, site })}
    <div class="cb"><h2><a href="${href}">${esc(p.title)}</a></h2>
    <div class="meta">${bylineHTML(p, site)}<span>${hero ? fmt(p.date) : fmtShort(p.date)}</span></div><p>${esc(p.excerpt)}</p>
-   <div class="card-foot"><a href="${href}">Ler artigo</a></div></div></article>`;
+   <div class="card-foot"><a class="more" href="${href}">Ler artigo</a></div></div></article>`;
 }
 
 /** Itens do menu do topo. */
