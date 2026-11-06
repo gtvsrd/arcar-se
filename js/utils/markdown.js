@@ -66,8 +66,8 @@ function md(t) {
   return esc(t)
     .split(/\n{2,}/)
     .map((b) => {
-      b = b.trim();
-      if (!b) return '';
+      b = b.replace(/^[ \t\r\n]+|[ \t\r\n]+$/g, ''); // não usa trim(): ele apagaria o recuo do Tab (espaços fixos)
+      if (!b.replace(/\u00A0/g, '')) return '';
       const al = b.match(/^\{(centro|direita|justificado)\} */);
       const st = al ? ` style="text-align:${{ centro: 'center', direita: 'right', justificado: 'justify' }[al[1]]}"` : '';
       if (al) b = b.slice(al[0].length);
