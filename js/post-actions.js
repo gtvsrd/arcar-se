@@ -2,7 +2,7 @@
  * Curtir e compartilhar (abaixo do artigo). Usado no app e nas páginas geradas de cada artigo.
  * - Curtida anônima: como a contagem de visualizações, não precisa de login; o navegador guarda que já curtiu
  *   (uma curtida por navegador, que pode ser desfeita).
- * - Compartilhar: copiar link, WhatsApp, Instagram (pelo menu de compartilhar do celular ou copiando o link) e X.
+ * - Compartilhar: um botão ao lado de curtir abre um pequeno menu com "Copiar link" e "WhatsApp".
  *   O link compartilhado é sempre o da página gerada do artigo, que tem as tags de prévia (Open Graph).
  */
 
@@ -11,23 +11,21 @@ const PA_ICONS = {
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 8 3.4 4.5 6.9 4.5c2 0 3.4 1.1 5.1 3 1.7-1.9 3.1-3 5.1-3 3.5 0 5.5 3.5 4.2 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/></svg>',
   link: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg>',
   chat: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5l1.3-3.8A8 8 0 1 1 8.5 19z"/></svg>',
-  camera:
-    '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="3.5" width="17" height="17" rx="5"/><circle cx="12" cy="12" r="4"/><circle cx="17.2" cy="6.8" r="0.6"/></svg>',
-  post: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 4L7 20M17 4l-2 16M4 9h16M3.5 15h16"/></svg>',
+  share:
+    '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M7.5 8L12 3.5 16.5 8M5 12.5v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>',
 };
 
 /** HTML da faixa de curtir/compartilhar. `url` é o endereço público do artigo. */
 function postActionsHTML({ id, slug, url, title }) {
   const e = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
-  const u = encodeURIComponent(url),
-    t = encodeURIComponent(title);
   return `<section class="post-actions" data-id="${e(id)}" data-slug="${e(slug)}" data-url="${e(url)}" data-title="${e(title)}" aria-label="Curtir e compartilhar">
    <button type="button" class="pa-like" aria-pressed="false" hidden>${PA_ICONS.heart}<span class="pa-like-label">Curtir</span><span class="pa-like-count" aria-live="polite"></span></button>
-   <div class="pa-share"><span class="pa-share-label">Compartilhar</span>
-     <button type="button" class="pa-btn" data-share="link">${PA_ICONS.link}<span>Copiar link</span></button>
-     <a class="pa-btn" data-share="whatsapp" href="https://wa.me/?text=${encodeURIComponent(title + '\n' + url)}" target="_blank" rel="noopener">${PA_ICONS.chat}<span>WhatsApp</span></a>
-     <button type="button" class="pa-btn" data-share="instagram">${PA_ICONS.camera}<span>Instagram</span></button>
-     <a class="pa-btn" data-share="x" href="https://x.com/intent/tweet?text=${t}&amp;url=${u}" target="_blank" rel="noopener">${PA_ICONS.post}<span>X</span></a>
+   <div class="pa-share">
+     <button type="button" class="pa-btn pa-share-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="pa-menu-${e(slug)}">${PA_ICONS.share}<span>Compartilhar</span></button>
+     <div class="pa-menu" id="pa-menu-${e(slug)}" role="menu" hidden>
+       <button type="button" role="menuitem" class="pa-item" data-share="link">${PA_ICONS.link}<span>Copiar link</span></button>
+       <a role="menuitem" class="pa-item" data-share="whatsapp" href="https://wa.me/?text=${encodeURIComponent(title + '\n' + url)}" target="_blank" rel="noopener">${PA_ICONS.chat}<span>WhatsApp</span></a>
+     </div>
      <span class="pa-hint" role="status"></span>
    </div>
   </section>`;
@@ -102,16 +100,49 @@ function initPostActions(el) {
     busy = false;
   };
 
-  // ---- compartilhar
-  const flash = (btn, text) => {
-    const s = btn.querySelector('span'),
-      old = s.textContent;
-    s.textContent = text;
-    btn.classList.add('pa-done');
-    setTimeout(() => {
-      s.textContent = old;
-      btn.classList.remove('pa-done');
-    }, 2200);
+  // ---- compartilhar: botão que abre um menu pequeno (Copiar link, WhatsApp)
+  const btn = el.querySelector('.pa-share-btn'),
+    menu = el.querySelector('.pa-menu'),
+    hint = el.querySelector('.pa-hint');
+  const items = () => [...menu.querySelectorAll('[role=menuitem]')];
+  const onDoc = (ev) => {
+    if (!el.querySelector('.pa-share').contains(ev.target)) close();
+  };
+  const open = () => {
+    menu.hidden = false;
+    btn.setAttribute('aria-expanded', 'true');
+    items()[0].focus();
+    document.addEventListener('pointerdown', onDoc);
+  };
+  const close = (focusBtn) => {
+    if (menu.hidden) return;
+    menu.hidden = true;
+    btn.setAttribute('aria-expanded', 'false');
+    document.removeEventListener('pointerdown', onDoc);
+    if (focusBtn) btn.focus();
+  };
+  btn.onclick = () => (menu.hidden ? open() : close(true));
+  btn.onkeydown = (ev) => {
+    if (ev.key === 'ArrowDown' && menu.hidden) {
+      ev.preventDefault();
+      open();
+    }
+  };
+  menu.onkeydown = (ev) => {
+    const list = items(),
+      i = list.indexOf(document.activeElement);
+    if (ev.key === 'Escape') {
+      ev.preventDefault();
+      close(true);
+    } else if (ev.key === 'ArrowDown' || ev.key === 'ArrowUp') {
+      ev.preventDefault();
+      list[(i + (ev.key === 'ArrowDown' ? 1 : list.length - 1)) % list.length].focus();
+    } else if (ev.key === 'Tab') close();
+  };
+  const say = (text) => {
+    hint.textContent = text;
+    clearTimeout(say.t);
+    say.t = setTimeout(() => (hint.textContent = ''), 2500);
   };
   const copy = async () => {
     try {
@@ -133,29 +164,12 @@ function initPostActions(el) {
       return done;
     }
   };
-  el.querySelector('[data-share=link]').onclick = async (ev) => {
-    flash(ev.currentTarget, (await copy()) ? 'Link copiado!' : 'Não foi possível copiar');
-  };
-  // Instagram não tem link de compartilhamento na web: no celular abre o menu de compartilhar do sistema
-  // (onde aparece o Instagram); no computador, copia o link para colar no Instagram.
-  el.querySelector('[data-share=instagram]').onclick = async (ev) => {
-    const btn = ev.currentTarget;
-    if (navigator.share && matchMedia('(pointer: coarse)').matches) {
-      try {
-        await navigator.share({ title, url });
-        return;
-      } catch (e) {
-        if (e && e.name === 'AbortError') return; // a pessoa fechou o menu
-      }
-    }
+  menu.querySelector('[data-share=link]').onclick = async () => {
     const done = await copy();
-    flash(btn, done ? 'Link copiado!' : 'Não foi possível copiar');
-    if (done) {
-      const hint = el.querySelector('.pa-hint');
-      hint.textContent = 'Agora é só colar o link no Instagram (Direct, story ou bio).';
-      setTimeout(() => (hint.textContent = ''), 5000);
-    }
+    close(true);
+    say(done ? 'Link copiado!' : 'Não foi possível copiar o link');
   };
+  menu.querySelector('[data-share=whatsapp]').onclick = () => close();
 }
 
 document.addEventListener('DOMContentLoaded', () => document.querySelectorAll('.post-actions').forEach(initPostActions));
