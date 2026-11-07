@@ -2,17 +2,32 @@ name: Diagnostico (temporario)
 on:
   push:
     branches: [diag-categorias]
-permissions:
-  contents: write
 jobs:
   diag:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
       - run: |
-          rm -rf fontes2 && mkdir -p fontes2
-          curl -s -A "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 Chrome/130 Safari/537.36" "https://fonts.googleapis.com/css2?family=Merriweather:wght@400;700&family=Source+Sans+3:wght@400;600&family=Fraunces:opsz,wght@9..144,600&family=DM+Sans:wght@500&family=Literata:ital,opsz,wght@0,7..72,400;0,7..72,700;1,7..72,400;1,7..72,700&display=swap" > fontes2/site.css
-          i=0; for u in $(grep -o "https://fonts.gstatic.com/[^)]*" fontes2/site.css | sort -u); do i=$((i+1)); n=$(echo "$u" | md5sum | cut -c1-10); curl -s -o fontes2/$n.woff2 "$u"; echo "$u $n.woff2" >> fontes2/map.txt; done
-          ls fontes2 | wc -l
-          git config user.name diag; git config user.email diag@users.noreply.github.com
-          git add fontes2 && git commit -m "fontes do site para previa" && git push
+          B=https://gtvsrd.github.io/arcar-se
+          SL=$(curl -s $B/post/manifest.json | python3 -c "import sys,json;print(' '.join(json.load(sys.stdin)['slugs']))")
+          echo "artigos: $SL"
+          for s in $SL; do
+            echo "=================== $s"
+            for ua in "facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)" "WhatsApp/2.23.20.0 A" "Twitterbot/1.0"; do
+              code=$(curl -s -o /tmp/p.html -w "%{http_code} %{size_download}B %{time_total}s" -A "$ua" "$B/post/$s/"); echo "UA ${ua%% *}: $code"
+            done
+            grep -o '<meta property="og:[a-z:]*" content="[^"]*"\|<meta name="twitter:[a-z:]*" content="[^"]*"\|<title>[^<]*' /tmp/p.html | sed 's/<meta //; s/content=//' | cut -c1-150
+            img=$(grep -o '<meta property="og:image" content="[^"]*"' /tmp/p.html | sed 's/.*content="//; s/"$//; s/&amp;/\&/g')
+            curl -s -o /tmp/img -D /tmp/h -A "WhatsApp/2.23.20.0 A" "$img"; echo "IMAGEM: $(grep -i '^HTTP\|^content-type\|^content-length' /tmp/h | tr -d '\r' | tr '\n' ' ') baixado=$(stat -c %s /tmp/img)B $(python3 -c "
+          import struct,sys
+          d=open('/tmp/img','rb').read()
+          if d[:8]==b'\x89PNG\r\n\x1a\n': print('PNG %dx%d'%struct.unpack('>II',d[16:24]))
+          elif d[:2]==b'\xff\xd8':
+            i=2
+            while i<len(d):
+              m=d[i+1]; L=struct.unpack('>H',d[i+2:i+4])[0]
+              if m in (0xC0,0xC1,0xC2): h,w=struct.unpack('>HH',d[i+5:i+9]); print('JPEG %dx%d'%(w,h)); break
+              i+=2+L
+          elif d[:4]==b'RIFF': print('WEBP')
+          else: print('formato?', d[:12])
+          ")"
+          done
