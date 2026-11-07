@@ -9,24 +9,9 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-        with:
-          ref: curtir-compartilhar
-          path: site
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 22
       - run: |
-          cd site
-          npm install --no-save --no-package-lock --no-audit --no-fund sharp@0.33.5 2>&1 | tail -2
-          SITE_URL=https://gtvsrd.github.io/arcar-se node scripts/build.mjs 2>&1 | tail -5
-          ls -la _site/og
-          for f in _site/post/*/index.html; do echo "== $f"; grep -o '<meta property="og:image[a-z:]*" content="[^"]*"' $f; done
-          mkdir -p ../out && cp _site/og/*.jpg ../out/
-      - uses: actions/checkout@v4
-        with:
-          ref: diag-categorias
-          path: diag
-      - run: |
-          cd diag && rm -rf og-teste && mkdir og-teste && cp ../out/*.jpg og-teste/
+          mkdir -p /tmp/si && cd /tmp/si && npm pack simple-icons@13.21.0 --silent && tar -xzf simple-icons-*.tgz
+          ls package/icons/whatsapp.svg && head -c 300 package/LICENSE.md; echo; grep -o '"version": "[^"]*"\|"license": "[^"]*"' package/package.json
+          cd $GITHUB_WORKSPACE && mkdir -p icone && cp /tmp/si/package/icons/whatsapp.svg icone/ && cp /tmp/si/package/LICENSE.md icone/LICENSE-simple-icons.md
           git config user.name diag; git config user.email diag@users.noreply.github.com
-          git add og-teste && git commit -m "og teste" && git push
+          git add icone && git commit -m "icone whatsapp (simple-icons, CC0)" && git push
