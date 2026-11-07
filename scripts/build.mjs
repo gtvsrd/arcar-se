@@ -101,6 +101,11 @@ vm.runInContext(
 );
 const site = { config, base, basePath, helpers, posts, pages, profiles, year: new Date().getFullYear() };
 featCtx.cardHTML = (p, hero) => cardHTML(p, { root: '', site, hero });
+// faixa de curtir/compartilhar: mesmo HTML do app (js/post-actions.js)
+const paCtx = { document: { addEventListener() {} } };
+vm.createContext(paCtx);
+vm.runInContext(fs.readFileSync(path.join(ROOT, 'js/post-actions.js'), 'utf8') + '\n;this.postActionsHTML = postActionsHTML;', paCtx);
+site.postActions = paCtx.postActionsHTML;
 site.featured = { HERO_MAX: featCtx.HERO_MAX, html: (list) => featCtx.featuredHTML(list) };
 
 // ---------- saída ----------
@@ -125,6 +130,40 @@ const write = (rel, text) => {
 };
 
 // páginas dos artigos e páginas fixas
+// Imagem de prévia de cada artigo com capa (WhatsApp, Instagram, Facebook, X): 1200×630, JPEG leve, num arquivo
+// do próprio site. Usa a biblioteca "sharp" (instalada no GitHub Actions); sem ela, a prévia usa a capa original.
+let sharp = null;
+try {
+  sharp = (await import('sharp')).default;
+} catch (e) {
+  console.warn('Aviso: "sharp" não instalado; as prévias usam a capa original.');
+}
+site.ogImages = {};
+if (sharp)
+  await Promise.all(
+    posts
+      .filter((p) => /^https?:\/\//i.test(p.img || ''))
+      .map(async (p) => {
+        try {
+          const r = await fetch(p.img);
+          if (!r.ok) throw new Error('HTTP ' + r.status);
+          const buf = Buffer.from(await r.arrayBuffer());
+          // o nome muda quando a capa muda, para WhatsApp e cia. não mostrarem a prévia antiga guardada
+          const name = `og/${p.slug}-${crypto.createHash('sha1').update(p.img).digest('hex').slice(0, 8)}.jpg`;
+          fs.mkdirSync(path.join(OUT, 'og'), { recursive: true });
+          await sharp(buf)
+            .rotate()
+            .resize(1200, 630, { fit: 'cover', position: 'attention' })
+            .flatten({ background: '#ffffff' })
+            .jpeg({ quality: 80, mozjpeg: true })
+            .toFile(path.join(OUT, name));
+          site.ogImages[p.slug] = { url: `${base}/${name}`, width: 1200, height: 630, type: 'image/jpeg' };
+        } catch (e) {
+          console.warn(`Aviso: prévia de "${p.slug}" não gerada (${e.message}); usando a capa original.`);
+        }
+      }),
+  );
+
 for (const p of posts) write(`post/${p.slug}/index.html`, postPage(p, site));
 for (const g of pages) write(`pagina/${g.slug}/index.html`, fixedPage(g, site));
 write('post/manifest.json', JSON.stringify({ generatedAt: new Date().toISOString(), slugs: posts.map((p) => p.slug) }));
