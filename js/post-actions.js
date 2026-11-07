@@ -10,7 +10,6 @@ const PA_ICONS = {
   heart:
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 20.5s-7.5-4.6-9.3-9.2C1.4 8 3.4 4.5 6.9 4.5c2 0 3.4 1.1 5.1 3 1.7-1.9 3.1-3 5.1-3 3.5 0 5.5 3.5 4.2 6.8-1.8 4.6-9.3 9.2-9.3 9.2z"/></svg>',
   link: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M10 14a4.5 4.5 0 0 0 6.4 0l3-3a4.5 4.5 0 0 0-6.4-6.4l-1 1M14 10a4.5 4.5 0 0 0-6.4 0l-3 3a4.5 4.5 0 0 0 6.4 6.4l1-1"/></svg>',
-  chat: '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 19.5l1.3-3.8A8 8 0 1 1 8.5 19z"/></svg>',
   share:
     '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 15V3.5M7.5 8L12 3.5 16.5 8M5 12.5v6a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-6"/></svg>',
 };
@@ -24,7 +23,7 @@ function postActionsHTML({ id, slug, url, title }) {
      <button type="button" class="pa-btn pa-share-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="pa-menu-${e(slug)}">${PA_ICONS.share}<span>Compartilhar</span></button>
      <div class="pa-menu" id="pa-menu-${e(slug)}" role="menu" hidden>
        <button type="button" role="menuitem" class="pa-item" data-share="link">${PA_ICONS.link}<span>Copiar link</span></button>
-       <a role="menuitem" class="pa-item" data-share="whatsapp" href="https://wa.me/?text=${encodeURIComponent(title + '\n' + url)}" target="_blank" rel="noopener">${PA_ICONS.chat}<span>WhatsApp</span></a>
+       <a role="menuitem" class="pa-item" data-share="whatsapp" href="https://wa.me/?text=${encodeURIComponent(title + '\n' + url)}" target="_blank" rel="noopener"><span class="pa-ico pa-ico-wa" aria-hidden="true"></span><span>WhatsApp</span></a>
      </div>
      <span class="pa-hint" role="status"></span>
    </div>

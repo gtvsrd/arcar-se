@@ -821,6 +821,18 @@ dialog [hidden] {
   background: color-mix(in srgb, var(--ac) 10%, var(--sf));
   outline: none;
 }
+/* ícone oficial do WhatsApp (assets/icons/whatsapp.svg, Simple Icons, CC0) na cor da marca */
+.pa-ico {
+  width: 20px;
+  height: 20px;
+  flex: none;
+  display: inline-block;
+}
+.pa-ico-wa {
+  background: #25d366;
+  -webkit-mask: url('../assets/icons/whatsapp.svg') center / contain no-repeat;
+  mask: url('../assets/icons/whatsapp.svg') center / contain no-repeat;
+}
 .pa-hint {
   font-size: 14px;
   color: var(--ac);
