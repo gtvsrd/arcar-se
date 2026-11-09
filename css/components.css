@@ -764,10 +764,19 @@ dialog [hidden] {
 .pa-like[aria-pressed='true'] svg {
   fill: currentColor;
 }
-.pa-like-count:not(:empty) {
-  padding-left: 8px;
-  border-left: 1px solid var(--ln);
+.pa-like {
+  min-width: 40px;
+  justify-content: center;
+}
+.pa-like:has(.pa-like-count:empty) {
+  padding: 0; /* só o coração: botão redondo */
+  width: 40px;
+}
+.pa-like-count {
   font-variant-numeric: tabular-nums;
+}
+.pa-like-count:empty {
+  display: none;
 }
 .pa-pop svg {
   animation: pa-pop 0.35s ease;

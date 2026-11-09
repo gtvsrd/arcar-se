@@ -18,7 +18,7 @@ const PA_ICONS = {
 function postActionsHTML({ id, slug, url, title }) {
   const e = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
   return `<section class="post-actions" data-id="${e(id)}" data-slug="${e(slug)}" data-url="${e(url)}" data-title="${e(title)}" aria-label="Curtir e compartilhar">
-   <button type="button" class="pa-like" aria-pressed="false" hidden>${PA_ICONS.heart}<span class="pa-like-label">Curtir</span><span class="pa-like-count" aria-live="polite"></span></button>
+   <button type="button" class="pa-like" aria-pressed="false" aria-label="Curtir" title="Curtir" hidden>${PA_ICONS.heart}<span class="pa-like-count"></span></button>
    <div class="pa-share">
      <button type="button" class="pa-btn pa-share-btn" aria-haspopup="menu" aria-expanded="false" aria-controls="pa-menu-${e(slug)}">${PA_ICONS.share}<span>Compartilhar</span></button>
      <div class="pa-menu" id="pa-menu-${e(slug)}" role="menu" hidden>
@@ -58,11 +58,12 @@ function initPostActions(el) {
   let liked = store.get(),
     total = 0,
     busy = false;
+  // o botão mostra só o coração (e o número, se houver); o nome para leitores de tela fica no aria-label
   const show = () => {
     like.setAttribute('aria-pressed', String(liked));
-    like.querySelector('.pa-like-label').textContent = liked ? 'Curtido' : 'Curtir';
     like.querySelector('.pa-like-count').textContent = total ? total.toLocaleString('pt-BR') : '';
     like.setAttribute('aria-label', `${liked ? 'Desfazer curtida' : 'Curtir'} (${total === 1 ? '1 curtida' : total.toLocaleString('pt-BR') + ' curtidas'})`);
+    like.title = liked ? 'Desfazer curtida' : 'Curtir';
   };
   if (ok)
     fetch(`${SUPABASE_URL}/rest/v1/post_likes?select=likes&post_id=eq.${encodeURIComponent(id)}`, { headers: h })
