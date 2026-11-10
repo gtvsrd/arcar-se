@@ -2,16 +2,21 @@ name: Diagnostico (temporario)
 on:
   push:
     branches: [diag-categorias]
-permissions:
-  contents: write
 jobs:
   diag:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
       - run: |
-          mkdir -p /tmp/si && cd /tmp/si && npm pack simple-icons@13.21.0 --silent && tar -xzf simple-icons-*.tgz
-          ls package/icons/whatsapp.svg && head -c 300 package/LICENSE.md; echo; grep -o '"version": "[^"]*"\|"license": "[^"]*"' package/package.json
-          cd $GITHUB_WORKSPACE && mkdir -p icone && cp /tmp/si/package/icons/whatsapp.svg icone/ && cp /tmp/si/package/LICENSE.md icone/LICENSE-simple-icons.md
-          git config user.name diag; git config user.email diag@users.noreply.github.com
-          git add icone && git commit -m "icone whatsapp (simple-icons, CC0)" && git push
+          B=https://gtvsrd.github.io/arcar-se
+          for s in criatividade-dadiva-ou-fardo dicas-para-o-manejo-da-ansiedade; do
+            curl -s -A "WhatsApp/2.23.20.0 A" "$B/post/$s/" > /tmp/p.html
+            echo "== $s: faixa=$(grep -c 'class="post-actions"' /tmp/p.html)"
+            img=$(grep -o '<meta property="og:image" content="[^"]*"' /tmp/p.html | sed 's/.*content="//; s/"$//'); echo "og:image $img"
+            curl -s -o /dev/null -w "imagem: %{http_code} %{content_type} %{size_download}B\n" -A "facebookexternalhit/1.1" "$img"
+          done
+          U=$(grep -o "https://[a-z0-9]*\.supabase\.co" js/config.js); K=$(node -e "const s=require('fs').readFileSync('js/config.js','utf8');console.log(s.match(/SUPABASE_ANON_KEY\s*=\s*['\"]([^'\"]+)/)[1])")
+          echo "post_likes: $(curl -s -o /dev/null -w '%{http_code}' "$U/rest/v1/post_likes?select=*&limit=1" -H "apikey: $K")"
+          echo "like_post (artigo inexistente, não altera nada): $(curl -s -X POST "$U/rest/v1/rpc/like_post" -H "apikey: $K" -H 'Content-Type: application/json' -d '{"p_slug":"__teste__","p_like":true}')"
