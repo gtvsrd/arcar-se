@@ -103,6 +103,12 @@ function bindDel() {
   );
 }
 
+/** Endereço para compartilhar: a página gerada do artigo (tem as prévias); se ainda não foi gerada, o endereço do app. */
+function shareUrl(p) {
+  const base = location.href.split('#')[0].replace(/index\.html$/, '');
+  return builtSlugs.has(p.slug) ? new URL(`post/${p.slug}/`, base).href : `${base}#/post/${p.slug}`;
+}
+
 /** Desenha um artigo completo. */
 function post(key) {
   const p = findPost(key);
@@ -113,9 +119,11 @@ function post(key) {
   $('#main').innerHTML =
     `<article class="art">${coverHTML(p, true)}${metaHTML(p).replace('</div>', badgeHTML(p) + '</div>')}
    <h1>${esc(p.title)}</h1><div class="body">${hyphenateJustified(md(p.body))}</div>
+   ${p.pub ? postActionsHTML({ id: p.id, slug: p.slug, url: shareUrl(p), title: p.title }) : ''}
    ${canEdit(p) ? `<div class="acts"><a class="btn sm alt" href="#/editar/${p.id}">Editar</a><button class="btn sm del" data-del="${p.id}">Excluir</button></div>` : ''}
    <p><a href="#/">← Voltar aos artigos</a></p></article>`;
   bindDel();
+  initPostActions(document.querySelector('.art .post-actions'));
   registerView(p).then((n) => {
     const el = document.querySelector('.art [data-views]');
     if (el && n !== null) el.textContent = viewsLabel(n);

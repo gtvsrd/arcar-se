@@ -31,6 +31,8 @@ jobs:
           node-version: 22
       - id: pages
         uses: actions/configure-pages@v5
+      - name: Instalar o gerador de imagens de prévia
+        run: npm install --no-save --no-package-lock --no-audit --no-fund sharp@0.33.5
       - name: Gerar o site
         run: node scripts/build.mjs
         env:

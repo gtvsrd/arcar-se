@@ -19,10 +19,19 @@ export function headMeta({ title, description, canonical, type = 'website', imag
     meta('property', 'og:description', description),
     canonical ? meta('property', 'og:url', canonical) : '',
     meta('property', 'og:image', image),
+    meta('property', 'og:image:alt', title),
+    ...(/\/assets\/og-default\.png$|\/og\/[^/]+\.jpg$/.test(image)
+      ? [
+          meta('property', 'og:image:width', '1200'),
+          meta('property', 'og:image:height', '630'),
+          meta('property', 'og:image:type', image.endsWith('.png') ? 'image/png' : 'image/jpeg'),
+        ]
+      : []),
     meta('name', 'twitter:card', 'summary_large_image'),
     meta('name', 'twitter:title', title),
     meta('name', 'twitter:description', description),
     meta('name', 'twitter:image', image),
+    meta('name', 'twitter:image:alt', title),
     ld,
   ]
     .filter(Boolean)
@@ -153,7 +162,7 @@ export function pageShell({ site, root, title, head, main, adminHref, bodyAttrs 
     <footer>© <span id="yr">${site.year}</span> ${esc(c.siteName)} · Todos os direitos reservados${
       adminHref ? ` · <a href="${esc(adminHref)}" rel="nofollow">Admin</a>` : ''
     }</footer>
-    ${withViews ? `<script src="${root}js/config.js"></script>\n    ` : ''}<script defer src="${root}js/static-page.js"></script>
+    ${withViews ? `<script src="${root}js/config.js"></script>\n    ` : ''}<script defer src="${root}js/static-page.js"></script>${withViews ? `\n    <script defer src="${root}js/post-actions.js"></script>` : ''}
   </body>
 </html>
 `;
@@ -165,7 +174,8 @@ export function postPage(p, site) {
   const root = '../../';
   const c = site.config;
   const url = `${site.base}/post/${p.slug}/`;
-  const image = isHttp(p.img) ? p.img : `${site.base}/assets/og-default.png`;
+  const og = (site.ogImages && site.ogImages[p.slug]) || null; // prévia 1200×630 gerada no build
+  const image = og ? og.url : isHttp(p.img) ? p.img : `${site.base}/assets/og-default.png`;
   const description = (p.excerpt || '').trim().slice(0, 200) || c.description;
   const title = `${p.title} — ${c.siteName}`;
   const author = p.author_id && site.profiles && site.profiles[p.author_id] && site.profiles[p.author_id].display_name ? site.profiles[p.author_id] : null;
@@ -193,6 +203,7 @@ export function postPage(p, site) {
     .concat(site.helpers.catsOf(p).map((c) => `\n    <meta property="article:section" content="${esc(c)}" />`).join(''));
   const main = `<article class="art">${coverHTML(p, { large: true, root, site })}<div class="meta">${bylineHTML(p, site)}<span>${fmt(p.date)}</span><span class="views" id="views" hidden></span></div>
    <h1>${esc(p.title)}</h1><div class="body">${site.helpers.hyphenateJustified(md(p.body))}</div>
+   ${site.postActions({ id: p.id, slug: p.slug, url, title: p.title })}
    <p><a href="${root}">← Voltar aos artigos</a></p></article>`;
   return pageShell({
     site,
