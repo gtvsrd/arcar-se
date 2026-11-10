@@ -88,7 +88,9 @@ export function navHTML(site, root) {
   const { esc } = site.helpers;
   return (
     `<a href="${root || './'}">Início</a>` +
-    site.pages.map((g) => `<a href="${root}pagina/${g.slug}/">${esc(g.title)}</a>`).join('')
+    site.pages.map((g) => `<a href="${root}pagina/${g.slug}/">${esc(g.title)}</a>`).join('') +
+    // Entrar ou (Painel, Novo artigo, Sair): preenchido por static-page.js conforme haja sessão no navegador
+    `<span id="authnav"><a href="${root}#/entrar">Entrar</a></span>`
   );
 }
 
@@ -162,7 +164,8 @@ export function pageShell({ site, root, title, head, main, adminHref, bodyAttrs 
     <footer>© <span id="yr">${site.year}</span> ${esc(c.siteName)} · Todos os direitos reservados${
       adminHref ? ` · <a href="${esc(adminHref)}" rel="nofollow">Admin</a>` : ''
     }</footer>
-    ${withViews ? `<script src="${root}js/config.js"></script>\n    ` : ''}<script defer src="${root}js/static-page.js"></script>${withViews ? `\n    <script defer src="${root}js/post-actions.js"></script>` : ''}
+    <script src="${root}js/config.js"></script>
+    <script defer src="${root}js/static-page.js"></script>${withViews ? `\n    <script defer src="${root}js/post-actions.js"></script>` : ''}
   </body>
 </html>
 `;

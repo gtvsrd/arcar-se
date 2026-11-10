@@ -58,6 +58,9 @@ header.top :focus-visible {
   text-transform: uppercase;
   color: var(--hd-mut);
 }
+#authnav {
+  display: contents; /* os links de Entrar/Sair se comportam como os outros itens do menu */
+}
 /* Menu do topo (só o #nav: outras <nav>, como as abas do painel, têm estilo próprio) */
 #nav a,
 #nav button {

@@ -60,7 +60,14 @@ function initAuth() {
           $('#dlg').close();
           $('#p').value = '';
           toast(r === 'admin' ? 'Bem-vindo, administrador' : 'Bem-vindo');
-          route();
+          if (loginReturn) {
+            const back = loginReturn;
+            loginReturn = '';
+            location.href = back; // volta para a página de onde clicou em Entrar
+          } else {
+            if (location.hash.startsWith('#/entrar')) history.replaceState(null, '', location.pathname + '#/');
+            route();
+          }
         } else if (r === 'semacesso')
           err.textContent = 'Este e-mail ainda não foi liberado. Peça ao administrador para liberar o acesso.';
         else err.textContent = 'E-mail ou senha incorretos.';
@@ -77,4 +84,29 @@ function initAuth() {
     if (e.key === 'Enter') ok.click();
   };
   $('#lcancel').onclick = () => $('#dlg').close();
+}
+
+/** Para onde voltar depois do login (página gerada de onde a pessoa clicou em Entrar). Só aceita caminhos deste site. */
+let loginReturn = '';
+
+/** Rota #/entrar[/caminho]: mostra a página inicial com a janela de login aberta. */
+function openLogin(back) {
+  loginReturn = /^\/(?!\/)[^\s]*$/.test(back || '') ? back : '';
+  if (staff()) {
+    // já está logado: volta direto
+    if (loginReturn) location.href = loginReturn;
+    else location.replace('#/');
+    return;
+  }
+  home();
+  $('#lerr').textContent = '';
+  $('#dlg').showModal();
+  $('#u').focus();
+  $('#dlg').addEventListener(
+    'close',
+    () => {
+      if (!staff() && location.hash.startsWith('#/entrar')) history.replaceState(null, '', location.pathname + '#/');
+    },
+    { once: true },
+  );
 }

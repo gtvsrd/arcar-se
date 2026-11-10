@@ -36,5 +36,6 @@ function route() {
   else if (a === 'conta') account();
   else if (a === 'redefinir') resetPassword();
   else if (a === 'painel') panel(v);
+  else if (a === 'entrar') openLogin(v);
   else home();
 }
