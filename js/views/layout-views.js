@@ -32,6 +32,22 @@ function renderNav() {
     };
 }
 /** Desenha a coluna lateral: sobre, busca, categorias, recentes, páginas e painel admin. */
+/** Faixa da equipe (admin ou criador) acima das duas colunas: atalhos para Painel, Novo artigo e Alterar senha. */
+function renderStaffbar() {
+  const bar = $('#staffbar');
+  if (!bar) return;
+  bar.hidden = !staff();
+  if (!staff()) return (bar.innerHTML = '');
+  const name = me && db.profiles[me.id] && db.profiles[me.id].display_name;
+  const pend = pendingReview();
+  bar.innerHTML = `<div class="staffbar-in">
+   <div class="staffbar-who"><b>${admin ? 'Painel do administrador' : 'Área do criador'}</b>${name ? `<span>Olá, ${esc(name)}</span>` : ''}${
+     pend ? `<a class="staffbar-pend" href="#/painel">${pend} ${pend === 1 ? 'artigo aguarda' : 'artigos aguardam'} revisão</a>` : ''
+   }</div>
+   <nav class="acts" aria-label="Atalhos da equipe"><a class="btn sm" href="#/painel">Painel</a><a class="btn sm alt" href="#/novo">Novo artigo</a><a class="btn sm alt" href="#/conta">Alterar senha</a></nav>
+  </div>`;
+}
+
 function renderSide() {
   const ps = visible(),
     cats = {};
@@ -51,10 +67,8 @@ function renderSide() {
      .join('')}</ul></div>
    <div class="box"><h3>Páginas</h3><ul>${Object.keys(db.pages)
      .map((k) => `<li><a href="#/pagina/${k}">${esc(db.pages[k].title)}</a></li>`)
-     .join('')}</ul></div>` +
-    (staff()
-      ? `<div class="box"><h3>${admin ? 'Painel do administrador' : 'Área do criador'}</h3><div class="acts" style="flex-wrap:wrap"><a class="btn sm" href="#/painel">Painel</a><a class="btn sm alt" href="#/novo">Novo artigo</a><a class="btn sm alt" href="#/conta">Alterar senha</a></div></div>`
-      : '');
+     .join('')}</ul></div>`;
+  renderStaffbar();
   $('#q').onkeydown = (e) => {
     if (e.key === 'Enter' && e.target.value.trim())
       location.hash = '#/busca/' + encodeURIComponent(e.target.value.trim());

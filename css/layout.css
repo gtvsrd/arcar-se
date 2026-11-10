@@ -87,6 +87,53 @@ header.top :focus-visible {
   grid-template-columns: minmax(0, 1fr) 300px;
   gap: 32px;
 }
+/* Faixa da equipe: acima das duas colunas, com a mesma largura das duas juntas */
+.staffbar {
+  max-width: 1120px;
+  margin: 24px auto 0;
+  padding: 0 var(--gutter);
+}
+.staffbar[hidden] {
+  display: none;
+}
+.staffbar + .wrap {
+  margin-top: 20px;
+}
+.staffbar-in {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px 20px;
+  padding: 12px 18px;
+  background: var(--sf);
+  border: 1px solid var(--ln);
+  border-left: 4px solid var(--warm);
+  border-radius: 8px;
+}
+.staffbar-who {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 4px 14px;
+}
+.staffbar-who b {
+  font-family: Merriweather, Georgia, serif;
+  font-size: 16px;
+}
+.staffbar-who span {
+  color: var(--mut);
+  font-size: 14px;
+}
+.staffbar-pend {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--ac);
+}
+.staffbar .acts {
+  margin: 0;
+  flex-wrap: wrap;
+}
 .wrap > * {
   min-width: 0; /* impede que o conteúdo alargue a coluna e ultrapasse a tela */
 }
