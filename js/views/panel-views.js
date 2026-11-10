@@ -262,8 +262,12 @@ function panelProfile() {
      </div>
    </div>
    <div class="acts" style="margin-top:18px"><button class="btn" type="submit">Salvar perfil</button><a class="btn alt" href="#/painel">Cancelar</a></div>
-   <p class="hint">Para trocar a senha, use <a href="#/conta">Alterar senha</a>.</p>
-  </form>`;
+  </form>
+  <div class="box" style="max-width:560px;margin-top:20px">
+   <h3>Senha</h3>
+   <p class="hint">Troque a senha que você usa para entrar no blog.</p>
+   <div class="acts"><a class="btn alt" href="#/conta">Alterar senha</a></div>
+  </div>`;
   const show = () => {
     const name = $('#pn').value.trim() || '?';
     const src = pending ? URL.createObjectURL(pending) : avatar;

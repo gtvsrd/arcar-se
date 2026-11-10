@@ -287,13 +287,13 @@ async function resetPassword() {
 /** Formulário de troca de senha (admin e criadores). */
 function account() {
   $('#main').innerHTML =
-    `<div class="art"><h1>Alterar senha</h1><form id="f"><label for="np">Nova senha (mínimo 6 caracteres)</label><input type="password" id="np" minlength="6" required autocomplete="new-password"><div class="acts" style="margin-top:18px"><button class="btn" type="submit">Salvar senha</button><a class="btn alt" href="#/">Cancelar</a></div></form></div>`;
+    `<div class="art"><h1>Alterar senha</h1><form id="f"><label for="np">Nova senha (mínimo 6 caracteres)</label><input type="password" id="np" minlength="6" required autocomplete="new-password"><div class="acts" style="margin-top:18px"><button class="btn" type="submit">Salvar senha</button><a class="btn alt" href="#/painel/perfil">Cancelar</a></div></form></div>`;
   $('#f').onsubmit = async (e) => {
     e.preventDefault();
     try {
       await changePassword($('#np').value);
       toast('Senha alterada');
-      location.hash = '#/';
+      location.hash = '#/painel/perfil';
     } catch (err) {
       toast('Não foi possível alterar a senha: ' + err.message);
     }

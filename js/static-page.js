@@ -6,6 +6,46 @@
 const ROOT = document.body.dataset.root || './';
 
 initThemeToggle();
+
+/**
+ * Entrar / Sair no cabeçalho das páginas geradas.
+ * - Sem sessão: "Entrar" abre o app com a janela de login e, depois de entrar, volta para esta mesma página.
+ * - Com sessão (equipe logada neste navegador): "Painel", "Novo artigo" e "Sair" (que encerra a sessão aqui mesmo).
+ */
+(function authNav() {
+  const box = document.getElementById('authnav');
+  if (!box) return;
+  const tokenKey = () => {
+    try {
+      return Object.keys(localStorage).find((k) => /^sb-.+-auth-token$/.test(k));
+    } catch (e) {
+      return null;
+    }
+  };
+  const render = () => {
+    const k = tokenKey();
+    if (!k) {
+      box.innerHTML = `<a href="${ROOT}#/entrar/${encodeURIComponent(location.pathname)}">Entrar</a>`;
+      return;
+    }
+    box.innerHTML = `<a href="${ROOT}#/painel">Painel</a><a href="${ROOT}#/novo">Novo artigo</a><button type="button" id="out">Sair</button>`;
+    document.getElementById('out').onclick = async () => {
+      try {
+        const s = JSON.parse(localStorage.getItem(k) || '{}');
+        if (typeof SUPABASE_URL !== 'undefined' && s.access_token)
+          await fetch(SUPABASE_URL + '/auth/v1/logout', {
+            method: 'POST',
+            headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + s.access_token },
+          });
+      } catch (e) {}
+      try {
+        localStorage.removeItem(k);
+      } catch (e) {}
+      render();
+    };
+  };
+  render();
+})();
 document.getElementById('yr').textContent = new Date().getFullYear();
 document.getElementById('q').addEventListener('keydown', (e) => {
   const q = e.target.value.trim();
