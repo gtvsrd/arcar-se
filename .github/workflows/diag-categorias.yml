@@ -10,13 +10,11 @@ jobs:
         with:
           ref: main
       - run: |
-          B=https://gtvsrd.github.io/arcar-se
-          for s in criatividade-dadiva-ou-fardo dicas-para-o-manejo-da-ansiedade; do
-            curl -s -A "WhatsApp/2.23.20.0 A" "$B/post/$s/" > /tmp/p.html
-            echo "== $s: faixa=$(grep -c 'class="post-actions"' /tmp/p.html)"
-            img=$(grep -o '<meta property="og:image" content="[^"]*"' /tmp/p.html | sed 's/.*content="//; s/"$//'); echo "og:image $img"
-            curl -s -o /dev/null -w "imagem: %{http_code} %{content_type} %{size_download}B\n" -A "facebookexternalhit/1.1" "$img"
-          done
           U=$(grep -o "https://[a-z0-9]*\.supabase\.co" js/config.js); K=$(node -e "const s=require('fs').readFileSync('js/config.js','utf8');console.log(s.match(/SUPABASE_ANON_KEY\s*=\s*['\"]([^'\"]+)/)[1])")
-          echo "post_likes: $(curl -s -o /dev/null -w '%{http_code}' "$U/rest/v1/post_likes?select=*&limit=1" -H "apikey: $K")"
-          echo "like_post (artigo inexistente, não altera nada): $(curl -s -X POST "$U/rest/v1/rpc/like_post" -H "apikey: $K" -H 'Content-Type: application/json' -d '{"p_slug":"__teste__","p_like":true}')"
+          echo "R1 post_likes: $(curl -s -w ' HTTP %{http_code}' "$U/rest/v1/post_likes?select=*" -H "apikey: $K")"
+          echo "R2 post_views: $(curl -s -o /dev/null -w 'HTTP %{http_code}' "$U/rest/v1/post_views?select=*&limit=1" -H "apikey: $K")"
+          echo "R3 like_post: $(curl -s -w ' HTTP %{http_code}' -X POST "$U/rest/v1/rpc/like_post" -H "apikey: $K" -H 'Content-Type: application/json' -d '{"p_slug":"__teste__","p_like":true}')"
+          B=https://gtvsrd.github.io/arcar-se
+          echo "R4 index tem post-actions.js: $(curl -s $B/ | grep -o 'js/post-actions.js[^"]*')"
+          echo "R5 css tem pa-like: $(curl -s $B/css/components.css | grep -c 'pa-like')"
+          echo "R6 js: $(curl -s $B/js/post-actions.js | grep -c 'initPostActions')"
