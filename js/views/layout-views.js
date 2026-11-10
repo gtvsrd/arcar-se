@@ -5,6 +5,16 @@
 /** Quantos artigos de criadores esperam revisão (só o admin vê). */
 const pendingReview = () => (admin ? db.posts.filter((p) => p.submitted && !p.pub).length : 0);
 
+/** Nome e foto de quem está logado (leva a Painel › Meu perfil). Sem nome de exibição, usa o começo do e-mail. */
+function meHTML() {
+  const pr = (me && db.profiles[me.id]) || {};
+  const name = pr.display_name || (me && me.email ? me.email.split('@')[0] : 'Meu perfil');
+  const av = pr.avatar_url
+    ? `<img class="avatar" src="${esc(pr.avatar_url)}" alt="" width="28" height="28">`
+    : `<span class="avatar avatar--ph" aria-hidden="true">${esc([...name][0].toUpperCase())}</span>`;
+  return `<a class="nav-me" href="#/painel/perfil" title="Meu perfil">${av}<span class="nav-me-name">${esc(name)}</span></a>`;
+}
+
 /** Desenha o menu do topo (muda conforme o admin está logado ou não). */
 function renderNav() {
   $('#nav').innerHTML =
@@ -13,7 +23,7 @@ function renderNav() {
       .map((k) => `<a href="#/pagina/${k}">${esc(db.pages[k].title)}</a>`)
       .join('') +
     (staff()
-      ? `<a href="#/painel">Painel${pendingReview() ? ` <span class="pill">${pendingReview()}</span>` : ''}</a><a href="#/novo">Novo artigo</a><button id="out">Sair</button>`
+      ? `<a href="#/painel">Painel${pendingReview() ? ` <span class="pill">${pendingReview()}</span>` : ''}</a><a href="#/novo">Novo artigo</a>${meHTML()}<button id="out">Sair</button>`
       : '<button id="in">Entrar</button>');
   const i = $('#in'),
     o = $('#out');
