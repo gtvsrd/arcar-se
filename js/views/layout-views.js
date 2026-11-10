@@ -51,10 +51,7 @@ function renderSide() {
      .join('')}</ul></div>
    <div class="box"><h3>Páginas</h3><ul>${Object.keys(db.pages)
      .map((k) => `<li><a href="#/pagina/${k}">${esc(db.pages[k].title)}</a></li>`)
-     .join('')}</ul></div>` +
-    (staff()
-      ? `<div class="box"><h3>${admin ? 'Painel do administrador' : 'Área do criador'}</h3><div class="acts" style="flex-wrap:wrap"><a class="btn sm" href="#/painel">Painel</a><a class="btn sm alt" href="#/novo">Novo artigo</a><a class="btn sm alt" href="#/conta">Alterar senha</a></div></div>`
-      : '');
+     .join('')}</ul></div>`; // a equipe usa o menu do topo (Painel, Novo artigo); a senha fica em Painel › Meu perfil
   $('#q').onkeydown = (e) => {
     if (e.key === 'Enter' && e.target.value.trim())
       location.hash = '#/busca/' + encodeURIComponent(e.target.value.trim());
