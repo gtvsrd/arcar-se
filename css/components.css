@@ -677,7 +677,7 @@ dialog [hidden] {
 .art .body p,
 .art .body ul,
 .art .body ol {
-  margin: 0 0 1.3em;
+  margin: 0 0 calc(1.3em - 4px); /* ~20px no texto do artigo */
 }
 .art .body li + li {
   margin-top: 0.4em;
