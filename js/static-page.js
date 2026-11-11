@@ -28,7 +28,33 @@ initThemeToggle();
       box.innerHTML = `<a href="${ROOT}#/entrar/${encodeURIComponent(location.pathname)}">Entrar</a>`;
       return;
     }
-    box.innerHTML = `<a href="${ROOT}#/painel">Painel</a><a href="${ROOT}#/novo">Novo artigo</a><button type="button" id="out">Sair</button>`;
+    let sess = {};
+    try {
+      sess = JSON.parse(localStorage.getItem(k) || '{}');
+    } catch (e) {}
+    const user = sess.user || {};
+    const esc = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' })[c]);
+    const meLink = (name, photo) =>
+      `<a class="nav-me" href="${ROOT}#/painel/perfil" title="Meu perfil">${
+        photo
+          ? `<img class="avatar" src="${esc(photo)}" alt="" width="28" height="28">`
+          : `<span class="avatar avatar--ph" aria-hidden="true">${esc([...name][0].toUpperCase())}</span>`
+      }<span class="nav-me-name">${esc(name)}</span></a>`;
+    const fallback = user.email ? user.email.split('@')[0] : 'Meu perfil';
+    box.innerHTML = `<a href="${ROOT}#/painel">Painel</a><a href="${ROOT}#/novo">Novo artigo</a>${meLink(fallback, '')}<button type="button" id="out">Sair</button>`;
+    // nome e foto do perfil (tabela pública "profiles")
+    if (user.id && typeof SUPABASE_URL !== 'undefined')
+      fetch(`${SUPABASE_URL}/rest/v1/profiles?select=display_name,avatar_url&user_id=eq.${encodeURIComponent(user.id)}`, {
+        headers: { apikey: SUPABASE_ANON_KEY },
+      })
+        .then((r) => (r.ok ? r.json() : []))
+        .then((d) => {
+          const p = d[0];
+          const cur = box.querySelector('.nav-me');
+          if (p && cur && (p.display_name || p.avatar_url))
+            cur.outerHTML = meLink(p.display_name || fallback, /^https?:\/\//.test(p.avatar_url || '') ? p.avatar_url : '');
+        })
+        .catch(() => {});
     document.getElementById('out').onclick = async () => {
       try {
         const s = JSON.parse(localStorage.getItem(k) || '{}');

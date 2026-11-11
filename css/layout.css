@@ -58,6 +58,29 @@ header.top :focus-visible {
   text-transform: uppercase;
   color: var(--hd-mut);
 }
+/* Quem está logado: foto e nome no menu do topo */
+#nav .nav-me {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  vertical-align: middle;
+}
+.nav-me .avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 13px;
+  box-shadow: 0 0 0 2px var(--warm);
+}
+.nav-me .avatar--ph {
+  background: var(--warm);
+  color: #1e2b2a;
+}
+.nav-me-name {
+  max-width: 160px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
 #authnav {
   display: contents; /* os links de Entrar/Sair se comportam como os outros itens do menu */
 }

@@ -303,6 +303,7 @@ function panelProfile() {
       await saveProfile($('#pn').value.trim(), avatar);
       if (cur.avatar_url && cur.avatar_url !== avatar) deleteCover(cur.avatar_url); // foto antiga
       toast('Perfil salvo');
+      renderNav(); // nome e foto no topo já atualizados
       panel('perfil');
     } catch (err) {
       if (uploaded) deleteCover(uploaded);

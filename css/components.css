@@ -867,3 +867,120 @@ dialog [hidden] {
     animation: none;
   }
 }
+
+/* ---------- Imagem do artigo (uma por artigo): sempre centralizada, com tamanho, corte e legenda ---------- */
+.body .fig {
+  margin: 1.8em auto;
+  max-width: 100%;
+}
+.body .fig-frame {
+  overflow: hidden;
+  border-radius: 6px;
+  line-height: 0;
+}
+.body .fig img {
+  display: block;
+  width: 100%;
+  max-width: none;
+  height: auto;
+  margin: 0;
+  border-radius: 0;
+}
+.body .fig figcaption {
+  margin-top: 10px;
+  font-family: 'Source Sans 3', system-ui, sans-serif;
+  font-size: 14.5px;
+  line-height: 1.5;
+  color: var(--mut);
+  text-align: center;
+  font-style: italic;
+}
+/* no editor */
+.rte .rte-fig {
+  cursor: pointer;
+  user-select: none;
+  -webkit-user-select: none;
+}
+.rte .rte-fig.rte-sel .fig-frame {
+  outline: 3px solid var(--ac);
+  outline-offset: 2px;
+}
+.rte .rte-fig.rte-cropping .fig-frame {
+  outline: none;
+  filter: brightness(0.55);
+}
+.rte-imgbar-main,
+.rte-imgbar-crop {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 4px;
+}
+.rte-imgbar-main[hidden],
+.rte-imgbar-crop[hidden] {
+  display: none;
+}
+.rte-handles {
+  position: absolute;
+  z-index: 1;
+  pointer-events: none;
+}
+.rte-handles[hidden] {
+  display: none;
+}
+.rte-h {
+  position: absolute;
+  width: 14px;
+  height: 14px;
+  margin: -7px 0 0 -7px;
+  background: var(--sf);
+  border: 2px solid var(--ac);
+  border-radius: 3px;
+  pointer-events: auto;
+  touch-action: none;
+}
+.rte-h-nw { left: 0; top: 0; cursor: nwse-resize; }
+.rte-h-n { left: 50%; top: 0; cursor: ns-resize; }
+.rte-h-ne { left: 100%; top: 0; cursor: nesw-resize; }
+.rte-h-e { left: 100%; top: 50%; cursor: ew-resize; }
+.rte-h-se { left: 100%; top: 100%; cursor: nwse-resize; }
+.rte-h-s { left: 50%; top: 100%; cursor: ns-resize; }
+.rte-h-sw { left: 0; top: 100%; cursor: nesw-resize; }
+.rte-h-w { left: 0; top: 50%; cursor: ew-resize; }
+.rte-handles.cropping .rte-h {
+  background: var(--warm);
+  border-color: #fff;
+}
+/* área que fica depois do corte: mostra a imagem clara por cima da versão escurecida */
+.rte-cropbox {
+  position: absolute;
+  border: 2px dashed #fff;
+  box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.5);
+  backdrop-filter: brightness(1.8);
+  -webkit-backdrop-filter: brightness(1.8);
+}
+.rte-cropbox[hidden] {
+  display: none;
+}
+.rte-size {
+  position: absolute;
+  left: 50%;
+  bottom: 8px;
+  transform: translateX(-50%);
+  padding: 2px 8px;
+  border-radius: 10px;
+  background: rgba(0, 0, 0, 0.7);
+  color: #fff;
+  font-size: 12px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+.rte-size:empty {
+  display: none;
+}
+@media (pointer: coarse) {
+  .rte-h {
+    width: 24px;
+    height: 24px;
+    margin: -12px 0 0 -12px; /* alças maiores para o dedo */
+  }
+}
