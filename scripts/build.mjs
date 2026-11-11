@@ -27,7 +27,9 @@ const fail = (msg) => {
 
 // ---------- configuração ----------
 const config = JSON.parse(read('site.config.json'));
-if (process.env.SITE_URL) config.siteUrl = process.env.SITE_URL;
+// o GitHub informa "http://" enquanto o "Enforce HTTPS" não está marcado; o GitHub Pages sempre atende por HTTPS,
+// então os links, as prévias e o sitemap usam https (exceto em testes locais)
+if (process.env.SITE_URL) config.siteUrl = process.env.SITE_URL.replace(/^http:\/\/(?!localhost|127\.)/i, 'https://');
 process.env.TZ = config.timezone || 'America/Sao_Paulo'; // as datas saem no mesmo fuso que o leitor vê no app
 
 const base = config.siteUrl.replace(/\/+$/, '');
