@@ -3,6 +3,9 @@
  *
  * Além do básico (##, ###, listas, **negrito**, *itálico*, links), entende:
  * ++sublinhado++, ~~tachado~~, "1. " (lista numerada), "> " (citação), ![descrição](endereço) (imagem),
+ * imagem do artigo num bloco só dela, com tamanho, corte e legenda: ![descrição](endereço){w=60 c=10,5,80,90 r=66.67}
+ * e a legenda na linha de baixo (w = largura em % da coluna; c = corte x,y,largura,altura em % da imagem original;
+ * r = altura/largura da imagem original em %),
  * e "{centro} ", "{direita} " ou "{justificado} " no começo do bloco (alinhamento). A barra invertida mantém um símbolo literal: \*
  */
 
@@ -61,6 +64,46 @@ function mdInline(s) {
   return restore(out.join(''));
 }
 
+/** Limites do tamanho da imagem do artigo (% da largura da coluna de texto). */
+const FIG_MIN = 20,
+  FIG_MAX = 100;
+
+/** Lê os ajustes da imagem: "w=60 c=10,5,80,90 r=66.67" → { w, c, r }. */
+function figAttrs(s) {
+  const o = { w: FIG_MAX, c: null, r: null };
+  for (const [, k, v] of String(s || '').matchAll(/([wcr])=([\d.,]+)/g)) {
+    if (k === 'w') o.w = Math.min(FIG_MAX, Math.max(FIG_MIN, +v || FIG_MAX));
+    if (k === 'r' && +v > 0) o.r = +v;
+    if (k === 'c') {
+      const c = v.split(',').map(Number);
+      if (c.length === 4 && c.every((n) => n >= 0 && n <= 100) && c[2] > 0 && c[3] > 0) o.c = c;
+    }
+  }
+  if (!o.r) o.c = null; // o corte precisa da proporção da imagem original
+  return o;
+}
+
+/**
+ * HTML da imagem do artigo: sempre centralizada, com a largura escolhida, o corte (feito só com CSS, a imagem
+ * original continua inteira) e a legenda. Recebe textos já escapados. Os ajustes ficam em data-* para o editor.
+ */
+function figureHTML({ src, alt = '', w = FIG_MAX, c = null, r = null, cap = '' }) {
+  const n = (x) => +x.toFixed(3);
+  let img = `<img src="${src}" alt="${alt}" loading="lazy">`,
+    frame = '';
+  if (c && r) {
+    const [x, y, cw, ch] = c;
+    frame = ` style="aspect-ratio:${n(cw / ((ch * r) / 100))}"`;
+    img = `<img src="${src}" alt="${alt}" loading="lazy" style="width:${n(10000 / cw)}%;margin-left:${n((-x / cw) * 100)}%;margin-top:${n((-((y * r) / 100) / cw) * 100)}%">`;
+  }
+  return (
+    `<figure class="fig" style="width:${w}%" data-w="${w}"${c ? ` data-c="${c.join(',')}"` : ''}${r ? ` data-r="${r}"` : ''}${cap ? ` data-cap="${cap}"` : ''}>` +
+    `<div class="fig-frame"${frame}>${img}</div>` +
+    (cap ? `<figcaption>${mdInline(cap)}</figcaption>` : '') +
+    '</figure>'
+  );
+}
+
 /** Converte o Markdown do artigo em HTML escapado. */
 function md(t) {
   return esc(t)
@@ -71,6 +114,9 @@ function md(t) {
       const al = b.match(/^\{(centro|direita|justificado)\} */);
       const st = al ? ` style="text-align:${{ centro: 'center', direita: 'right', justificado: 'justify' }[al[1]]}"` : '';
       if (al) b = b.slice(al[0].length);
+      // imagem num bloco só dela (com ajustes e legenda opcionais): vira figura centralizada
+      const fg = b.match(/^!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)(?:\{([^}]*)\})?(?:\n([\s\S]*))?$/);
+      if (fg) return figureHTML({ src: fg[2], alt: fg[1], ...figAttrs(fg[3]), cap: (fg[4] || '').replace(/\n+/g, ' ').trim() });
       if (b.startsWith('## ')) return `<h2${st}>` + mdInline(b.slice(3)) + '</h2>';
       if (b.startsWith('### ')) return `<h3${st}>` + mdInline(b.slice(4)) + '</h3>';
       const ls = b.split('\n');
@@ -89,7 +135,7 @@ function md(t) {
 /** Tira a formatação do Markdown e devolve só o texto (usado em resumos e descrições). */
 function plainText(t) {
   return String(t)
-    .replace(/!\[[^\]]*\]\([^)\s]*\)/g, ' ')
+    .replace(/!\[[^\]]*\]\([^)\s]*\)(\{[^}]*\})?/g, ' ')
     .replace(/\[([^\]]+)\]\([^)\s]*\)/g, '$1')
     .replace(/^\{(centro|direita|justificado)\} */gm, '')
     .replace(/^(#{2,3} |- |> |\d+\. )/gm, '')

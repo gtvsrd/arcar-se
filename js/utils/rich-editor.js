@@ -71,6 +71,21 @@ function rteInline(node, resolve, active = []) {
   return node.matches(RTE_BLOCK_TAGS) ? s + '\n' : s;
 }
 
+/** Markdown da imagem do artigo (figura): ![descrição](endereço){ajustes} e a legenda na linha de baixo. */
+function rteFigMd(f, resolve) {
+  const im = f.querySelector('img');
+  const url = resolve(im.getAttribute('src') || '');
+  if (!/^https?:\/\//i.test(url)) return '';
+  const alt = (im.getAttribute('alt') || '').replace(/[\[\]\s]+/g, ' ').trim();
+  const a = figAttrs(`w=${f.dataset.w || ''} c=${f.dataset.c || ''} r=${f.dataset.r || ''}`);
+  const parts = [];
+  if (a.w !== FIG_MAX) parts.push('w=' + a.w);
+  if (a.c && a.r) parts.push('c=' + a.c.join(','), 'r=' + a.r);
+  const capEl = f.querySelector('figcaption');
+  const cap = (f.dataset.cap != null ? f.dataset.cap : capEl ? capEl.textContent : '').replace(/\s+/g, ' ').trim();
+  return `![${alt}](${rteUrl(url)})` + (parts.length ? `{${parts.join(' ')}}` : '') + (cap ? '\n' + cap : '');
+}
+
 /** Arruma os espaços e quebras de linha de um bloco. */
 const rteClean = (s) =>
   s
@@ -123,6 +138,11 @@ function htmlToMd(root, resolve = (src) => src) {
         continue;
       }
       if (n.nodeType !== 1 || RTE_SKIP_TAGS.has(n.tagName)) continue;
+      if (n.tagName === 'FIGURE' && n.querySelector('img')) {
+        flush();
+        add('', rteFigMd(n, resolve));
+        continue;
+      }
       if (!n.matches(RTE_BLOCK_TAGS) && !n.querySelector(RTE_BLOCK_TAGS)) {
         run.push(n);
         continue;
@@ -206,20 +226,38 @@ function createRichEditor(mount, body, labelId) {
    </div>
    <div class="rte body" id="b" contenteditable="true" role="textbox" aria-multiline="true" aria-labelledby="${labelId}"></div>
    <div class="rte-imgbar" id="rte-imgbar" role="toolbar" aria-label="Imagem selecionada" hidden>
-     <button type="button" class="btn sm alt" data-i="up" title="Mover para cima (Alt+↑)">↑ Subir</button>
-     <button type="button" class="btn sm alt" data-i="down" title="Mover para baixo (Alt+↓)">↓ Descer</button>
-     <button type="button" class="btn sm alt" data-i="edit">Editar</button>
-     <button type="button" class="btn sm del" data-i="remove">Remover</button>
+     <span class="rte-imgbar-main">
+       <button type="button" class="btn sm alt" data-i="up" title="Mover para cima (Alt+↑)">↑ Subir</button>
+       <button type="button" class="btn sm alt" data-i="down" title="Mover para baixo (Alt+↓)">↓ Descer</button>
+       <button type="button" class="btn sm alt" data-i="crop" title="Cortar: arraste as bordas e os cantos">Cortar</button>
+       <button type="button" class="btn sm alt" data-i="cap">Legenda</button>
+       <button type="button" class="btn sm alt" data-i="edit">Editar</button>
+       <button type="button" class="btn sm del" data-i="remove">Remover</button>
+     </span>
+     <span class="rte-imgbar-crop" hidden>
+       <button type="button" class="btn sm" data-i="crop-ok" title="Aplicar o corte (Enter)">Concluir corte</button>
+       <button type="button" class="btn sm alt" data-i="crop-reset">Sem corte</button>
+       <button type="button" class="btn sm alt" data-i="crop-cancel" title="Esc">Cancelar</button>
+     </span>
+   </div>
+   <div class="rte-handles" id="rte-handles" hidden>
+     <div class="rte-cropbox" hidden></div>
+     ${['nw', 'n', 'ne', 'e', 'se', 's', 'sw', 'w'].map((h) => `<span class="rte-h rte-h-${h}" data-h="${h}"></span>`).join('')}
+     <span class="rte-size" aria-live="polite"></span>
    </div>
    <div class="rte-drop" id="rte-drop" hidden></div>`;
   const root = mount.querySelector('#b');
   const blockSel = mount.querySelector('#rte-block');
   const imgBar = mount.querySelector('#rte-imgbar');
+  const handles = mount.querySelector('#rte-handles');
+  const cropBox = handles.querySelector('.rte-cropbox');
+  const sizeTag = handles.querySelector('.rte-size');
   const dropLine = mount.querySelector('#rte-drop');
   const pending = new Map(); // endereço temporário (blob:) -> imagem ainda não enviada
   let lastRange = null; // última seleção dentro do editor (a lista de estilos tira o foco dele)
   let frozenRange = null; // seleção guardada enquanto um diálogo está aberto
-  let selectedImg = null;
+  let selectedImg = null; // figura (imagem do artigo) selecionada
+  let crop = null; // corte em andamento: { fig, d, full, box: [x, y, l, a] }
 
   root.innerHTML = md(body) || '<p><br></p>';
   document.execCommand('defaultParagraphSeparator', false, 'p');
@@ -279,24 +317,101 @@ function createRichEditor(mount, body, labelId) {
     const hit = n.closest(sel);
     return hit && root.contains(hit) ? hit : null;
   };
-  /** Mostra os botões da imagem selecionada no canto dela, sem sair da área do editor. */
+  const hasContent = (el) => el.textContent.trim() || el.querySelector('img');
+  const figs = () => [...root.querySelectorAll('figure.fig')];
+
+  /** Dados de uma figura (endereço, descrição, largura, corte, proporção e legenda), sem escape. */
+  const figData = (f) => {
+    const im = f.querySelector('img');
+    const a = figAttrs(`w=${f.dataset.w || ''} c=${f.dataset.c || ''} r=${f.dataset.r || ''}`);
+    const capEl = f.querySelector('figcaption');
+    return {
+      src: im.getAttribute('src') || '',
+      alt: im.getAttribute('alt') || '',
+      ...a,
+      cap: f.dataset.cap != null ? f.dataset.cap : capEl ? capEl.textContent.trim() : '',
+    };
+  };
+  /** HTML da figura no editor: não se digita dentro dela; ela é selecionada, arrastada e ajustada pelas alças. */
+  const figHtml = (d) =>
+    figureHTML({ src: esc(d.src), alt: esc(d.alt), w: d.w, c: d.c, r: d.r, cap: esc(d.cap || '') }).replace(
+      '<figure class="fig"',
+      '<figure class="fig rte-fig" contenteditable="false" draggable="true"',
+    );
+  /** Prepara as figuras para o editor (e transforma imagem sozinha numa linha em figura). */
+  function upgradeFigures(scope = root) {
+    scope.querySelectorAll(':scope > p').forEach((p) => {
+      const im = p.querySelector('img');
+      if (im && p.children.length === 1 && !p.textContent.trim() && /^https?:|^blob:/i.test(im.getAttribute('src') || '')) {
+        const t = document.createElement('div');
+        t.innerHTML = figHtml({ src: im.getAttribute('src'), alt: im.getAttribute('alt') || '', w: FIG_MAX, c: null, r: null, cap: '' });
+        p.replaceWith(t.firstElementChild);
+      }
+    });
+    scope.querySelectorAll('figure.fig').forEach((f) => {
+      f.classList.add('rte-fig');
+      f.setAttribute('contenteditable', 'false');
+      f.setAttribute('draggable', 'true');
+      f.querySelectorAll('img').forEach((i) => i.setAttribute('draggable', 'false'));
+    });
+  }
+  upgradeFigures();
+
+  /** Avisa e devolve false quando o artigo já tem a sua imagem (o limite é uma por artigo). */
+  const canAddImage = () => {
+    if (!root.querySelector('img')) return true;
+    toast('O artigo pode ter só uma imagem no texto. Para trocar, selecione a atual e use Editar.');
+    return false;
+  };
+
+  /** Mostra, sobre a figura selecionada, a barra de botões e as alças (redimensionar ou cortar). */
   const placeImgBar = () => {
     imgBar.hidden = !selectedImg;
-    if (!selectedImg) return;
+    handles.hidden = !selectedImg;
+    if (!selectedImg || !selectedImg.isConnected) {
+      imgBar.hidden = handles.hidden = true;
+      return;
+    }
     const box = mount.getBoundingClientRect(),
-      im = selectedImg.getBoundingClientRect();
-    imgBar.style.top = im.top - box.top + 8 + 'px';
-    imgBar.style.left = Math.max(4, Math.min(im.right - box.left - imgBar.offsetWidth - 8, box.width - imgBar.offsetWidth - 4)) + 'px';
+      fr = selectedImg.querySelector('.fig-frame').getBoundingClientRect();
+    imgBar.querySelector('.rte-imgbar-main').hidden = !!crop;
+    imgBar.querySelector('.rte-imgbar-crop').hidden = !crop;
+    // alças: na moldura (redimensionar) ou na área escolhida dentro da imagem inteira (cortar)
+    let r = fr;
+    cropBox.hidden = !crop;
+    if (crop) {
+      const [x, y, cw, ch] = crop.box;
+      r = { left: fr.left + (fr.width * x) / 100, top: fr.top + (fr.height * y) / 100, width: (fr.width * cw) / 100, height: (fr.height * ch) / 100 };
+      Object.assign(cropBox.style, { left: '0', top: '0', width: '100%', height: '100%' });
+    }
+    Object.assign(handles.style, {
+      left: r.left - box.left + 'px',
+      top: r.top - box.top + 'px',
+      width: r.width + 'px',
+      height: r.height + 'px',
+    });
+    handles.classList.toggle('cropping', !!crop);
+    imgBar.style.top = Math.max(0, fr.top - box.top - imgBar.offsetHeight - 8) + 'px';
+    imgBar.style.left = Math.max(4, Math.min(fr.left - box.left + fr.width / 2 - imgBar.offsetWidth / 2, box.width - imgBar.offsetWidth - 4)) + 'px';
   };
-  const selectImg = (img) => {
+  addEventListener('resize', () => root.isConnected && placeImgBar());
+  // a imagem pode terminar de carregar (ou mudar de tamanho) depois de selecionada: reposiciona as alças
+  root.addEventListener('load', () => selectedImg && placeImgBar(), true);
+  const sizeWatch = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => selectedImg && !drag && placeImgBar()) : null;
+  const selectImg = (f) => {
+    if (crop && crop.fig !== f) cancelCrop();
     root.querySelectorAll('.rte-sel').forEach((x) => x.classList.remove('rte-sel')); // desfazer pode trazer de volta uma marca antiga
-    selectedImg = img;
-    if (img) img.classList.add('rte-sel');
+    selectedImg = f;
+    if (f) f.classList.add('rte-sel');
+    if (sizeWatch) {
+      sizeWatch.disconnect();
+      if (f) sizeWatch.observe(f);
+    }
+    sizeTag.textContent = '';
     placeImgBar();
   };
-  const hasContent = (el) => el.textContent.trim() || el.querySelector('img');
 
-  /** Deixa a imagem num parágrafo só dela, separando o texto de antes e o de depois. Devolve esse parágrafo e o primeiro bloco da divisão. */
+  /** Deixa um elemento num parágrafo só dele, separando o texto de antes e o de depois. Devolve esse parágrafo e o primeiro bloco da divisão. */
   function isolateImg(copy, im) {
     let block = im;
     while (block.parentNode !== copy) block = block.parentNode;
@@ -329,31 +444,12 @@ function createRichEditor(mount, body, labelId) {
     return { own, first: own };
   }
 
+  const asMd = (el) => htmlToMd(el, (src) => 'https://x/' + encodeURIComponent(src));
   /**
-   * Muda a imagem de linha: `where` é 'up', 'down' ou o índice do bloco antes do qual ela deve ficar.
-   * A troca passa por um único comando do navegador, para o Ctrl+Z desfazer o movimento inteiro.
+   * Troca todo o conteúdo por um único comando do navegador, para o Ctrl+Z desfazer a mudança inteira
+   * (mover, inserir, redimensionar, cortar ou mudar a legenda da imagem).
    */
-  function moveImage(img, where) {
-    const copy = root.cloneNode(true);
-    const im = copy.querySelectorAll('img')[[...root.querySelectorAll('img')].indexOf(img)];
-    im.classList.remove('rte-sel');
-    if (!im.getAttribute('class')) im.removeAttribute('class');
-    const before = copy.innerHTML;
-    let ref = typeof where === 'number' ? copy.children[where] || null : null;
-    while (ref && !hasContent(ref)) ref = ref.nextElementSibling;
-    const refIsOwnBlock = ref && ref.contains(im);
-    const { own, first } = isolateImg(copy, im);
-    if (refIsOwnBlock) ref = first;
-    [...copy.children].forEach((c) => c !== own && !hasContent(c) && c.remove());
-    if (where === 'up' && !own.previousElementSibling) return toast('A imagem já está no começo do texto');
-    if (where === 'down' && !own.nextElementSibling) return toast('A imagem já está no fim do texto');
-    if (where === 'up') own.previousElementSibling.before(own);
-    else if (where === 'down') own.nextElementSibling.after(own);
-    else if (ref !== own) copy.insertBefore(own, ref);
-    if (!own.nextElementSibling) copy.insertAdjacentHTML('beforeend', '<p><br></p>'); // para continuar escrevendo depois dela
-    if (copy.innerHTML === before) return;
-    const asMd = (el) => htmlToMd(el, (src) => 'https://x/' + encodeURIComponent(src));
-    const index =[...copy.querySelectorAll('img')].indexOf(im);
+  function replaceAll(html) {
     const y = scrollY;
     root.focus();
     const r = document.createRange();
@@ -363,28 +459,205 @@ function createRichEditor(mount, body, labelId) {
     s.addRange(r);
     // o Edge/Chrome jogaria o conteúdo para dentro da lista ou citação, se o texto começar com uma delas;
     // por isso, nesse caso, primeiro esvazia o editor e volta ao parágrafo comum, sempre por comandos que o Ctrl+Z desfaz
-    if (/^(UL|OL|BLOCKQUOTE)$/.test(root.firstElementChild.tagName)) {
+    if (root.firstElementChild && /^(UL|OL|BLOCKQUOTE)$/.test(root.firstElementChild.tagName)) {
       document.execCommand('delete');
       const list = closestInEditor('ul,ol');
       if (list) document.execCommand(list.tagName === 'UL' ? 'insertUnorderedList' : 'insertOrderedList');
       if (closestInEditor('blockquote')) document.execCommand('formatBlock', false, '<p>');
     }
-    document.execCommand('insertHTML', false, copy.innerHTML);
-    if (asMd(root) !== asMd(copy)) root.innerHTML = copy.innerHTML; // último recurso: o texto certo vale mais que o histórico
+    document.execCommand('insertHTML', false, html);
+    const want = document.createElement('div');
+    want.innerHTML = html;
+    if (asMd(root) !== asMd(want)) root.innerHTML = html; // último recurso: o texto certo vale mais que o histórico
+    upgradeFigures();
     scrollTo(0, y);
-    const moved = root.querySelectorAll('img')[index];
-    selectNode(moved);
-    selectImg(moved);
-    syncState();
-    moved.scrollIntoView({ block: 'nearest' });
   }
+  /** Cópia do conteúdo sem as marcas de seleção, com a figura `f` marcada para ser achada depois. */
+  const copyWith = (f) => {
+    const copy = root.cloneNode(true);
+    copy.querySelectorAll('.rte-sel').forEach((x) => x.classList.remove('rte-sel'));
+    const cf = f ? copy.querySelectorAll('figure.fig')[figs().indexOf(f)] : null;
+    if (cf) cf.setAttribute('data-moving', '1');
+    return { copy, cf };
+  };
+  /** Aplica a cópia, seleciona de novo a figura marcada e a mantém à vista. */
+  function commit(copy) {
+    [...copy.children].forEach((c, i, all) => i < all.length - 1 && !hasContent(c) && c.remove()); // linhas vazias que sobraram
+    const last = copy.lastElementChild;
+    if (!last || last.matches('figure')) copy.insertAdjacentHTML('beforeend', '<p><br></p>'); // para continuar escrevendo depois dela
+    if (copy.innerHTML === root.innerHTML) return;
+    replaceAll(copy.innerHTML);
+    const f = root.querySelector('[data-moving]');
+    if (f) {
+      f.removeAttribute('data-moving');
+      selectImg(f);
+      f.scrollIntoView({ block: 'nearest' });
+    } else selectImg(null);
+    syncState();
+  }
+
+  /** Muda a figura de lugar: `where` é 'up', 'down' ou o índice do bloco antes do qual ela deve ficar. Só entre parágrafos. */
+  function moveImage(f, where) {
+    const { copy, cf } = copyWith(f);
+    let ref = typeof where === 'number' ? copy.children[where] || null : null;
+    while (ref && (ref === cf || !hasContent(ref))) ref = ref.nextElementSibling;
+    let own = cf;
+    while (own.parentNode !== copy) own = own.parentNode;
+    if (own !== cf) own = isolateImg(copy, cf).own; // figura dentro de outro bloco: tira de lá
+    const sib = (dir) => {
+      let n = dir === 'up' ? own.previousElementSibling : own.nextElementSibling;
+      while (n && !hasContent(n)) n = dir === 'up' ? n.previousElementSibling : n.nextElementSibling;
+      return n;
+    };
+    if (where === 'up' && !sib('up')) return toast('A imagem já está no começo do texto');
+    if (where === 'down' && !sib('down')) return toast('A imagem já está no fim do texto');
+    if (where === 'up') sib('up').before(own);
+    else if (where === 'down') sib('down').after(own);
+    else if (ref !== own) copy.insertBefore(own, ref);
+    commit(copy);
+  }
+  /** Troca os dados da figura (largura, corte, legenda, imagem) como um passo só do Ctrl+Z. */
+  function setFig(f, d) {
+    const { copy, cf } = copyWith(f);
+    const t = document.createElement('div');
+    t.innerHTML = figHtml(d);
+    const nf = t.firstElementChild;
+    nf.setAttribute('data-moving', '1');
+    cf.replaceWith(nf);
+    commit(copy);
+  }
+  /** Insere a figura onde está o cursor, numa linha só dela (o parágrafo é dividido se preciso). */
+  function insertFigure(d) {
+    if (!canAddImage()) return;
+    restore();
+    const s = getSelection();
+    const mark = document.createElement('span');
+    mark.setAttribute('data-mark', '1');
+    if (s.rangeCount && root.contains(s.getRangeAt(0).commonAncestorContainer)) {
+      const r = s.getRangeAt(0);
+      r.deleteContents();
+      r.insertNode(mark);
+    } else root.appendChild(mark);
+    const { copy } = copyWith(null);
+    mark.remove();
+    const m = copy.querySelector('[data-mark]');
+    const { own } = isolateImg(copy, m);
+    const t = document.createElement('div');
+    t.innerHTML = figHtml(d);
+    const nf = t.firstElementChild;
+    nf.setAttribute('data-moving', '1');
+    own.replaceWith(nf);
+    commit(copy);
+  }
+
+  // ---------- redimensionar e cortar pelas alças ----------
+  /** Entra no modo de corte: mostra a imagem inteira, na mesma escala, com a área escolhida destacada. */
+  function startCrop(f) {
+    const im = f.querySelector('img');
+    if (!im.naturalWidth) return toast('Espere a imagem carregar para cortar');
+    const d = figData(f);
+    const box = d.c ? [...d.c] : [0, 0, 100, 100];
+    const full = Math.min(FIG_MAX, (d.w * 100) / box[2]); // largura da imagem inteira, mantendo a escala atual
+    crop = { fig: f, d, full, box, r: +((im.naturalHeight / im.naturalWidth) * 100).toFixed(2) };
+    f.classList.add('rte-cropping');
+    f.style.width = full + '%';
+    const fr = f.querySelector('.fig-frame');
+    fr.removeAttribute('style');
+    im.removeAttribute('style');
+    placeImgBar();
+  }
+  /** Sai do corte sem mudar nada. */
+  function cancelCrop() {
+    if (!crop) return;
+    const { fig, d } = crop;
+    crop = null;
+    const t = document.createElement('div');
+    t.innerHTML = figHtml(d);
+    fig.classList.remove('rte-cropping');
+    fig.style.width = d.w + '%';
+    fig.querySelector('.fig-frame').replaceWith(t.firstElementChild.querySelector('.fig-frame'));
+    upgradeFigures();
+    placeImgBar();
+  }
+  /** Aplica o corte (ou tira, com `reset`), mantendo a escala da imagem. */
+  function applyCrop(reset) {
+    if (!crop) return;
+    const { fig, d, full, r } = crop;
+    const box = reset ? [0, 0, 100, 100] : crop.box.map((n) => +n.toFixed(2));
+    const whole = box[0] <= 0.5 && box[1] <= 0.5 && box[2] >= 99.5 && box[3] >= 99.5;
+    const w = Math.round(Math.min(FIG_MAX, Math.max(FIG_MIN, (full * box[2]) / 100)));
+    cancelCrop();
+    setFig(fig, { ...d, w, c: whole ? null : box, r: whole ? null : r });
+  }
+
+  let drag = null;
+  handles.addEventListener('pointerdown', (e) => {
+    const h = e.target.dataset && e.target.dataset.h;
+    if (!h || !selectedImg) return;
+    e.preventDefault();
+    e.target.setPointerCapture(e.pointerId);
+    const f = selectedImg,
+      fr = f.querySelector('.fig-frame').getBoundingClientRect(),
+      col = root.getBoundingClientRect(),
+      cs = getComputedStyle(root),
+      colW = col.width - parseFloat(cs.paddingLeft) - parseFloat(cs.paddingRight);
+    drag = { h, f, fr, colW, d: figData(f), w: +f.dataset.w || FIG_MAX, box: crop ? [...crop.box] : null };
+  });
+  handles.addEventListener('pointermove', (e) => {
+    if (!drag) return;
+    const { h, f, fr, colW } = drag;
+    if (crop) {
+      // corte: a borda puxada vai até onde está o ponteiro (mínimo de 10% da imagem em cada direção)
+      let [x, y, cw, ch] = drag.box;
+      const px = ((e.clientX - fr.left) / fr.width) * 100,
+        py = ((e.clientY - fr.top) / fr.height) * 100;
+      const cl = (v, a, b) => Math.min(b, Math.max(a, v));
+      if (h.includes('w')) {
+        const nx = cl(px, 0, x + cw - 10);
+        cw += x - nx;
+        x = nx;
+      }
+      if (h.includes('e')) cw = cl(px, x + 10, 100) - x;
+      if (h.includes('n')) {
+        const ny = cl(py, 0, y + ch - 10);
+        ch += y - ny;
+        y = ny;
+      }
+      if (h.includes('s')) ch = cl(py, y + 10, 100) - y;
+      crop.box = [x, y, cw, ch];
+      sizeTag.textContent = `${Math.round(cw)}% × ${Math.round(ch)}%`;
+    } else {
+      // redimensionar: a imagem continua centralizada e proporcional; vale tanto puxar as laterais quanto o topo/base
+      const cx = fr.left + fr.width / 2;
+      let wpx;
+      if (h === 'n' || h === 's') {
+        const hpx = h === 's' ? e.clientY - fr.top : fr.bottom - e.clientY;
+        wpx = (hpx * fr.width) / fr.height;
+      } else wpx = Math.abs(e.clientX - cx) * 2;
+      const w = Math.round(Math.min(FIG_MAX, Math.max(FIG_MIN, (wpx / colW) * 100)));
+      drag.w = w;
+      f.style.width = w + '%';
+      sizeTag.textContent = w + '%';
+    }
+    placeImgBar();
+  });
+  const endDrag = () => {
+    if (!drag) return;
+    const { f, d, w } = drag;
+    drag = null;
+    if (crop) return placeImgBar(); // o corte só vale ao clicar em Concluir
+    f.style.width = d.w + '%'; // volta ao que era e aplica de novo como um passo do Ctrl+Z
+    if (w !== d.w) setFig(f, { ...d, w });
+    setTimeout(() => (sizeTag.textContent = ''), 900);
+  };
+  handles.addEventListener('pointerup', endDrag);
+  handles.addEventListener('pointercancel', endDrag);
 
   /** Atualiza os botões para mostrar a formatação de onde o cursor está. */
   function syncState() {
     const s = selectionInside();
     if (!s || frozenRange) return;
     lastRange = s.getRangeAt(0).cloneRange();
-    if (selectedImg && !(lastRange.startContainer.childNodes[lastRange.startOffset] === selectedImg)) selectImg(null);
     placeImgBar();
     mount.querySelectorAll('.rte-btn').forEach((b) => {
       const a = b.dataset.a;
@@ -416,6 +689,10 @@ function createRichEditor(mount, body, labelId) {
       <div id="rl-textrow"><label for="rl-text">Texto do link</label><input type="text" id="rl-text"></div>
       <div class="err" id="rl-err"></div>
       <div class="acts"><button class="btn" type="submit">Aplicar</button><button class="btn del" type="button" id="rl-rm">Remover link</button><button class="btn alt" type="button" id="rl-cancel">Cancelar</button></div>
+    </form></dialog>
+    <dialog id="rte-cap"><form method="dialog"><h2>Legenda da imagem</h2>
+      <label for="rc-text">Texto que aparece embaixo da imagem</label><input type="text" id="rc-text" maxlength="200" placeholder="Ex.: Ilustração: Fulano de Tal" autocomplete="off">
+      <div class="acts"><button class="btn" type="submit">Aplicar</button><button class="btn del" type="button" id="rc-rm">Tirar legenda</button><button class="btn alt" type="button" id="rc-cancel">Cancelar</button></div>
     </form></dialog>
     <dialog id="rte-img"><form method="dialog"><h2 id="ri-title">Inserir imagem</h2>
       <label for="ri-file">Arquivo do computador</label><input type="file" id="ri-file" accept="image/*">
@@ -473,23 +750,34 @@ function createRichEditor(mount, body, labelId) {
     restore();
   };
 
-  /** Coloca a imagem numa linha só dela, separando o texto de antes e o de depois. */
-  function insertImage(html) {
-    restore();
-    const s = getSelection();
-    if (!s.isCollapsed) document.execCommand('delete');
-    const block = currentBlock();
-    if (block && block.nodeType === 1) {
-      const before = document.createRange();
-      before.selectNodeContents(block);
-      before.setEnd(s.anchorNode, s.anchorOffset);
-      if (before.toString().trim() || before.cloneContents().querySelector('img')) document.execCommand('insertParagraph');
-    }
-    document.execCommand('insertHTML', false, html);
-    document.execCommand('insertParagraph');
-    syncState();
+  /** Legenda: escrever, trocar ou tirar. */
+  const capDlg = q('#rte-cap');
+  let capFig = null;
+  function openCaptionDialog(f) {
+    capFig = f;
+    q('#rc-text').value = figData(f).cap;
+    q('#rc-rm').hidden = !figData(f).cap;
+    openDialog(capDlg);
+    q('#rc-text').focus();
   }
-  const imgHtml = (src, alt) => `<img src="${esc(src)}" alt="${esc(alt)}">`;
+  capDlg.addEventListener('close', () => (frozenRange = null));
+  capDlg.querySelector('form').onsubmit = (e) => {
+    e.preventDefault();
+    capDlg.close();
+    setFig(capFig, { ...figData(capFig), cap: q('#rc-text').value.replace(/\s+/g, ' ').trim() });
+  };
+  q('#rc-rm').onclick = () => {
+    capDlg.close();
+    setFig(capFig, { ...figData(capFig), cap: '' });
+  };
+  q('#rc-cancel').onclick = () => capDlg.close();
+
+  /** Tira a figura do texto (um passo do Ctrl+Z). */
+  function removeFigure(f) {
+    const { copy, cf } = copyWith(f);
+    cf.remove();
+    commit(copy);
+  }
   /** Reduz um arquivo de imagem e devolve o endereço temporário usado até o artigo ser salvo. */
   const prepareFile = async (file) => {
     const blob = await resizeImage(file);
@@ -506,7 +794,8 @@ function createRichEditor(mount, body, labelId) {
     if (src) q('#ri-prev').src = src;
   };
   function openImageDialog() {
-    editingImg = selectedImg;
+    if (!selectedImg && !canAddImage()) return;
+    editingImg = selectedImg ? selectedImg.querySelector('img') : null;
     const src = editingImg ? editingImg.getAttribute('src') : '';
     q('#ri-title').textContent = editingImg ? 'Editar imagem' : 'Inserir imagem';
     q('#ri-ok').textContent = editingImg ? 'Aplicar' : 'Inserir';
@@ -558,30 +847,30 @@ function createRichEditor(mount, body, labelId) {
     }
     imgDlg.close();
     if (editingImg) {
-      restore();
-      selectNode(editingImg);
-      exec('insertHTML', imgHtml(src, alt));
-    } else insertImage(imgHtml(src, alt));
+      const f = editingImg.closest('figure.fig'),
+        d = figData(f),
+        changed = src !== d.src;
+      // outra imagem: o corte da anterior não serve mais
+      setFig(f, { ...d, src, alt, c: changed ? null : d.c, r: changed ? null : d.r });
+    } else insertFigure({ src, alt, w: FIG_MAX, c: null, r: null, cap: '' });
   };
   q('#ri-rm').onclick = () => {
     imgDlg.close();
-    restore();
-    selectNode(editingImg);
-    exec('delete');
+    removeFigure(editingImg.closest('figure.fig'));
   };
   q('#ri-cancel').onclick = () => {
     imgDlg.close();
     restore();
   };
 
-  /** Insere arquivos colados ou arrastados, um depois do outro. */
+  /** Insere a imagem colada ou arrastada (só uma: o limite é de uma imagem por artigo). */
   async function insertFiles(files) {
-    for (const f of files) {
-      try {
-        insertImage(imgHtml(await prepareFile(f), ''));
-      } catch (e) {
-        toast('Não foi possível ler essa imagem');
-      }
+    if (!canAddImage()) return;
+    if (files.length > 1) toast('Só a primeira imagem entrou: o artigo pode ter uma imagem no texto.');
+    try {
+      insertFigure({ src: await prepareFile(files[0]), alt: '', w: FIG_MAX, c: null, r: null, cap: '' });
+    } catch (e) {
+      toast('Não foi possível ler essa imagem');
     }
   }
 
@@ -610,15 +899,17 @@ function createRichEditor(mount, body, labelId) {
   imgBar.querySelectorAll('button').forEach((b) => {
     b.onmousedown = (e) => e.preventDefault();
     b.onclick = () => {
-      const a = b.dataset.i;
-      if (a === 'up' || a === 'down') moveImage(selectedImg, a);
-      else if (a === 'edit') {
-        restore();
-        openImageDialog();
-      } else {
-        selectNode(selectedImg);
-        exec('delete');
-      }
+      const a = b.dataset.i,
+        f = selectedImg;
+      if (!f) return;
+      if (a === 'up' || a === 'down') moveImage(f, a);
+      else if (a === 'crop') startCrop(f);
+      else if (a === 'crop-ok') applyCrop(false);
+      else if (a === 'crop-reset') applyCrop(true);
+      else if (a === 'crop-cancel') cancelCrop();
+      else if (a === 'cap') openCaptionDialog(f);
+      else if (a === 'edit') openImageDialog();
+      else removeFigure(f);
     };
   });
 
@@ -651,8 +942,9 @@ function createRichEditor(mount, body, labelId) {
     if (r.toString().endsWith('\t')) document.execCommand('delete');
   };
   root.addEventListener('keydown', (e) => {
-    if (e.key === 'Escape') {
+    if (e.key === 'Escape' && !crop) {
       tabExits = true;
+      if (selectedImg) selectImg(null);
       return;
     }
     if (e.key === 'Tab' && !e.ctrlKey && !e.metaKey && !e.altKey && !tabExits) {
@@ -662,10 +954,22 @@ function createRichEditor(mount, body, labelId) {
       return;
     }
     if (e.key !== 'Shift') tabExits = false;
-    if (selectedImg && e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
-      e.preventDefault();
-      moveImage(selectedImg, e.key === 'ArrowUp' ? 'up' : 'down');
-      return;
+    if (selectedImg) {
+      if (crop && (e.key === 'Enter' || e.key === 'Escape')) {
+        e.preventDefault();
+        return e.key === 'Enter' ? applyCrop(false) : cancelCrop();
+      }
+      if (e.altKey && (e.key === 'ArrowUp' || e.key === 'ArrowDown')) {
+        e.preventDefault();
+        moveImage(selectedImg, e.key === 'ArrowUp' ? 'up' : 'down');
+        return;
+      }
+      if (!crop && (e.key === 'Delete' || e.key === 'Backspace')) {
+        e.preventDefault();
+        removeFigure(selectedImg);
+        return;
+      }
+      if (!crop && !e.ctrlKey && !e.metaKey && !['Shift', 'Alt', 'Tab', 'Escape'].includes(e.key)) selectImg(null); // voltou a escrever
     }
     if (!(e.ctrlKey || e.metaKey) || e.altKey || e.shiftKey) return;
     const key = e.key.toLowerCase();
@@ -678,19 +982,21 @@ function createRichEditor(mount, body, labelId) {
     }
   });
   root.addEventListener('click', (e) => {
-    if (e.target.tagName === 'IMG') {
-      selectNode(e.target);
-      selectImg(e.target);
-      syncState(); // o navegador pode já ter selecionado a imagem, e aí não avisa que a seleção mudou
-    }
+    const f = e.target.closest && e.target.closest('figure.fig');
+    if (f && root.contains(f)) {
+      if (f !== selectedImg) selectImg(f);
+      root.focus({ preventScroll: true });
+      syncState();
+    } else if (selectedImg && !crop) selectImg(null);
   });
   root.addEventListener('dblclick', (e) => {
-    if (e.target.tagName === 'IMG') {
-      selectNode(e.target);
-      selectImg(e.target);
+    const f = e.target.closest && e.target.closest('figure.fig');
+    if (f && root.contains(f) && !crop) {
+      selectImg(f);
       openImageDialog();
     }
   });
+  root.addEventListener('input', () => selectedImg && placeImgBar());
   root.addEventListener('paste', (e) => {
     const cd = e.clipboardData;
     if (!cd) return;
@@ -698,10 +1004,13 @@ function createRichEditor(mount, body, labelId) {
     const files = [...cd.files].filter((f) => f.type.startsWith('image/'));
     const html = cd.getData('text/html');
     const doc = html ? new DOMParser().parseFromString(html, 'text/html') : null;
+    if (doc && doc.images.length) {
+      // imagens que vêm junto com texto colado ficam de fora: a imagem do artigo entra pelo botão (uma por artigo)
+      [...doc.images].forEach((im) => im.remove());
+      toast('As imagens do texto colado ficaram de fora. Use o botão de imagem (uma por artigo).');
+    }
     const text = doc ? htmlToMd(doc.body) : '';
     if (text) {
-      if ([...doc.images].some((im) => !/^https?:\/\//i.test(im.getAttribute('src') || '')))
-        toast('Algumas imagens não puderam ser coladas. Insira-as pelo botão de imagem.');
       const clean = md(text);
       const single = clean.match(/^<p>((?:(?!<\/p>)[\s\S])*)<\/p>$/);
       document.execCommand('insertHTML', false, single ? single[1] : clean);
@@ -716,8 +1025,13 @@ function createRichEditor(mount, body, labelId) {
     dropLine.hidden = true;
   };
   root.addEventListener('dragstart', (e) => {
-    if (e.target.tagName !== 'IMG') return;
-    draggedImg = e.target;
+    const f = e.target.closest && e.target.closest('figure.fig');
+    if (!f || crop) {
+      if (crop) e.preventDefault();
+      return;
+    }
+    draggedImg = f;
+    selectImg(f);
     e.dataTransfer.effectAllowed = 'move';
     e.dataTransfer.setData('text/plain', ''); // o Firefox só começa a arrastar se houver algum dado
   });
@@ -770,6 +1084,9 @@ function createRichEditor(mount, body, labelId) {
     isEmpty: () => !root.textContent.trim() && !root.querySelector('img'),
     /** Envia as imagens novas e devolve o Markdown final. Os endereços enviados entram em `uploaded`, para desfazer se o salvamento falhar. */
     async getBody(uploaded) {
+      if (crop) applyCrop(false);
+      if (root.querySelectorAll('img').length > 1)
+        throw new Error('o artigo pode ter só uma imagem no texto. Remova as outras antes de salvar.');
       const sent = new Map();
       for (const im of root.querySelectorAll('img')) {
         const src = im.getAttribute('src');
