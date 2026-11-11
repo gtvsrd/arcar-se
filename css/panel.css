@@ -61,7 +61,8 @@
 }
 .pstats b {
   display: block;
-  font: 700 24px/1.2 Merriweather, Georgia, serif;
+  font: 600 24px/1.2 Fraunces, Georgia, serif;
+  font-size-adjust: 0.52;
 }
 .pstats span {
   font-size: 13px;
