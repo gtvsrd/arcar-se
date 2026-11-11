@@ -6,15 +6,12 @@ jobs:
   diag:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
-        with:
-          ref: main
       - run: |
-          U=$(grep -o "https://[a-z0-9]*\.supabase\.co" js/config.js); K=$(node -e "const s=require('fs').readFileSync('js/config.js','utf8');console.log(s.match(/SUPABASE_ANON_KEY\s*=\s*['\"]([^'\"]+)/)[1])")
-          echo "R1 post_likes: $(curl -s -w ' HTTP %{http_code}' "$U/rest/v1/post_likes?select=*" -H "apikey: $K")"
-          echo "R2 post_views: $(curl -s -o /dev/null -w 'HTTP %{http_code}' "$U/rest/v1/post_views?select=*&limit=1" -H "apikey: $K")"
-          echo "R3 like_post: $(curl -s -w ' HTTP %{http_code}' -X POST "$U/rest/v1/rpc/like_post" -H "apikey: $K" -H 'Content-Type: application/json' -d '{"p_slug":"__teste__","p_like":true}')"
-          B=https://gtvsrd.github.io/arcar-se
-          echo "R4 index tem post-actions.js: $(curl -s $B/ | grep -o 'js/post-actions.js[^"]*')"
-          echo "R5 css tem pa-like: $(curl -s $B/css/components.css | grep -c 'pa-like')"
-          echo "R6 js: $(curl -s $B/js/post-actions.js | grep -c 'initPostActions')"
+          for t in A AAAA CAA TXT NS; do echo "== arcar.se $t (Google DNS):"; dig +short @8.8.8.8 arcar.se $t; done
+          echo "== www.arcar.se:"; dig +short @8.8.8.8 www.arcar.se
+          echo "== _github-pages-challenge-gtvsrd.arcar.se TXT:"; dig +short @8.8.8.8 _github-pages-challenge-gtvsrd.arcar.se TXT
+          echo "== Cloudflare DNS A:"; dig +short @1.1.1.1 arcar.se A
+          echo "== HTTP:"; curl -sI -m 15 http://arcar.se | head -5
+          echo "== HTTPS:"; curl -sI -m 15 https://arcar.se 2>&1 | head -3; curl -s -m 15 -o /dev/null -w "%{http_code} %{ssl_verify_result}\n" https://arcar.se 2>&1
+          echo "== certificado:"; echo | openssl s_client -connect arcar.se:443 -servername arcar.se 2>/dev/null | openssl x509 -noout -subject -issuer -dates 2>&1 | head
+          for d in arcarse.com arcarse.org arcarse.online; do echo "== $d A:"; dig +short @8.8.8.8 $d A; echo "   http:"; curl -sI -m 15 http://$d | grep -iE "^HTTP|^location"; echo "   https:"; curl -sI -m 15 https://$d 2>&1 | grep -iE "^HTTP|^location|curl:"; done
