@@ -345,7 +345,7 @@ input:-webkit-autofill:focus {
   outline: 3px solid var(--ac);
   outline-offset: 2px;
 }
-/* Botões sobre a imagem selecionada e linha que mostra onde a imagem arrastada vai ficar */
+/* Botões embaixo da imagem selecionada e linha que mostra onde a imagem arrastada vai ficar */
 .rte-imgbar {
   position: absolute;
   z-index: 1;
@@ -901,6 +901,10 @@ dialog [hidden] {
   cursor: pointer;
   user-select: none;
   -webkit-user-select: none;
+}
+/* espaço abaixo da figura selecionada para a barra de botões, que fica embaixo dela */
+.rte .rte-fig.rte-sel {
+  margin-bottom: calc(1.8em + var(--imgbar-h, 44px) + 16px);
 }
 .rte .rte-fig.rte-sel .fig-frame {
   outline: 3px solid var(--ac);

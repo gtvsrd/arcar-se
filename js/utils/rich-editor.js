@@ -364,7 +364,7 @@ function createRichEditor(mount, body, labelId) {
     return false;
   };
 
-  /** Mostra, sobre a figura selecionada, a barra de botões e as alças (redimensionar ou cortar). */
+  /** Mostra a barra de botões embaixo da figura selecionada e as alças sobre ela (redimensionar ou cortar). */
   const placeImgBar = () => {
     imgBar.hidden = !selectedImg;
     handles.hidden = !selectedImg;
@@ -391,10 +391,23 @@ function createRichEditor(mount, body, labelId) {
       height: r.height + 'px',
     });
     handles.classList.toggle('cropping', !!crop);
-    imgBar.style.top = Math.max(0, fr.top - box.top - imgBar.offsetHeight - 8) + 'px';
+    // barra embaixo da imagem (e da legenda), centralizada; abre espaço abaixo da figura para não cobrir o texto.
+    // Se a parte de baixo da imagem estiver fora da tela, a barra fica presa no rodapé da tela (sem subir acima da imagem
+    // nem passar por baixo da barra de ferramentas do editor).
+    mount.style.setProperty('--imgbar-h', imgBar.offsetHeight + 'px');
+    const fig = selectedImg.getBoundingClientRect(),
+      bh = imgBar.offsetHeight,
+      toolsBottom = Math.max(0, mount.querySelector('.rte-tools')?.getBoundingClientRect().bottom || 0);
+    let top = fig.bottom + 8; // posição na tela
+    top = Math.min(top, innerHeight - bh - 8); // sempre visível no rodapé da tela
+    top = Math.max(top, fr.top + 8, toolsBottom + 8); // nunca acima da imagem nem sob a barra de ferramentas
+    top = Math.min(top, box.bottom - bh - 4); // dentro do editor
+    imgBar.style.top = top - box.top + 'px';
     imgBar.style.left = Math.max(4, Math.min(fr.left - box.left + fr.width / 2 - imgBar.offsetWidth / 2, box.width - imgBar.offsetWidth - 4)) + 'px';
   };
   addEventListener('resize', () => root.isConnected && placeImgBar());
+  // ao rolar a página, a barra acompanha (fica visível no rodapé da tela enquanto a imagem estiver à vista)
+  addEventListener('scroll', () => root.isConnected && selectedImg && placeImgBar(), { passive: true, capture: true });
   // a imagem pode terminar de carregar (ou mudar de tamanho) depois de selecionada: reposiciona as alças
   root.addEventListener('load', () => selectedImg && placeImgBar(), true);
   const sizeWatch = typeof ResizeObserver !== 'undefined' ? new ResizeObserver(() => selectedImg && !drag && placeImgBar()) : null;
