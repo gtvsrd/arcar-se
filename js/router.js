@@ -18,6 +18,8 @@ function route() {
     return;
   }
   if (a === 'post') post(v);
+  else if (a === 'escritores') writersPage();
+  else if (a === 'pagina' && v === 'contato') location.replace('#/escritores'); // endereço antigo
   else if (a === 'pagina') page(v);
   else if (a === 'cat')
     cards(

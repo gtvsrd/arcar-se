@@ -63,7 +63,7 @@ Pronto: no blog, clique em **Entrar** e use esse e-mail e senha.
 ### 6. Páginas reais para cada artigo (SEO e prévia de links)
 O workflow lê os artigos publicados no Supabase e gera, a cada execução:
 - `post/<slug>/index.html`: uma página HTML completa por artigo, com título, descrição, imagem e prévia de link (Open Graph);
-- `pagina/sobre/` e `pagina/contato/`, `sitemap.xml`, `robots.txt` e `404.html`;
+- `pagina/sobre/`, `escritores/` (cards da equipe; o endereço antigo `pagina/contato/` leva para lá), `sitemap.xml`, `robots.txt` e `404.html`;
 - a home com a lista de artigos já dentro do HTML.
 
 **Quando ele roda:** a cada envio ao GitHub, a cada 30 minutos e manualmente. Um artigo novo aparece no blog na hora,

@@ -204,6 +204,77 @@
   color: var(--bg);
 }
 
+.st--w-shown {
+  background: var(--ac);
+  color: var(--ac2);
+}
+
+/* Perfil: redes sociais e site do card de Escritores */
+.pp-who {
+  margin: 0 0 6px;
+  font-size: 1.3rem;
+}
+.pp-links {
+  margin: 22px 0 0;
+  padding: 0;
+  border: 0;
+}
+.pp-links legend {
+  padding: 0;
+  font-weight: 600;
+}
+.pp-link {
+  display: grid;
+  grid-template-columns: 120px 1fr;
+  align-items: center;
+  gap: 2px 12px;
+  margin-top: 10px;
+}
+.pp-link label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  margin: 0;
+}
+.pp-err {
+  grid-column: 2;
+  color: var(--err);
+  font-size: 13.5px;
+}
+.pp-err:empty {
+  display: none;
+}
+@media (max-width: 520px) {
+  .pp-link {
+    grid-template-columns: 1fr;
+  }
+  .pp-err {
+    grid-column: 1;
+  }
+}
+.ptable--writers th:first-child,
+.ptable--writers td:first-child {
+  width: 1%;
+  white-space: nowrap;
+}
+.ptable--writers .wr-order {
+  flex-wrap: nowrap;
+  justify-content: flex-start;
+}
+.ptable .wr-order .btn {
+  flex: 0 0 40px;
+  width: 40px;
+  min-width: 0;
+  padding-left: 0;
+  padding-right: 0;
+}
+.wr-mail {
+  font-size: 13px;
+}
+
+#prm[hidden] {
+  display: none;
+}
 .avatar-edit {
   display: flex;
   gap: 18px;

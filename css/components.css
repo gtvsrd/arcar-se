@@ -1009,3 +1009,108 @@ dialog [hidden] {
     padding-right: 16px;
   }
 }
+
+/* ---------- Página Escritores: um card retangular por escritor (foto à esquerda, 25%; em telas estreitas, por cima) ---------- */
+.art--writers h1 {
+  margin-bottom: 22px;
+}
+.writers {
+  display: grid;
+  gap: 20px;
+}
+.writer {
+  display: flex;
+  align-items: stretch;
+  overflow: hidden;
+  background: var(--sf);
+  border: 1px solid var(--ln);
+  border-radius: 8px;
+}
+.writer-photo {
+  flex: 0 0 25%;
+  min-height: 150px;
+  background: var(--ac);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.writer-photo img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  min-height: 150px;
+  object-fit: cover;
+  object-position: center 30%;
+  margin: 0;
+  border-radius: 0;
+}
+.writer-photo span {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  font-size: 46px;
+  color: var(--bg);
+}
+.writer-body {
+  flex: 1;
+  min-width: 0;
+  padding: 18px 22px 20px;
+}
+.writer-body h2 {
+  margin: 0 0 8px;
+  font-size: 1.35rem;
+}
+.writer-bio p {
+  margin: 0 0 0.7em;
+  line-height: 1.6;
+}
+.writer-links {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px 16px;
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 12px 0 0;
+  border-top: 1px solid var(--ln);
+  font-family: 'Source Sans 3', system-ui, sans-serif;
+  font-size: 15px;
+}
+.writer-links li {
+  margin: 0;
+}
+.writer-links a {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  overflow-wrap: anywhere;
+}
+.wr-ico {
+  flex: none;
+  width: 17px;
+  height: 17px;
+  background: currentColor;
+  -webkit-mask: var(--ico) center / contain no-repeat;
+  mask: var(--ico) center / contain no-repeat;
+}
+.wr-ico--instagram { --ico: url('../assets/icons/instagram.svg'); }
+.wr-ico--x { --ico: url('../assets/icons/x.svg'); }
+.wr-ico--youtube { --ico: url('../assets/icons/youtube.svg'); }
+.wr-ico--linkedin { --ico: url('../assets/icons/perfil-profissional.svg'); }
+.wr-ico--site { --ico: url('../assets/icons/site.svg'); }
+.wr-ico--email { --ico: url('../assets/icons/email.svg'); }
+.writers-empty {
+  color: var(--mut);
+}
+@media (max-width: 520px) {
+  .writer {
+    flex-direction: column;
+  }
+  .writer-photo,
+  .writer-photo img {
+    flex-basis: auto;
+    aspect-ratio: 3 / 2;
+    min-height: 0;
+  }
+  .writer-body {
+    padding: 16px 16px 18px;
+  }
+}

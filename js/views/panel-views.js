@@ -14,15 +14,16 @@ const authorName = (id) => (id ? (db.profiles[id] || {}).display_name || 'Sem no
 /** Data curta no fuso local: 05/11/2026. */
 const shortDate = (d) => new Date(d).toLocaleDateString('pt-BR');
 
-/** Desenha o painel e a seção escolhida ('' artigos, 'perfil' ou 'equipe'). */
-function panel(tab) {
-  if (!['perfil', 'equipe', 'categorias'].includes(tab)) tab = '';
-  if ((tab === 'equipe' || tab === 'categorias') && !admin) tab = '';
+/** Desenha o painel e a seção escolhida ('' artigos, 'categorias', 'perfil', 'escritores[/id]' ou 'equipe'). */
+function panel(v) {
+  let [tab, sub] = String(v || '').split('/');
+  if (!['perfil', 'equipe', 'categorias', 'escritores'].includes(tab)) tab = '';
+  if (['equipe', 'categorias', 'escritores'].includes(tab) && !admin) tab = '';
   const tabs = [
     ['', 'Artigos'],
     ...(admin ? [['categorias', 'Categorias']] : []),
     ['perfil', 'Meu perfil'],
-    ...(admin ? [['equipe', 'Equipe']] : []),
+    ...(admin ? [['escritores', 'Escritores'], ['equipe', 'Equipe']] : []),
   ];
   $('#main').innerHTML = `<div class="panel"><h1>Painel</h1>
    <nav class="ptabs" aria-label="Seções do painel">${tabs
@@ -34,6 +35,7 @@ function panel(tab) {
   if (tab === 'perfil') panelProfile();
   else if (tab === 'equipe') panelTeam();
   else if (tab === 'categorias') panelCategories();
+  else if (tab === 'escritores') panelWriters(sub);
   else panelPosts();
 }
 
@@ -243,43 +245,70 @@ function panelPosts() {
 
 /* ----------------------------------------------------------------- Perfil */
 
-/** Nome de exibição e foto do usuário logado. */
+/** Meu perfil: nome, foto e o card da página Escritores (texto e redes), mais o atalho para trocar a senha. */
 function panelProfile() {
-  const cur = db.profiles[me.id] || { display_name: '', avatar_url: '' };
+  profileForm(me.id, { back: '#/painel', after: () => panel('perfil') });
+  $('#pbody').insertAdjacentHTML(
+    'beforeend',
+    `<div class="box" style="max-width:640px;margin-top:20px">
+     <h3>Senha</h3>
+     <p class="hint">Troque a senha que você usa para entrar no blog.</p>
+     <div class="acts"><a class="btn alt" href="#/conta">Alterar senha</a></div>
+    </div>`,
+  );
+}
+
+/**
+ * Formulário do perfil de um escritor (o próprio ou, para o administrador, o de qualquer pessoa da equipe).
+ * Nome e foto aparecem nos artigos; nome, foto, texto e redes formam o card da página Escritores.
+ */
+function profileForm(userId, { back, after, who = '' }) {
+  const cur = db.profiles[userId] || {};
+  const links = cur.links || {};
   let avatar = cur.avatar_url || '';
   let pending = null; // nova foto escolhida, ainda não enviada
-  $('#pbody').innerHTML = `<form id="pp" class="art art--edit" style="max-width:560px">
-   <p class="hint">Seu nome e sua foto aparecem nas informações dos artigos que você criar.</p>
+  const own = userId === me.id;
+  $('#pbody').innerHTML = `<form id="pp" class="art art--edit" style="max-width:640px" novalidate>
+   ${who ? `<h2 class="pp-who">Card de ${esc(who)}</h2>` : ''}
+   <p class="hint">${own ? 'Seu nome e sua foto aparecem nos artigos que você criar.' : 'O nome e a foto aparecem nos artigos dessa pessoa.'} Nome, foto, texto e redes formam o card da página <a href="#/escritores">Escritores</a>.</p>
    <label for="pn">Nome de exibição</label>
-   <input type="text" id="pn" required maxlength="60" value="${esc(cur.display_name)}" autocomplete="name">
-   <label>Foto de perfil</label>
+   <input type="text" id="pn" required maxlength="60" value="${esc(cur.display_name || '')}"${own ? ' autocomplete="name"' : ''}>
+   <label>Foto</label>
    <div class="avatar-edit">
      <div class="avatar avatar--lg" id="pav" aria-hidden="true"></div>
      <div>
-       <input type="file" id="pfile" accept="image/*" aria-label="Escolher foto de perfil">
+       <input type="file" id="pfile" accept="image/*" aria-label="Escolher foto">
        <div class="acts"><button type="button" class="btn sm del" id="prm" hidden>Remover foto</button></div>
        <div class="hint">A foto é recortada em quadrado e reduzida automaticamente.</div>
      </div>
    </div>
-   <div class="acts" style="margin-top:18px"><button class="btn" type="submit">Salvar perfil</button><a class="btn alt" href="#/painel">Cancelar</a></div>
-  </form>
-  <div class="box" style="max-width:560px;margin-top:20px">
-   <h3>Senha</h3>
-   <p class="hint">Troque a senha que você usa para entrar no blog.</p>
-   <div class="acts"><a class="btn alt" href="#/conta">Alterar senha</a></div>
-  </div>`;
+   <label for="pbio">Texto de apresentação</label>
+   <textarea id="pbio" rows="6" maxlength="1200" placeholder="Quem é você, sua formação, sobre o que escreve…">${esc(cur.bio || '')}</textarea>
+   <div class="hint"><span id="pbion"></span> Deixe uma linha em branco para começar outro parágrafo.</div>
+   <fieldset class="pp-links"><legend>Redes sociais e site</legend>
+     <p class="hint">Preencha só o que quiser mostrar no card.</p>
+     ${WRITER_NETS.map(
+       (n) => `<div class="pp-link"><label for="pl-${n.k}"><span class="wr-ico wr-ico--${n.k}" aria-hidden="true"></span>${n.label}</label>
+       <input type="${n.k === 'email' ? 'email' : 'text'}" id="pl-${n.k}" data-net="${n.k}" maxlength="200" placeholder="${esc(n.ph)}" value="${esc(links[n.k] || '')}" aria-describedby="pe-${n.k}">
+       <span class="pp-err" id="pe-${n.k}" role="alert"></span></div>`,
+     ).join('')}
+   </fieldset>
+   <div class="acts" style="margin-top:18px"><button class="btn" type="submit">Salvar</button><a class="btn alt" href="${back}">Cancelar</a></div>
+  </form>`;
   const show = () => {
     const name = $('#pn').value.trim() || '?';
     const src = pending ? URL.createObjectURL(pending) : avatar;
     $('#pav').innerHTML = src ? `<img src="${esc(src)}" alt="">` : esc([...name][0].toUpperCase());
     $('#prm').hidden = !src;
   };
+  const count = () => ($('#pbion').textContent = `${$('#pbio').value.length} de 1200 caracteres.`);
   $('#pn').oninput = show;
+  $('#pbio').oninput = count;
   $('#pfile').onchange = () => {
     const f = $('#pfile').files[0];
     if (!f) return;
     if (!f.type.startsWith('image/')) return toast('Escolha um arquivo de imagem');
-    squareImage(f)
+    squareImage(f, 480)
       .then((b) => {
         pending = b;
         show();
@@ -293,23 +322,118 @@ function panelProfile() {
     show();
   };
   show();
+  count();
+  /** Confere cada rede: vazio ou um endereço válido. Devolve o objeto a salvar, ou null se houver erro. */
+  const readLinks = () => {
+    const out = {};
+    let bad = null;
+    document.querySelectorAll('#pp [data-net]').forEach((i) => {
+      const v = i.value.trim(),
+        ok = !v || !!writerLinkUrl(i.dataset.net, v);
+      $('#pe-' + i.dataset.net).textContent = ok ? '' : i.dataset.net === 'email' ? 'E-mail inválido' : 'Endereço inválido';
+      i.setAttribute('aria-invalid', String(!ok));
+      if (!ok) bad = bad || i;
+      else if (v) out[i.dataset.net] = v;
+    });
+    if (bad) bad.focus();
+    return bad ? null : out;
+  };
   $('#pp').onsubmit = async (e) => {
     e.preventDefault();
+    const name = $('#pn').value.trim();
+    if (!name) {
+      $('#pn').focus();
+      return toast('Preencha o nome de exibição');
+    }
+    const lk = readLinks();
+    if (!lk) return toast('Confira os endereços marcados');
     const btn = $('#pp button[type=submit]');
     btn.disabled = true;
     let uploaded = '';
     try {
-      if (pending) avatar = uploaded = await uploadAvatar(pending);
-      await saveProfile($('#pn').value.trim(), avatar);
+      if (pending) avatar = uploaded = await uploadAvatar(pending, userId);
+      await saveProfile({ display_name: name, avatar_url: avatar, bio: $('#pbio').value.trim(), links: lk }, userId);
       if (cur.avatar_url && cur.avatar_url !== avatar) deleteCover(cur.avatar_url); // foto antiga
       toast('Perfil salvo');
       renderNav(); // nome e foto no topo já atualizados
-      panel('perfil');
+      after();
     } catch (err) {
       if (uploaded) deleteCover(uploaded);
-      toast('Não foi possível salvar: ' + (err.message || 'erro'));
+      toast(
+        /bio|links|column/i.test(err.message || '')
+          ? 'Falta aplicar o supabase/escritores.sql no Supabase'
+          : 'Não foi possível salvar: ' + (err.message || 'erro'),
+      );
     } finally {
       btn.disabled = false;
+    }
+  };
+}
+
+/* ------------------------------------------------------------- Escritores */
+
+/** Ordem e visibilidade dos cards da página Escritores, e edição do card de cada pessoa (só administrador). */
+async function panelWriters(editId) {
+  if (editId) {
+    const pr = db.profiles[editId] || {};
+    return profileForm(editId, {
+      back: '#/painel/escritores',
+      after: () => (location.hash = '#/painel/escritores'),
+      who: pr.display_name || 'escritor',
+    });
+  }
+  $('#pbody').innerHTML = `<p class="hint">Cada pessoa da equipe tem um card na página <a href="#/escritores">Escritores</a>. Cada um edita o próprio em <b>Meu perfil</b>; aqui você edita qualquer card, muda a ordem e oculta quem não deve aparecer. Quem ainda não tem nome não aparece.</p>
+  <div class="ptable-wrap"><table class="ptable ptable--writers"><caption class="sr">Escritores</caption>
+   <thead><tr><th scope="col">Ordem</th><th scope="col">Escritor</th><th scope="col">Na página</th><th scope="col">Ações</th></tr></thead>
+   <tbody id="wrows"><tr><td colspan="4" class="empty">Carregando…</td></tr></tbody></table></div>`;
+  let list = [];
+  const draw = () => {
+    $('#wrows').innerHTML = list
+      .map((m, i) => {
+        const pr = db.profiles[m.user_id] || {};
+        const state = !pr.display_name ? ['none', 'Sem nome'] : pr.hidden ? ['hidden', 'Oculto'] : ['shown', 'Aparece'];
+        return `<tr>
+         <td data-l="Ordem"><div class="acts wr-order">
+           <button class="btn sm alt" data-up="${i}" ${i ? '' : 'disabled'} aria-label="Subir ${esc(pr.display_name || m.email)}">↑</button>
+           <button class="btn sm alt" data-down="${i}" ${i < list.length - 1 ? '' : 'disabled'} aria-label="Descer ${esc(pr.display_name || m.email)}">↓</button></div></td>
+         <td data-l="Escritor">${esc(pr.display_name) || '<span class="mut">—</span>'}<div class="mut wr-mail">${esc(m.email)}</div></td>
+         <td data-l="Na página"><span class="st st--w-${state[0]}">${state[1]}</span></td>
+         <td class="pa"><div class="acts">
+           <a class="btn sm alt" href="#/painel/escritores/${esc(m.user_id)}">Editar card</a>
+           <button class="btn sm alt" data-hide="${i}">${pr.hidden ? 'Mostrar' : 'Ocultar'}</button></div></td></tr>`;
+      })
+      .join('') || '<tr><td colspan="4" class="empty">Ninguém na equipe ainda.</td></tr>';
+  };
+  try {
+    list = (await loadTeam()).filter((m) => m.role !== 'invite');
+  } catch (e) {
+    $('#wrows').innerHTML = '<tr><td colspan="4" class="empty">Não foi possível carregar a equipe.</td></tr>';
+    return;
+  }
+  const sortOf = (m) => (db.profiles[m.user_id] || {}).sort || 0;
+  const nameOf = (m) => (db.profiles[m.user_id] || {}).display_name || m.email;
+  list.sort((a, b) => sortOf(a) - sortOf(b) || nameOf(a).localeCompare(nameOf(b), 'pt-BR'));
+  draw();
+  $('#wrows').onclick = async (e) => {
+    const b = e.target.closest('[data-up],[data-down],[data-hide]');
+    if (!b) return;
+    b.disabled = true;
+    try {
+      if (b.dataset.hide) {
+        const m = list[+b.dataset.hide];
+        await saveProfile({ hidden: !(db.profiles[m.user_id] || {}).hidden }, m.user_id);
+      } else {
+        const i = +(b.dataset.up ?? b.dataset.down),
+          j = b.dataset.up ? i - 1 : i + 1;
+        [list[i], list[j]] = [list[j], list[i]];
+        await saveWriterOrder(list.map((m) => m.user_id));
+      }
+      draw();
+      const f = b.dataset.hide ? $(`[data-hide="${b.dataset.hide}"]`) : $(`[data-${b.dataset.up ? 'up' : 'down'}="${b.dataset.up ? +b.dataset.up - 1 : +b.dataset.down + 1}"]`);
+      (f && !f.disabled ? f : $('#wrows button:not([disabled])'))?.focus();
+    } catch (err) {
+      toast(/sort|hidden|column/i.test(err.message || '') ? 'Falta aplicar o supabase/escritores.sql no Supabase' : 'Não foi possível salvar: ' + (err.message || 'erro'));
+      draw();
     }
   };
 }

@@ -129,7 +129,20 @@ function post(key) {
     if (el && n !== null) el.textContent = viewsLabel(n);
   });
 }
-/** Desenha uma página fixa (Sobre, Contato). */
+/** Página Escritores: mostra o que já tem em memória e atualiza com a lista do banco. */
+async function writersPage() {
+  $('#main').innerHTML =
+    writersPageHTML(db.writers || []).replace('</article>', staff() ? `<div class="acts"><a class="btn sm alt" href="#/painel/${admin ? 'escritores' : 'perfil'}">${admin ? 'Editar escritores' : 'Editar meu card'}</a></div></article>` : '</article>');
+  if (!db.writers) $('#writers-list').innerHTML = '<p class="writers-empty">Carregando…</p>';
+  try {
+    db.writers = await loadWriters();
+  } catch (e) {
+    db.writers = db.writers || [];
+  }
+  const box = $('#writers-list');
+  if (box && location.hash.startsWith('#/escritores')) box.innerHTML = writersHTML(db.writers);
+}
+/** Desenha uma página fixa (Sobre). */
 function page(k) {
   const pg = db.pages[k];
   if (!pg) {

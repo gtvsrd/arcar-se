@@ -83,12 +83,20 @@ export function cardHTML(p, { root, site, hero = false }) {
    <div class="card-foot"><a class="more" href="${href}">Ler artigo</a></div></div></article>`;
 }
 
+/** Páginas do menu e da lista "Páginas": as fixas (Sobre…) e Escritores (a antiga Contato virou Escritores). */
+const navPages = (site, root) => [
+  ...site.pages.filter((g) => g.slug !== 'contato').map((g) => [`${root}pagina/${g.slug}/`, site.helpers.pageLabel(g.slug, g.title)]),
+  [`${root}escritores/`, 'Escritores'],
+];
+
 /** Itens do menu do topo. */
 export function navHTML(site, root) {
   const { esc } = site.helpers;
   return (
     `<a href="${root || './'}">Início</a>` +
-    site.pages.map((g) => `<a href="${root}pagina/${g.slug}/">${esc(site.helpers.pageLabel(g.slug, g.title))}</a>`).join('') +
+    navPages(site, root)
+      .map(([href, label]) => `<a href="${href}">${esc(label)}</a>`)
+      .join('') +
     // Entrar ou (Painel, Novo artigo, Sair): preenchido por static-page.js conforme haja sessão no navegador
     `<span id="authnav"><a href="${root}#/entrar">Entrar</a></span>`
   );
@@ -111,8 +119,8 @@ export function sideHTML(site, root) {
      .slice(0, 5)
      .map((p) => `<li><a href="${root}post/${p.slug}/">${esc(p.title)}</a></li>`)
      .join('')}</ul></div>
-   <div class="box"><h3>Páginas</h3><ul>${site.pages
-     .map((g) => `<li><a href="${root}pagina/${g.slug}/">${esc(site.helpers.pageLabel(g.slug, g.title))}</a></li>`)
+   <div class="box"><h3>Páginas</h3><ul>${navPages(site, root)
+     .map(([href, label]) => `<li><a href="${href}">${esc(label)}</a></li>`)
      .join('')}</ul></div>`;
 }
 
@@ -120,7 +128,7 @@ export function sideHTML(site, root) {
 const logoName = (name, esc) => esc(name).replace(/\./, '<span class="logo-dot">.</span>');
 
 /** Documento completo de uma página gerada. `root` é o caminho até a raiz ("../../" ou "/arcar-se/"). */
-export function pageShell({ site, root, title, head, main, adminHref, bodyAttrs = '', withViews = false }) {
+export function pageShell({ site, root, title, head, main, adminHref, bodyAttrs = '', withViews = false, scripts = [] }) {
   const { esc } = site.helpers;
   const c = site.config;
   return `<!doctype html>
@@ -165,7 +173,7 @@ export function pageShell({ site, root, title, head, main, adminHref, bodyAttrs 
       adminHref ? ` · <a href="${esc(adminHref)}" rel="nofollow">Admin</a>` : ''
     }</footer>
     <script src="${root}js/config.js"></script>
-    <script defer src="${root}js/static-page.js"></script>${withViews ? `\n    <script defer src="${root}js/post-actions.js"></script>` : ''}
+${scripts.map((s) => `    <script defer src="${root}${s}"></script>\n`).join('')}    <script defer src="${root}js/static-page.js"></script>${withViews ? `\n    <script defer src="${root}js/post-actions.js"></script>` : ''}
   </body>
 </html>
 `;
@@ -235,6 +243,44 @@ export function fixedPage(g, site) {
   });
   const main = `<article class="art"><h1>${esc(g.title)}</h1><div class="body">${site.helpers.hyphenateJustified(md(g.body))}</div></article>`;
   return pageShell({ site, root, title: `${g.title} — ${site.config.siteName}`, head, main });
+}
+
+/** Página Escritores: os cards já saem no HTML (mesmo código do app) e o navegador atualiza com a lista do banco. */
+export function writersPage(site) {
+  const root = '../';
+  const url = `${site.base}/escritores/`;
+  const head = headMeta({
+    title: 'Escritores',
+    description: `Quem escreve no ${site.config.siteName}: ${site.writers.map((w) => w.display_name).join(', ') || site.config.description}`.slice(0, 160),
+    canonical: url,
+    image: `${site.base}/assets/og-default.png`,
+    site,
+  });
+  return pageShell({
+    site,
+    root,
+    title: `Escritores — ${site.config.siteName}`,
+    head,
+    main: site.writersHTML(site.writers),
+    scripts: ['js/views/writers-views.js'],
+  });
+}
+
+/** Endereço antigo (/pagina/contato/): leva para /escritores/. */
+export function redirectPage(site, to) {
+  const { esc } = site.helpers;
+  return `<!doctype html>
+<html lang="${esc(site.config.language)}">
+  <head>
+    <meta charset="utf-8" />
+    <title>Escritores — ${esc(site.config.siteName)}</title>
+    <link rel="canonical" href="${esc(to)}" />
+    <meta name="robots" content="noindex" />
+    <meta http-equiv="refresh" content="0; url=${esc(to)}" />
+  </head>
+  <body><p>Esta página mudou para <a href="${esc(to)}">Escritores</a>.</p></body>
+</html>
+`;
 }
 
 /** Página 404 (o GitHub Pages usa o arquivo 404.html na raiz para qualquer endereço inexistente). */

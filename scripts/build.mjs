@@ -15,7 +15,7 @@ import fs from 'node:fs';
 import path from 'node:path';
 import vm from 'node:vm';
 import { fileURLToPath } from 'node:url';
-import { cardHTML, homeMain, headMeta, navHTML, sideHTML, postPage, fixedPage, notFoundPage } from './templates.mjs';
+import { cardHTML, homeMain, headMeta, navHTML, sideHTML, postPage, fixedPage, notFoundPage, writersPage, redirectPage } from './templates.mjs';
 
 const ROOT = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..');
 const OUT = path.resolve(ROOT, process.env.OUT_DIR || '_site');
@@ -82,13 +82,21 @@ try {
   console.warn('Aviso: perfis indisponíveis (rode supabase/painel-e-criadores.sql). O site sai sem nome de autor.');
 }
 const profiles = Object.fromEntries(profileRows.map((x) => [x.user_id, x]));
+// escritores (página /escritores/): opcional; sem o supabase/escritores.sql a página sai vazia e o navegador tenta de novo
+let writers = [];
+try {
+  writers = await getJson(`${SUPABASE_URL}/rest/v1/rpc/writers`, 1);
+} catch (e) {
+  console.warn('Aviso: lista de escritores indisponível (rode supabase/escritores.sql). A página sai sem cards.');
+}
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 for (const p of posts)
   if (!SLUG.test(p.slug || '')) fail(`o artigo "${p.title}" não tem um slug válido. Rode supabase/migracao-slugs.sql no Supabase.`);
 for (const g of pages) if (!SLUG.test(g.slug || '')) fail(`a página "${g.title}" tem um slug inválido: ${g.slug}`);
 if (new Set(posts.map((p) => p.slug)).size !== posts.length) fail('há slugs repetidos nos artigos.');
 
-const pageOrder = ['sobre', 'contato']; // Sobre e Contato primeiro, como no app; outras páginas depois
+pages = pages.filter((g) => g.slug !== 'contato'); // a antiga Contato virou a página Escritores
+const pageOrder = ['sobre']; // Sobre primeiro, como no app; outras páginas depois
 pages.sort((a, b) => {
   const i = (g) => (pageOrder.includes(g.slug) ? pageOrder.indexOf(g.slug) : pageOrder.length);
   return i(a) - i(b) || a.slug.localeCompare(b.slug);
@@ -109,6 +117,12 @@ vm.createContext(paCtx);
 vm.runInContext(fs.readFileSync(path.join(ROOT, 'js/post-actions.js'), 'utf8') + '\n;this.postActionsHTML = postActionsHTML;', paCtx);
 site.postActions = paCtx.postActionsHTML;
 site.featured = { HERO_MAX: featCtx.HERO_MAX, html: (list) => featCtx.featuredHTML(list) };
+// cards de Escritores: mesmo writers-views.js do app
+const wrCtx = { URL };
+vm.createContext(wrCtx);
+vm.runInContext(fs.readFileSync(path.join(ROOT, 'js/views/writers-views.js'), 'utf8') + '\n;this.writersPageHTML = writersPageHTML;', wrCtx);
+site.writers = writers;
+site.writersHTML = wrCtx.writersPageHTML;
 
 // ---------- saída ----------
 fs.rmSync(OUT, { recursive: true, force: true });
@@ -168,6 +182,8 @@ if (sharp)
 
 for (const p of posts) write(`post/${p.slug}/index.html`, postPage(p, site));
 for (const g of pages) write(`pagina/${g.slug}/index.html`, fixedPage(g, site));
+write('escritores/index.html', writersPage(site));
+write('pagina/contato/index.html', redirectPage(site, `${base}/escritores/`));
 write('post/manifest.json', JSON.stringify({ generatedAt: new Date().toISOString(), slugs: posts.map((p) => p.slug) }));
 write('404.html', notFoundPage(site));
 
@@ -200,6 +216,7 @@ write(
     [
       url(base + '/', posts[0] && posts[0].date),
       ...pages.map((g) => url(`${base}/pagina/${g.slug}/`)),
+      url(`${base}/escritores/`),
       ...posts.map((p) => url(`${base}/post/${p.slug}/`, p.date)),
     ].join('\n') +
     '\n</urlset>\n',

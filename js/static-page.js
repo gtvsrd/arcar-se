@@ -122,3 +122,13 @@ document.getElementById('q').addEventListener('keydown', (e) => {
     }
   } catch (e) {}
 })();
+
+/** Página Escritores: troca os cards gerados no build pela lista atual do banco (mudanças feitas no painel aparecem na hora). */
+(function refreshWriters() {
+  const box = document.getElementById('writers-list');
+  if (!box || typeof writersHTML !== 'function' || typeof SUPABASE_URL === 'undefined') return;
+  fetch(`${SUPABASE_URL}/rest/v1/rpc/writers`, { headers: { apikey: SUPABASE_ANON_KEY } })
+    .then((r) => (r.ok ? r.json() : Promise.reject()))
+    .then((list) => (box.innerHTML = writersHTML(list)))
+    .catch(() => {});
+})();

@@ -189,23 +189,43 @@ async function deletePost(id) {
   await loadAll();
 }
 
-/** Atualiza uma página fixa (Sobre, Contato). */
+/** Atualiza uma página fixa (Sobre). */
 async function savePage(slug, title, body) {
   const { error } = await sb.from('pages').update({ title, body }).eq('slug', slug);
   if (error) throw error;
   await loadAll();
 }
 
-/** Salva nome de exibição e foto do usuário logado. */
-async function saveProfile(display_name, avatar_url) {
-  const { error } = await sb.from('profiles').upsert({ user_id: me.id, display_name, avatar_url });
+/**
+ * Salva o perfil (nome, foto, texto e redes do card de Escritores). Sem `userId`, é o do usuário logado;
+ * o administrador pode salvar o de qualquer escritor. Campos ausentes não são alterados.
+ */
+async function saveProfile(fields, userId = me.id) {
+  const { error } = await sb.from('profiles').upsert({ user_id: userId, ...fields });
   if (error) throw error;
+  db.writers = null; // a página Escritores busca de novo
   await loadAll();
 }
 
+/** Grava a ordem dos cards (lista de user_id, do primeiro ao último). Só administrador. */
+async function saveWriterOrder(ids) {
+  const rows = ids.map((user_id, i) => ({ user_id, sort: (i + 1) * 10 }));
+  const { error } = await sb.from('profiles').upsert(rows);
+  if (error) throw error;
+  db.writers = null;
+  await loadAll();
+}
+
+/** Escritores da página pública (equipe com nome, sem os ocultos), na ordem escolhida pelo administrador. */
+async function loadWriters() {
+  const { data, error } = await sb.rpc('writers');
+  if (error) throw error;
+  return data || [];
+}
+
 /** Envia a foto de perfil (Blob quadrado) e devolve o endereço público. */
-async function uploadAvatar(blob) {
-  const path = `avatars/${me.id}-${Date.now()}.jpg`;
+async function uploadAvatar(blob, userId = me.id) {
+  const path = `avatars/${userId}-${Date.now()}.jpg`;
   const { error } = await sb.storage
     .from('covers')
     .upload(path, blob, { contentType: 'image/jpeg', cacheControl: '31536000' });
