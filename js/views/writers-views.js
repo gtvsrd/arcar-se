@@ -7,7 +7,6 @@
 /** Redes e contatos aceitos no card, na ordem em que aparecem. */
 const WRITER_NETS = [
   { k: 'instagram', label: 'Instagram', ph: '@usuario ou endereço do perfil' },
-  { k: 'linkedin', label: 'LinkedIn', ph: 'https://www.linkedin.com/in/…' },
   { k: 'x', label: 'X', ph: '@usuario ou endereço do perfil' },
   { k: 'youtube', label: 'YouTube', ph: '@canal ou endereço do canal' },
   { k: 'site', label: 'Site', ph: 'seusite.com.br' },
