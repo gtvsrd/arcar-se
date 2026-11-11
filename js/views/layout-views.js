@@ -15,12 +15,16 @@ function meHTML() {
   return `<a class="nav-me" href="#/painel/perfil" title="Meu perfil">${av}<span class="nav-me-name">${esc(name)}</span></a>`;
 }
 
-/** Páginas do menu e da lista "Páginas": as fixas (Sobre…) e Escritores. A antiga Contato virou Escritores. */
+/**
+ * Páginas do menu e da lista "Páginas": as fixas (Sobre…) e Escritores. A antiga Contato virou Escritores.
+ * Para visitantes, os links vão para as páginas geradas (pagina/sobre/, escritores/), que têm a prévia de link
+ * (WhatsApp e redes ignoram o que vem depois do #). A equipe fica no app, onde edita.
+ */
 const navPages = () => [
   ...Object.keys(db.pages)
     .filter((k) => k !== 'contato')
-    .map((k) => [`#/pagina/${k}`, pageLabel(k, db.pages[k].title)]),
-  ['#/escritores', 'Escritores'],
+    .map((k) => [staff() ? `#/pagina/${k}` : `pagina/${k}/`, pageLabel(k, db.pages[k].title)]),
+  [staff() ? '#/escritores' : 'escritores/', 'Escritores'],
 ];
 
 /** Desenha o menu do topo (muda conforme o admin está logado ou não). */
