@@ -108,7 +108,7 @@ export function sideHTML(site, root) {
   const cats = {};
   site.posts.forEach((p) => site.helpers.catsOf(p).forEach((c) => (cats[c] = (cats[c] || 0) + 1)));
   return `<div class="box"><h3>Buscar</h3><input type="text" id="q" placeholder="Digite e tecle Enter" aria-label="Buscar artigos"></div>
-   <div class="box box--avisos"><h3>Quadro de avisos</h3><p><b>Boas-vindas ao Arcar.se!</b> O blog acaba de ser inaugurado.</p><p>Aqui você encontra textos de psicologia para se entender melhor e assumir a própria história, escritos para o público em geral, estudantes e profissionais. Leia, curta e compartilhe com quem possa gostar. Novos artigos chegam em breve.</p></div>
+   ${site.helpers.noticeHTML(site.notice)}
    <div class="box"><h3>Categorias</h3><ul>${
      Object.keys(cats)
        .sort()

@@ -199,6 +199,21 @@ a.cover-cat:hover {
 .box--avisos p:last-child {
   margin-bottom: 0;
 }
+.avisos-body figure {
+  margin: 0.6em auto;
+  max-width: 100%;
+}
+.avisos-body img {
+  display: block;
+  max-width: 100%;
+  height: auto;
+  border-radius: 4px;
+}
+.avisos-body figcaption {
+  font-size: 13px;
+  color: var(--mut);
+  text-align: center;
+}
 .box ul {
   list-style: none;
   margin: 0;

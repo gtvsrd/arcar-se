@@ -20,6 +20,7 @@ function route() {
   if (a === 'post') post(v);
   // visitantes vão para as páginas geradas: o endereço na barra fica com a prévia certa ao compartilhar
   else if (a === 'escritores' || (a === 'pagina' && v === 'contato')) staff() ? (a === 'escritores' ? writersPage() : location.replace('#/escritores')) : location.replace('escritores/');
+  else if (a === 'pagina' && v === 'avisos') location.replace(admin ? '#/painel/avisos' : '#/');
   else if (a === 'pagina' && !staff() && db.pages[v]) location.replace(`pagina/${v}/`);
   else if (a === 'pagina') page(v);
   else if (a === 'cat')

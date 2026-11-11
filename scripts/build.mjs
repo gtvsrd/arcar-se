@@ -45,7 +45,7 @@ if (!SUPABASE_URL || !SUPABASE_KEY || /SEU-PROJETO|SUA-CHAVE/.test(SUPABASE_URL 
 
 // ---------- funções compartilhadas com o app (mesmo código do navegador, para o texto sair idêntico) ----------
 const helpers = vm.runInNewContext(
-  read('js/utils/helpers.js') + '\n' + read('js/utils/markdown.js') + '\n({ esc, fmt, fmtShort, colorOf, md, plainText, slugify, catsOf, hyphenateJustified, pageLabel })',
+  read('js/utils/helpers.js') + '\n' + read('js/utils/markdown.js') + '\n({ esc, fmt, fmtShort, colorOf, md, plainText, slugify, catsOf, hyphenateJustified, pageLabel, noticeHTML })',
   {},
 );
 
@@ -95,7 +95,8 @@ for (const p of posts)
 for (const g of pages) if (!SLUG.test(g.slug || '')) fail(`a página "${g.title}" tem um slug inválido: ${g.slug}`);
 if (new Set(posts.map((p) => p.slug)).size !== posts.length) fail('há slugs repetidos nos artigos.');
 
-pages = pages.filter((g) => g.slug !== 'contato'); // a antiga Contato virou a página Escritores
+const notice = pages.find((g) => g.slug === 'avisos') || null; // quadro de avisos da lateral
+pages = pages.filter((g) => !['contato', 'avisos'].includes(g.slug)); // Contato virou Escritores; avisos não tem página própria
 const pageOrder = ['sobre']; // Sobre primeiro, como no app; outras páginas depois
 pages.sort((a, b) => {
   const i = (g) => (pageOrder.includes(g.slug) ? pageOrder.indexOf(g.slug) : pageOrder.length);
@@ -109,7 +110,7 @@ vm.runInContext(
   fs.readFileSync(path.join(ROOT, 'js/views/featured-views.js'), 'utf8') + '\n;this.featuredHTML = featuredHTML; this.HERO_MAX = HERO_MAX;',
   featCtx,
 );
-const site = { config, base, basePath, helpers, posts, pages, profiles, year: new Date().getFullYear() };
+const site = { config, base, basePath, helpers, posts, pages, profiles, notice, year: new Date().getFullYear() };
 featCtx.cardHTML = (p, hero) => cardHTML(p, { root: '', site, hero });
 // faixa de curtir/compartilhar: mesmo HTML do app (js/post-actions.js)
 const paCtx = { document: { addEventListener() {} } };

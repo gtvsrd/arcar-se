@@ -191,7 +191,7 @@ async function deletePost(id) {
 
 /** Atualiza uma página fixa (Sobre). */
 async function savePage(slug, title, body) {
-  const { error } = await sb.from('pages').update({ title, body }).eq('slug', slug);
+  const { error } = await sb.from('pages').upsert({ slug, title, body }); // cria se ainda não existir (ex.: quadro de avisos)
   if (error) throw error;
   await loadAll();
 }

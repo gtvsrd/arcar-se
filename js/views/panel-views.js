@@ -17,13 +17,13 @@ const shortDate = (d) => new Date(d).toLocaleDateString('pt-BR');
 /** Desenha o painel e a seção escolhida ('' artigos, 'categorias', 'perfil', 'escritores[/id]' ou 'equipe'). */
 function panel(v) {
   let [tab, sub] = String(v || '').split('/');
-  if (!['perfil', 'equipe', 'categorias', 'escritores'].includes(tab)) tab = '';
-  if (['equipe', 'categorias', 'escritores'].includes(tab) && !admin) tab = '';
+  if (!['perfil', 'equipe', 'categorias', 'escritores', 'avisos'].includes(tab)) tab = '';
+  if (['equipe', 'categorias', 'escritores', 'avisos'].includes(tab) && !admin) tab = '';
   const tabs = [
     ['', 'Artigos'],
     ...(admin ? [['categorias', 'Categorias']] : []),
     ['perfil', 'Meu perfil'],
-    ...(admin ? [['escritores', 'Escritores'], ['equipe', 'Equipe']] : []),
+    ...(admin ? [['avisos', 'Quadro de avisos'], ['escritores', 'Escritores'], ['equipe', 'Equipe']] : []),
   ];
   $('#main').innerHTML = `<div class="panel"><h1>Painel</h1>
    <nav class="ptabs" aria-label="Seções do painel">${tabs
@@ -36,6 +36,7 @@ function panel(v) {
   else if (tab === 'equipe') panelTeam();
   else if (tab === 'categorias') panelCategories();
   else if (tab === 'escritores') panelWriters(sub);
+  else if (tab === 'avisos') panelNotice();
   else panelPosts();
 }
 
@@ -364,6 +365,49 @@ function profileForm(userId, { back, after, who = '' }) {
           ? 'Falta aplicar o supabase/escritores.sql no Supabase'
           : 'Não foi possível salvar: ' + (err.message || 'erro'),
       );
+    } finally {
+      btn.disabled = false;
+    }
+  };
+}
+
+/* ------------------------------------------------------- Quadro de avisos */
+
+/** Edita o quadro de avisos da coluna lateral (título e texto). Só administrador. Texto vazio esconde o quadro. */
+function panelNotice() {
+  const cur = db.pages.avisos || NOTICE_DEFAULT;
+  $('#pbody').innerHTML = `<form id="nf" class="art art--edit" style="max-width:720px">
+   <p class="hint">O quadro aparece na coluna lateral de todas as páginas, logo abaixo da busca. Para escondê-lo, apague todo o texto e salve.</p>
+   <label for="nt">Título</label><input type="text" id="nt" required maxlength="60" value="${esc(cur.title)}">
+   <label id="nlabel">Texto</label>
+   <div class="rte-wrap" id="nrte"></div>
+   <div class="acts" style="margin-top:18px"><button class="btn" type="submit">Salvar aviso</button>
+   <button class="btn alt" type="button" id="ndef">Voltar ao texto de boas-vindas</button></div>
+  </form>`;
+  let rte = createRichEditor($('#nrte'), cur.body, 'nlabel');
+  $('#ndef').onclick = () => {
+    $('#nt').value = NOTICE_DEFAULT.title;
+    $('#nrte').innerHTML = '';
+    rte = createRichEditor($('#nrte'), NOTICE_DEFAULT.body, 'nlabel');
+    toast('Texto de boas-vindas restaurado. Salve para aplicar.');
+  };
+  $('#nf').onsubmit = async (e) => {
+    e.preventDefault();
+    const title = $('#nt').value.trim();
+    if (!title) return $('#nt').focus();
+    const btn = $('#nf button[type=submit]');
+    btn.disabled = true;
+    const uploaded = [];
+    const old = mdImages((db.pages.avisos || {}).body || '');
+    try {
+      const body = (await rte.getBody(uploaded)).trim();
+      await savePage('avisos', title, body);
+      deleteUnusedImages(old);
+      renderSide();
+      toast(body ? 'Quadro de avisos salvo' : 'Quadro de avisos escondido');
+    } catch (err) {
+      uploaded.forEach(deleteCover);
+      toast('Não foi possível salvar: ' + (err.message || 'erro'));
     } finally {
       btn.disabled = false;
     }

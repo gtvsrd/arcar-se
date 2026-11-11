@@ -102,3 +102,18 @@ const catsOf = (p) => (Array.isArray(p.cats) && p.cats.length ? p.cats : [p.cat]
 /** Nome das páginas fixas no menu e na lista "Páginas": fixo, independente do título editado na página. */
 const PAGE_LABELS = { sobre: 'Sobre', contato: 'Contato' };
 const pageLabel = (slug, title) => PAGE_LABELS[slug] || title;
+
+/** Páginas que existem no banco mas não aparecem no menu nem têm página própria (Contato virou Escritores; avisos é o quadro da lateral). */
+const HIDDEN_PAGES = ['contato', 'avisos'];
+
+/** Quadro de avisos da lateral: texto padrão até o administrador editar no painel (fica em pages, slug "avisos"). */
+const NOTICE_DEFAULT = {
+  title: 'Quadro de avisos',
+  body: '**Boas-vindas ao Arcar.se!** O blog acaba de ser inaugurado.\n\nAqui você encontra textos de psicologia para se entender melhor e assumir a própria história, escritos para o público em geral, estudantes e profissionais. Leia, curta e compartilhe com quem possa gostar. Novos artigos chegam em breve.',
+};
+/** HTML do quadro de avisos (vazio se o administrador apagou o texto). */
+function noticeHTML(page) {
+  const n = page || NOTICE_DEFAULT;
+  if (!String(n.body || '').trim()) return '';
+  return `<div class="box box--avisos"><h3>${esc(n.title || NOTICE_DEFAULT.title)}</h3><div class="avisos-body">${md(n.body)}</div></div>`;
+}
