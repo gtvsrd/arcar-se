@@ -21,6 +21,8 @@ h2,
 h3 {
   font-family: Fraunces, Georgia, serif;
   font-weight: 600;
+  /* a Fraunces tem letras baixas (altura do "x" ≈ 0,45 do tamanho): aumenta ~15% para não parecer pequena */
+  font-size-adjust: 0.52;
   letter-spacing: -0.005em;
   line-height: 1.25;
   margin: 0 0 0.5em;
