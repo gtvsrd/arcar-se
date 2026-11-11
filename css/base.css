@@ -15,11 +15,14 @@ body {
     system-ui,
     sans-serif;
 }
+/* Títulos e subtítulos: Fraunces semibold, a mesma fonte do nome na logo */
 h1,
 h2,
 h3 {
-  font-family: Merriweather, Georgia, serif;
-  line-height: 1.3;
+  font-family: Fraunces, Georgia, serif;
+  font-weight: 600;
+  letter-spacing: -0.005em;
+  line-height: 1.25;
   margin: 0 0 0.5em;
 }
 a {
