@@ -7,11 +7,16 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - run: |
-          for t in A AAAA CAA TXT NS; do echo "== arcar.se $t (Google DNS):"; dig +short @8.8.8.8 arcar.se $t; done
-          echo "== www.arcar.se:"; dig +short @8.8.8.8 www.arcar.se
-          echo "== _github-pages-challenge-gtvsrd.arcar.se TXT:"; dig +short @8.8.8.8 _github-pages-challenge-gtvsrd.arcar.se TXT
-          echo "== Cloudflare DNS A:"; dig +short @1.1.1.1 arcar.se A
-          echo "== HTTP:"; curl -sI -m 15 http://arcar.se | head -5
-          echo "== HTTPS:"; curl -sI -m 15 https://arcar.se 2>&1 | head -3; curl -s -m 15 -o /dev/null -w "%{http_code} %{ssl_verify_result}\n" https://arcar.se 2>&1
-          echo "== certificado:"; echo | openssl s_client -connect arcar.se:443 -servername arcar.se 2>/dev/null | openssl x509 -noout -subject -issuer -dates 2>&1 | head
-          for d in arcarse.com arcarse.org arcarse.online; do echo "== $d A:"; dig +short @8.8.8.8 $d A; echo "   http:"; curl -sI -m 15 http://$d | grep -iE "^HTTP|^location"; echo "   https:"; curl -sI -m 15 https://$d 2>&1 | grep -iE "^HTTP|^location|curl:"; done
+          sleep 30
+          P=$(curl -s https://arcar.se/post/manifest.json | python3 -c "import sys,json;print(json.load(sys.stdin)['slugs'][0])")
+          echo "R1 artigo: $P"
+          curl -s https://arcar.se/post/$P/ > /tmp/p.html
+          echo "R2 $(grep -o '<link rel="canonical" href="[^"]*"' /tmp/p.html)"
+          echo "R3 $(grep -o '<meta property="og:image" content="[^"]*"' /tmp/p.html)"
+          img=$(grep -o '<meta property="og:image" content="[^"]*"' /tmp/p.html | sed 's/.*content="//; s/"$//')
+          echo "R4 imagem: $(curl -s -o /dev/null -w '%{http_code} %{content_type}' "$img")"
+          echo "R5 sitemap: $(curl -s https://arcar.se/sitemap.xml | grep -o '<loc>[^<]*</loc>' | head -2 | tr '\n' ' ')"
+          echo "R6 antigo: $(curl -s -o /dev/null -w '%{http_code} -> %{redirect_url}' https://gtvsrd.github.io/arcar-se/post/$P/)"
+          echo "R7 www: $(curl -s -o /dev/null -w '%{http_code} -> %{redirect_url}' https://www.arcar.se/)"
+          echo "R8 http: $(curl -s -o /dev/null -w '%{http_code} -> %{redirect_url}' http://arcar.se/)"
+          for d in arcarse.com arcarse.org arcarse.online; do echo "R9 $d: http $(curl -s -o /dev/null -w '%{http_code} -> %{redirect_url}' http://$d/) | https $(curl -s -o /dev/null -w '%{http_code} -> %{redirect_url}' https://$d/ 2>&1)"; done
