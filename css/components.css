@@ -985,3 +985,23 @@ dialog [hidden] {
     margin: -12px 0 0 -12px; /* alças maiores para o dedo */
   }
 }
+
+/* Editor: as caixas ficam 17px mais largas de cada lado, para o texto digitado ocupar a mesma largura
+   (e quebrar as linhas nos mesmos pontos) que o artigo publicado */
+@media (min-width: 521px) {
+  .art--edit form > input[type='text'],
+  .art--edit form > textarea,
+  .art--edit form > .img-field,
+  .art--edit form > .rte-wrap {
+    width: calc(100% + 34px);
+    max-width: none;
+    margin-left: -17px;
+    margin-right: -17px;
+  }
+  .art--edit form > input[type='text'],
+  .art--edit form > textarea,
+  .art--edit form > .img-field {
+    padding-left: 16px;
+    padding-right: 16px;
+  }
+}
