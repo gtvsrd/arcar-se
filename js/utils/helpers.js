@@ -98,3 +98,7 @@ function squareImage(file, size = 320) {
 
 /** Categorias de um artigo (até 3; a primeira é a principal). Funciona também com o banco antigo, que só tem "cat". */
 const catsOf = (p) => (Array.isArray(p.cats) && p.cats.length ? p.cats : [p.cat]);
+
+/** Nome das páginas fixas no menu e na lista "Páginas": fixo, independente do título editado na página. */
+const PAGE_LABELS = { sobre: 'Sobre', contato: 'Contato' };
+const pageLabel = (slug, title) => PAGE_LABELS[slug] || title;

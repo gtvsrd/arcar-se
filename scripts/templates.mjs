@@ -88,7 +88,7 @@ export function navHTML(site, root) {
   const { esc } = site.helpers;
   return (
     `<a href="${root || './'}">Início</a>` +
-    site.pages.map((g) => `<a href="${root}pagina/${g.slug}/">${esc(g.title)}</a>`).join('') +
+    site.pages.map((g) => `<a href="${root}pagina/${g.slug}/">${esc(site.helpers.pageLabel(g.slug, g.title))}</a>`).join('') +
     // Entrar ou (Painel, Novo artigo, Sair): preenchido por static-page.js conforme haja sessão no navegador
     `<span id="authnav"><a href="${root}#/entrar">Entrar</a></span>`
   );
@@ -112,7 +112,7 @@ export function sideHTML(site, root) {
      .map((p) => `<li><a href="${root}post/${p.slug}/">${esc(p.title)}</a></li>`)
      .join('')}</ul></div>
    <div class="box"><h3>Páginas</h3><ul>${site.pages
-     .map((g) => `<li><a href="${root}pagina/${g.slug}/">${esc(g.title)}</a></li>`)
+     .map((g) => `<li><a href="${root}pagina/${g.slug}/">${esc(site.helpers.pageLabel(g.slug, g.title))}</a></li>`)
      .join('')}</ul></div>`;
 }
 

@@ -20,7 +20,7 @@ function renderNav() {
   $('#nav').innerHTML =
     '<a href="#/">Início</a>' +
     Object.keys(db.pages)
-      .map((k) => `<a href="#/pagina/${k}">${esc(db.pages[k].title)}</a>`)
+      .map((k) => `<a href="#/pagina/${k}">${esc(pageLabel(k, db.pages[k].title))}</a>`)
       .join('') +
     (staff()
       ? `<a href="#/painel">Painel${pendingReview() ? ` <span class="pill">${pendingReview()}</span>` : ''}</a><a href="#/novo">Novo artigo</a>${meHTML()}<button id="out">Sair</button>`
@@ -60,7 +60,7 @@ function renderSide() {
      .map((p) => `<li><a href="${postUrl(p)}">${esc(p.title)}</a></li>`)
      .join('')}</ul></div>
    <div class="box"><h3>Páginas</h3><ul>${Object.keys(db.pages)
-     .map((k) => `<li><a href="#/pagina/${k}">${esc(db.pages[k].title)}</a></li>`)
+     .map((k) => `<li><a href="#/pagina/${k}">${esc(pageLabel(k, db.pages[k].title))}</a></li>`)
      .join('')}</ul></div>`; // a equipe usa o menu do topo (Painel, Novo artigo); a senha fica em Painel › Meu perfil
   $('#q').onkeydown = (e) => {
     if (e.key === 'Enter' && e.target.value.trim())
