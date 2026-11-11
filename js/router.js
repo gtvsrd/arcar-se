@@ -18,8 +18,9 @@ function route() {
     return;
   }
   if (a === 'post') post(v);
-  else if (a === 'escritores') writersPage();
-  else if (a === 'pagina' && v === 'contato') location.replace('#/escritores'); // endereço antigo
+  // visitantes vão para as páginas geradas: o endereço na barra fica com a prévia certa ao compartilhar
+  else if (a === 'escritores' || (a === 'pagina' && v === 'contato')) staff() ? (a === 'escritores' ? writersPage() : location.replace('#/escritores')) : location.replace('escritores/');
+  else if (a === 'pagina' && !staff() && db.pages[v]) location.replace(`pagina/${v}/`);
   else if (a === 'pagina') page(v);
   else if (a === 'cat')
     cards(
