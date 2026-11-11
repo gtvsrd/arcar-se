@@ -49,14 +49,14 @@ function renderNav() {
       toast('Você saiu');
     };
 }
-/** Desenha a coluna lateral: sobre, busca, categorias, recentes, páginas e painel admin. */
+/** Desenha a coluna lateral: busca, quadro de avisos, categorias, recentes, páginas e painel admin. */
 function renderSide() {
   const ps = visible(),
     cats = {};
   ps.forEach((p) => catsOf(p).forEach((c) => (cats[c] = (cats[c] || 0) + 1)));
   $('#side').innerHTML =
-    `<div class="box"><h3>Sobre o blog</h3><p>Textos de psicologia para quem quer se entender melhor e assumir a própria história. Para o público em geral, estudantes e profissionais.</p></div>
-   <div class="box"><h3>Buscar</h3><input type="text" id="q" placeholder="Digite e tecle Enter" aria-label="Buscar artigos"></div>
+    `<div class="box"><h3>Buscar</h3><input type="text" id="q" placeholder="Digite e tecle Enter" aria-label="Buscar artigos"></div>
+   <div class="box box--avisos"><h3>Quadro de avisos</h3><p><b>Boas-vindas ao Arcar.se!</b> O blog acaba de ser inaugurado.</p><p>Aqui você encontra textos de psicologia para se entender melhor e assumir a própria história, escritos para o público em geral, estudantes e profissionais. Leia, curta e compartilhe com quem possa gostar. Novos artigos chegam em breve.</p></div>
    <div class="box"><h3>Categorias</h3><ul>${
      Object.keys(cats)
        .sort()
