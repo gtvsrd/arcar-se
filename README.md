@@ -3,7 +3,7 @@
 Blog em HTML, CSS e JavaScript puros, com **Supabase** como back-end (banco, login e imagens).
 Funciona no **GitHub Pages** e continua funcionando quando você trocar para um domínio da Hostinger.
 
-Repositório: `github.com/gtvsrd/arcar-se` · Site: `https://gtvsrd.github.io/arcar-se/`
+Repositório: `github.com/gtvsrd/arcar-se` · Site: `https://arcar.se/` (o endereço antigo `https://gtvsrd.github.io/arcar-se/` redireciona para ele)
 
 ## Estrutura
 
@@ -113,9 +113,15 @@ Rode `supabase/painel-e-criadores.sql` uma vez no SQL Editor (banco já existent
 - **Liberar um criador**: Painel › Equipe › e-mail. A pessoa usa **Entrar › Primeiro acesso**, escolhe a senha e confirma pelo e-mail. Só e-mails liberados ganham acesso.
 - **Visualizações**: cada artigo soma 1 leitura por visitante a cada 24h (equipe logada não conta). O número aparece no artigo, nos cards e no painel.
 - O build do site tolera o banco sem esse SQL (sai sem autor e sem contador), mas o painel e as leituras dependem dele.
-- **Esqueci a senha**: em **Entrar › Esqueci a senha** a pessoa recebe um e-mail com o link para criar uma nova senha (a resposta é sempre a mesma, exista ou não a conta). No Supabase, em Authentication › URL Configuration, o Site URL e o Redirect URLs devem incluir `https://gtvsrd.github.io/arcar-se/` (e `https://gtvsrd.github.io/arcar-se/**`).
+- **Esqueci a senha**: em **Entrar › Esqueci a senha** a pessoa recebe um e-mail com o link para criar uma nova senha (a resposta é sempre a mesma, exista ou não a conta). No Supabase, em Authentication › URL Configuration, o Site URL deve ser `https://arcar.se` e o Redirect URLs deve incluir `https://arcar.se/**`.
 - **Categorias**: Painel › Categorias (só administrador) cria, renomeia (ou mescla, se o nome já existir) e exclui categorias; só dá para excluir as que nenhum artigo usa. No editor, o artigo recebe de 1 a 3 categorias escolhidas entre as cadastradas (a primeira é a principal). Rode `supabase/categorias.sql` uma vez.
 - **Trocar autoria**: `supabase/trocar-autoria.sql` passa os artigos do administrador que mais assina para o outro administrador (só com exatamente 2 administradores).
 - **Curtir e compartilhar** (abaixo do artigo): curtida anônima, uma por navegador e que pode ser desfeita (rode `supabase/curtidas.sql`); botão **Compartilhar** ao lado, que abre um menu com **Copiar link** e **WhatsApp**. O link compartilhado é sempre a página gerada do artigo, que tem as tags de prévia.
 - **Imagens de prévia**: o build gera `og/<artigo>-<código>.jpg` (1200×630, JPEG leve) a partir da capa, com a biblioteca `sharp` instalada no GitHub Actions. Sem ela (ex.: build local), a prévia usa a capa original.
 - **Imagem no texto do artigo**: no máximo uma por artigo (a capa é à parte). Fica sempre centralizada, num parágrafo só dela, e só muda de lugar entre parágrafos (Subir/Descer, Alt+↑/↓ ou arrastando). Selecionada, mostra alças nas bordas e nos cantos para redimensionar (20% a 100% da coluna, proporcional); em **Cortar**, as mesmas alças escolhem a parte que aparece (o corte é feito só na exibição, a imagem original continua inteira). **Legenda** aparece embaixo, centralizada. No Markdown: `![descrição](endereço){w=60 c=x,y,largura,altura r=proporção}` e a legenda na linha de baixo.
+
+## Domínio
+
+- Principal: **arcar.se** (sem www), publicado pelo GitHub Pages. DNS na Hostinger: 4 registros A e 4 AAAA no `@` apontando para o GitHub Pages e `www` como CNAME para `gtvsrd.github.io` (o GitHub redireciona o www para o endereço sem www).
+- **arcarse.com**, **arcarse.org** e **arcarse.online** redirecionam (301) para `https://arcar.se`, pelo recurso de redirecionamento da Hostinger.
+- O build usa o endereço que o GitHub Pages informa (`configure-pages`), então segue o domínio configurado em Settings › Pages; `siteUrl` em `site.config.json` é só a reserva para builds locais.
