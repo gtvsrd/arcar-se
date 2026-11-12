@@ -17,7 +17,13 @@ function route() {
     $('#main').innerHTML = '<div class="box">Esta área é restrita. Use o botão <b>Entrar</b> no topo da página.</div>';
     return;
   }
-  if (a === 'post') post(v);
+  if (a === 'post') {
+    // Artigo com página própria: vai para ela (endereço sem #, com prévia de link)
+    const p = findPost(v);
+    const slug = p ? p.slug : v;
+    if (temPaginaGerada(slug)) return location.replace(`post/${slug}/`);
+    post(v);
+  }
   // visitantes vão para as páginas geradas: o endereço na barra fica com a prévia certa ao compartilhar
   else if (a === 'escritores' || (a === 'pagina' && v === 'contato')) staff() ? (a === 'escritores' ? writersPage() : location.replace('#/escritores')) : location.replace('escritores/');
   else if (a === 'pagina' && v === 'avisos') location.replace(admin ? '#/painel/avisos' : '#/');

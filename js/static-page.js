@@ -41,7 +41,10 @@ initThemeToggle();
           : `<span class="avatar avatar--ph" aria-hidden="true">${esc([...name][0].toUpperCase())}</span>`
       }<span class="nav-me-name">${esc(name)}</span></a>`;
     const fallback = user.email ? user.email.split('@')[0] : 'Meu perfil';
-    box.innerHTML = `<a href="${ROOT}#/painel">Painel</a><a href="${ROOT}#/novo">Novo artigo</a>${meLink(fallback, '')}<button type="button" id="out">Sair</button>`;
+    // Na página de um artigo, a equipe ganha o atalho para editá-lo
+    const slug = document.body.dataset.slug;
+    const editar = slug ? `<a href="${ROOT}#/editar/${encodeURIComponent(slug)}">Editar</a>` : '';
+    box.innerHTML = `${editar}<a href="${ROOT}#/painel">Painel</a><a href="${ROOT}#/novo">Novo artigo</a>${meLink(fallback, '')}<button type="button" id="out">Sair</button>`;
     // nome e foto do perfil (tabela pública "profiles")
     if (user.id && typeof SUPABASE_URL !== 'undefined')
       fetch(`${SUPABASE_URL}/rest/v1/profiles?select=display_name,avatar_url&user_id=eq.${encodeURIComponent(user.id)}`, {

@@ -19,6 +19,7 @@ let admin = false; // true se o administrador está logado
 let creator = false; // true se um criador (colaborador) está logado
 let me = null; // { id, email } do usuário da equipe logado
 let builtSlugs = new Set(); // artigos que já têm página própria gerada (post/<slug>/), lida de post/manifest.json
+let manifestGeradoEm = 0; // quando o build gerou as páginas (ms)
 
 /** Admin ou criador logado. */
 const staff = () => admin || creator;
@@ -106,8 +107,28 @@ async function registerView(p) {
   return Number(data);
 }
 
-/** Endereço de leitura de um artigo: a página própria (visitantes, se já gerada) ou a rota do app. */
-const postUrl = (p) => (!staff() && builtSlugs.has(p.slug) ? `post/${p.slug}/` : `#/post/${p.slug || p.id}`);
+// Artigos editados neste navegador depois do último build: a página gerada ainda é a
+// versão antiga, então continuam abrindo no app até o próximo build (a cada 30 min).
+const editadoDepoisDoBuild = (slug) => {
+  try {
+    return Number(sessionStorage.getItem('arcar:editado:' + slug) || 0) > manifestGeradoEm;
+  } catch (e) {
+    return false;
+  }
+};
+const marcarEditado = (slug) => {
+  try {
+    if (slug) sessionStorage.setItem('arcar:editado:' + slug, String(Date.now()));
+  } catch (e) {}
+};
+/** O artigo tem página própria atualizada? (para todos, inclusive a equipe) */
+const temPaginaGerada = (slug) => !!slug && builtSlugs.has(slug) && !editadoDepoisDoBuild(slug);
+
+/**
+ * Endereço de leitura de um artigo: a página própria, com endereço limpo e prévia de link
+ * (WhatsApp e redes ignoram o que vem depois do #), ou a rota do app se ainda não houver.
+ */
+const postUrl = (p) => (temPaginaGerada(p.slug) ? `post/${p.slug}/` : `#/post/${p.slug || p.id}`);
 
 /** Acha um artigo pelo slug ou, nos links antigos, pelo id. */
 const findPost = (key) => db.posts.find((p) => p.slug === key || p.id === key);
@@ -127,6 +148,7 @@ async function loadManifest() {
     const r = await fetch('post/manifest.json', { cache: 'no-cache' });
     const m = r.ok ? await r.json() : null;
     builtSlugs = new Set(Array.isArray(m && m.slugs) ? m.slugs : []);
+    manifestGeradoEm = Date.parse((m && m.generatedAt) || '') || 0;
   } catch (e) {
     builtSlugs = new Set();
   }
@@ -179,7 +201,9 @@ async function logout() {
 async function savePost({ id, ...fields }) {
   const { error } = id ? await sb.from('posts').update(fields).eq('id', id) : await sb.from('posts').insert(fields);
   if (error) throw error;
+  if (fields.slug) marcarEditado(fields.slug);
   await loadAll();
+  if (id) marcarEditado((db.posts.find((p) => p.id === id) || {}).slug);
 }
 
 /** Exclui um artigo. */
