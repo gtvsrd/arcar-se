@@ -206,6 +206,8 @@ swap('<link rel="icon" type="image/svg+xml"', homeHead + '\n    <link rel="icon"
 swap('<nav id="nav"></nav>', `<nav id="nav">${navHTML(site, '')}</nav>`);
 swap('<main id="main"></main>', `<main id="main">${homeMain(site)}</main>`);
 swap('<aside id="side"></aside>', `<aside id="side">${sideHTML(site, '')}</aside>`);
+// versão do site no rodapé (site.config.json > version)
+swap('<span class="ver"></span>', config.version ? `<span class="ver">v${config.version}</span>` : '');
 write('index.html', index);
 
 // sitemap e robots

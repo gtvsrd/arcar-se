@@ -171,7 +171,7 @@ export function pageShell({ site, root, title, head, main, adminHref, bodyAttrs 
     </div>
     <footer>© <span id="yr">${site.year}</span> ${esc(c.siteName)} · Todos os direitos reservados${
       adminHref ? ` · <a href="${esc(adminHref)}" rel="nofollow">Admin</a>` : ''
-    }</footer>
+    }${c.version ? ` · <span class="ver">v${esc(c.version)}</span>` : ''}</footer>
     <script src="${root}js/config.js"></script>
 ${scripts.map((s) => `    <script defer src="${root}${s}"></script>\n`).join('')}    <script defer src="${root}js/static-page.js"></script>${withViews ? `\n    <script defer src="${root}js/post-actions.js"></script>` : ''}
   </body>

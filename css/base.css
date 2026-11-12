@@ -6,7 +6,13 @@
 html {
   scroll-padding-top: env(safe-area-inset-top, 0px);
 }
+/* Rodapé sempre no fim da tela, mesmo em páginas curtas: o corpo é uma coluna
+   da altura da tela e o rodapé é empurrado para baixo (margin-top: auto) */
 body {
+  display: flex;
+  flex-direction: column;
+  min-height: 100vh;
+  min-height: 100dvh;
   margin: 0;
   background: var(--bg);
   color: var(--ink);

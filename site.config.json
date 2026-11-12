@@ -5,5 +5,6 @@
   "description": "Blog de psicologia com textos para o público em geral, estudantes e profissionais. Assumir a própria história.",
   "language": "pt-BR",
   "locale": "pt_BR",
-  "timezone": "America/Sao_Paulo"
+  "timezone": "America/Sao_Paulo",
+  "version": "1.0.0"
 }

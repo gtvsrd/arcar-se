@@ -106,6 +106,7 @@ header.top :focus-visible {
   text-decoration-color: var(--warm);
 }
 .wrap {
+  width: 100%;
   max-width: 1120px;
   margin: 28px auto;
   padding: 0 var(--gutter);
@@ -122,6 +123,7 @@ header.top :focus-visible {
   gap: 26px;
 }
 footer {
+  margin-top: auto; /* fica no fim da tela quando a página é curta */
   text-align: center;
   color: var(--mut);
   padding: 30px var(--gutter);
