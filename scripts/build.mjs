@@ -147,9 +147,11 @@ const write = (rel, text) => {
 };
 
 // páginas dos artigos e páginas fixas
-// Imagem de prévia de cada artigo com capa (WhatsApp, Instagram, Facebook, X): 1200×630, JPEG leve, num arquivo
+// Imagem de prévia de cada artigo com capa (WhatsApp, Instagram, Facebook, X): 960×504 (proporção 1,91:1,
+// ainda exibida como prévia grande), JPEG bem comprimido para carregar rápido, num arquivo
 // do próprio site. Usa a biblioteca "sharp" (instalada no GitHub Actions); sem ela, a prévia usa a capa original.
 let sharp = null;
+const OG_L = 960, OG_A = 504; // tamanho das prévias de artigos
 try {
   sharp = (await import('sharp')).default;
 } catch (e) {
@@ -168,13 +170,14 @@ if (sharp)
           // o nome muda quando a capa muda, para WhatsApp e cia. não mostrarem a prévia antiga guardada
           const name = `og/${p.slug}-${crypto.createHash('sha1').update(p.img).digest('hex').slice(0, 8)}.jpg`;
           fs.mkdirSync(path.join(OUT, 'og'), { recursive: true });
-          await sharp(buf)
+          const info = await sharp(buf)
             .rotate()
-            .resize(1200, 630, { fit: 'cover', position: 'attention' })
+            .resize(OG_L, OG_A, { fit: 'cover', position: 'attention' })
             .flatten({ background: '#ffffff' })
-            .jpeg({ quality: 80, mozjpeg: true })
+            .jpeg({ quality: 68, mozjpeg: true, progressive: true, chromaSubsampling: '4:2:0' })
             .toFile(path.join(OUT, name));
-          site.ogImages[p.slug] = { url: `${base}/${name}`, width: 1200, height: 630, type: 'image/jpeg' };
+          console.log(`Prévia de "${p.slug}": ${OG_L}x${OG_A}, ${Math.round(info.size / 1024)} KB (capa original ${Math.round(buf.length / 1024)} KB)`);
+          site.ogImages[p.slug] = { url: `${base}/${name}`, width: OG_L, height: OG_A, type: 'image/jpeg' };
         } catch (e) {
           console.warn(`Aviso: prévia de "${p.slug}" não gerada (${e.message}); usando a capa original.`);
         }

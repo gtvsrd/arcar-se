@@ -4,7 +4,7 @@
  */
 
 /** Monta o <head> comum (título, descrição, link canônico, prévias de link e dados estruturados). */
-export function headMeta({ title, description, canonical, type = 'website', image, site, jsonLd, noindex = false }) {
+export function headMeta({ title, description, canonical, type = 'website', image, imageSize, site, jsonLd, noindex = false }) {
   const { esc } = site.helpers;
   const meta = (attr, name, value) => `<meta ${attr}="${name}" content="${esc(value)}" />`;
   const ld = jsonLd ? `<script type="application/ld+json">${safeJson(jsonLd)}</script>` : '';
@@ -22,8 +22,8 @@ export function headMeta({ title, description, canonical, type = 'website', imag
     meta('property', 'og:image:alt', title),
     ...(/\/assets\/og-default\.png$|\/og\/[^/]+\.jpg$/.test(image)
       ? [
-          meta('property', 'og:image:width', '1200'),
-          meta('property', 'og:image:height', '630'),
+          meta('property', 'og:image:width', String(imageSize ? imageSize[0] : 1200)),
+          meta('property', 'og:image:height', String(imageSize ? imageSize[1] : 630)),
           meta('property', 'og:image:type', image.endsWith('.png') ? 'image/png' : 'image/jpeg'),
         ]
       : []),
@@ -185,7 +185,7 @@ export function postPage(p, site) {
   const root = '../../';
   const c = site.config;
   const url = `${site.base}/post/${p.slug}/`;
-  const og = (site.ogImages && site.ogImages[p.slug]) || null; // prévia 1200×630 gerada no build
+  const og = (site.ogImages && site.ogImages[p.slug]) || null; // prévia leve gerada no build (ver build.mjs)
   const image = og ? og.url : isHttp(p.img) ? p.img : `${site.base}/assets/og-default.png`;
   const description = (p.excerpt || '').trim().slice(0, 200) || c.description;
   const title = `${p.title} — ${c.siteName}`;
@@ -196,6 +196,7 @@ export function postPage(p, site) {
     canonical: url,
     type: 'article',
     image,
+    imageSize: og ? [og.width, og.height] : null,
     site,
     jsonLd: {
       '@context': 'https://schema.org',
