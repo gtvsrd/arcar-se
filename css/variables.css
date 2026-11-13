@@ -13,6 +13,7 @@
   --hd: #1e3b3a;
   --hd-ink: #f3f1ec;
   --hd-mut: #bccfcb;
+  --hd-warm: #e0a84a; /* ocre do topo: o mesmo do símbolo (flecha e ponto do SVG), igual nos dois temas */
   --chip: #f4e5c2;
   --chip-ink: #6a4408;
   color-scheme: light;

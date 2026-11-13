@@ -47,7 +47,7 @@ header.top :focus-visible {
   letter-spacing: -0.02em;
 }
 .logo-dot {
-  color: var(--warm);
+  color: var(--hd-warm); /* não muda com o tema: o topo é escuro nos dois e o símbolo tem cor fixa */
 }
 /* Quem está logado: foto e nome no menu do topo */
 /* (no menu do topo e na barra da equipe) */
