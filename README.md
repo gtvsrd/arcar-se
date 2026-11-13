@@ -97,6 +97,19 @@ na próxima execução. Depois de renomear o repositório ou ligar um domínio, 
 
 Importante: o endereço antigo do GitHub Pages deixa de funcionar quando o repositório é renomeado (o GitHub não redireciona sites).
 
+## Versão do site
+
+A versão aparece no rodapé (ex.: `v1.0.1`) e fica em `site.config.json`, no campo `version`. Ela muda a cada alteração publicada:
+
+- **correção** (ajuste visual, conserto de erro): sobe o último número — `1.0.0` → `1.0.1`;
+- **novidade** (recurso ou página nova): sobe o do meio e zera o último — `1.0.1` → `1.1.0`;
+- **reformulação grande** (visual ou estrutura inteira nova): sobe o primeiro — `1.4.2` → `2.0.0`.
+
+Histórico:
+
+- `1.0.1` — elementos surgem com esmaecer suave e em sequência; imagens aparecem aos poucos; o que muda de lugar desliza. Também: nova descrição do site, links de artigos sem `#` e imagem de prévia mais leve. Botão de tema só com o símbolo (sol ou lua), na mesma linha do menu no celular. Para a equipe logada, perfil, Painel, Novo e Sair saem do topo e vão para uma barra própria acima das duas colunas; acima de cada artigo, uma barra de edição rápida (Editar, Excluir, Destaque, Publicado) substitui os botões dos cards.
+- `1.0.0` — primeira versão numerada.
+
 ## Observações
 - Tudo o que você escreve fica salvo no Supabase, e as imagens de capa e do texto, no Storage (limite de 5 MB por imagem; o blog já as reduz antes de enviar).
 - O editor é visual, com botões de negrito, sublinhado, listas, alinhamento, links e imagens. Imagens também podem ser coladas ou arrastadas para o texto, e são enviadas só ao salvar. Clique em uma imagem para subir, descer, editar ou remover; para mudá-la de linha, também dá para arrastá-la. O texto continua guardado em Markdown no banco, então artigos antigos abrem normalmente.

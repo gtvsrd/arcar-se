@@ -48,8 +48,7 @@ function cardHTML(p, hero = false) {
    <article class="card">${coverHTML(p)}
    <div class="cb"><h2><a href="${postUrl(p)}">${esc(p.title)}</a>${badgeHTML(p)}</h2>
    ${metaHTML(p, !hero, false)}<p>${esc(p.excerpt)}</p>
-   <div class="card-foot"><a class="more" href="${postUrl(p)}">Ler artigo</a>${viewsHTML(p)}
-   ${canEdit(p) ? `<div class="acts"><a class="btn sm alt" href="#/editar/${p.id}">Editar</a><button class="btn sm del" data-del="${p.id}">Excluir</button></div>` : ''}</div></div></article>`;
+   <div class="card-foot"><a class="more" href="${postUrl(p)}">Ler artigo</a>${viewsHTML(p)}</div></div></article>`;
 }
 
 /** Desenha a grade de cards (home, categoria e busca). `prefix` é o HTML mostrado acima (destaques). */
@@ -59,8 +58,7 @@ function cards(list, title, prefix = '') {
     : prefix
       ? ''
       : '<div class="box">Nenhum artigo encontrado.</div>';
-  $('#main').innerHTML = prefix + (title && (list.length || !prefix) ? `<h1>${title}</h1>` : '') + grid;
-  bindDel();
+  trocar('#main', prefix + (title && (list.length || !prefix) ? `<h1>${title}</h1>` : '') + grid);
   initCarousel();
 }
 
@@ -116,13 +114,18 @@ function post(key) {
     $('#main').innerHTML = '<div class="box">Artigo não encontrado. <a href="#/">Voltar ao início</a></div>';
     return;
   }
-  $('#main').innerHTML =
-    `<article class="art">${coverHTML(p, true)}${metaHTML(p).replace('</div>', badgeHTML(p) + '</div>')}
+  trocar(
+    '#main',
+    editBarHTML(p, `#/editar/${p.id}`) +
+      `<article class="art">${coverHTML(p, true)}${metaHTML(p).replace('</div>', badgeHTML(p) + '</div>')}
    <h1>${esc(p.title)}</h1><div class="body">${hyphenateJustified(md(p.body))}</div>
    ${p.pub ? postActionsHTML({ id: p.id, slug: p.slug, url: shareUrl(p), title: p.title }) : ''}
-   ${canEdit(p) ? `<div class="acts"><a class="btn sm alt" href="#/editar/${p.id}">Editar</a><button class="btn sm del" data-del="${p.id}">Excluir</button></div>` : ''}
-   <p><a href="#/">← Voltar aos artigos</a></p></article>`;
-  bindDel();
+   <p><a href="#/">← Voltar aos artigos</a></p></article>`,
+  );
+  initEditBar(document.querySelector('#main .editbar'), p, {
+    onChange: () => post(key),
+    onDelete: () => (location.hash = '#/'),
+  });
   initPostActions(document.querySelector('.art .post-actions'));
   registerView(p).then((n) => {
     const el = document.querySelector('.art [data-views]');
@@ -131,8 +134,10 @@ function post(key) {
 }
 /** Página Escritores: mostra o que já tem em memória e atualiza com a lista do banco. */
 async function writersPage() {
-  $('#main').innerHTML =
-    writersPageHTML(db.writers || []).replace('</article>', staff() ? `<div class="acts"><a class="btn sm alt" href="#/painel/${admin ? 'escritores' : 'perfil'}">${admin ? 'Editar escritores' : 'Editar meu card'}</a></div></article>` : '</article>');
+  trocar(
+    '#main',
+    writersPageHTML(db.writers || []).replace('</article>', staff() ? `<div class="acts"><a class="btn sm alt" href="#/painel/${admin ? 'escritores' : 'perfil'}">${admin ? 'Editar escritores' : 'Editar meu card'}</a></div></article>` : '</article>'),
+  );
   if (!db.writers) $('#writers-list').innerHTML = '<p class="writers-empty">Carregando…</p>';
   try {
     db.writers = await loadWriters();
@@ -140,7 +145,7 @@ async function writersPage() {
     db.writers = db.writers || [];
   }
   const box = $('#writers-list');
-  if (box && location.hash.startsWith('#/escritores')) box.innerHTML = writersHTML(db.writers);
+  if (box && location.hash.startsWith('#/escritores')) trocar(box, writersHTML(db.writers));
 }
 /** Desenha uma página fixa (Sobre). */
 function page(k) {
@@ -149,6 +154,9 @@ function page(k) {
     location.hash = '#/';
     return;
   }
-  $('#main').innerHTML = `<article class="art"><h1>${esc(pg.title)}</h1><div class="body">${hyphenateJustified(md(pg.body))}</div>
-   ${admin ? `<div class="acts"><a class="btn sm alt" href="#/editarpagina/${k}">Editar página</a></div>` : ''}</article>`;
+  trocar(
+    '#main',
+    `<article class="art"><h1>${esc(pg.title)}</h1><div class="body">${hyphenateJustified(md(pg.body))}</div>
+   ${admin ? `<div class="acts"><a class="btn sm alt" href="#/editarpagina/${k}">Editar página</a></div>` : ''}</article>`,
+  );
 }

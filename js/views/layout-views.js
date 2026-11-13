@@ -27,38 +27,48 @@ const navPages = () => [
   [staff() ? '#/escritores' : 'escritores/', 'Escritores'],
 ];
 
-/** Desenha o menu do topo (muda conforme o admin está logado ou não). */
+/** Desenha o menu do topo e, para a equipe logada, a barra com perfil, Painel, Novo e Sair. */
 function renderNav() {
   $('#nav').innerHTML =
     '<a href="#/">Início</a>' +
     navPages()
       .map(([href, label]) => `<a href="${href}">${esc(label)}</a>`)
       .join('') +
-    (staff()
-      ? `<a href="#/painel">Painel${pendingReview() ? ` <span class="pill">${pendingReview()}</span>` : ''}</a><a href="#/novo">Novo artigo</a>${meHTML()}<button id="out">Sair</button>`
-      : '<button id="in">Entrar</button>');
-  const i = $('#in'),
-    o = $('#out');
+    (staff() ? '' : '<button id="in">Entrar</button>');
+  renderStaffBar();
+  const i = $('#in');
   if (i)
     i.onclick = () => {
       $('#lerr').textContent = '';
       $('#dlg').showModal();
       $('#u').focus();
     };
-  if (o)
-    o.onclick = async () => {
-      await logout();
-      location.hash = '#/';
-      route();
-      toast('Você saiu');
-    };
 }
+
+/** Barra da equipe, acima das duas colunas: foto e nome à esquerda, atalhos e Sair à direita. Some para visitantes. */
+function renderStaffBar() {
+  const bar = $('#staffbar');
+  if (!bar) return;
+  bar.hidden = !staff();
+  if (bar.hidden) return (bar.innerHTML = '');
+  const n = pendingReview();
+  bar.innerHTML = `${meHTML()}
+   <div class="staffbar-links"><a href="#/painel">Painel${n ? ` <span class="pill">${n}</span>` : ''}</a><a href="#/novo" title="Novo artigo">Novo</a><button type="button" id="out">Sair</button></div>`;
+  $('#out').onclick = async () => {
+    await logout();
+    location.hash = '#/';
+    route();
+    toast('Você saiu');
+  };
+}
+
 /** Desenha a coluna lateral: busca, quadro de avisos, categorias, recentes, páginas e painel admin. */
 function renderSide() {
   const ps = visible(),
     cats = {};
   ps.forEach((p) => catsOf(p).forEach((c) => (cats[c] = (cats[c] || 0) + 1)));
-  $('#side').innerHTML =
+  trocar(
+    '#side',
     `<div class="box"><h3>Buscar</h3><input type="text" id="q" placeholder="Digite e tecle Enter" aria-label="Buscar artigos"></div>
    ${noticeHTML(db.pages.avisos)}
    <div class="box"><h3>Categorias</h3><ul>${
@@ -73,7 +83,8 @@ function renderSide() {
      .join('')}</ul></div>
    <div class="box"><h3>Páginas</h3><ul>${navPages()
      .map(([href, label]) => `<li><a href="${href}">${esc(label)}</a></li>`)
-     .join('')}</ul></div>`; // a equipe usa o menu do topo (Painel, Novo artigo); a senha fica em Painel › Meu perfil
+     .join('')}</ul></div>`,
+  ); // a equipe usa o menu do topo (Painel, Novo artigo); a senha fica em Painel › Meu perfil
   $('#q').onkeydown = (e) => {
     if (e.key === 'Enter' && e.target.value.trim())
       location.hash = '#/busca/' + encodeURIComponent(e.target.value.trim());

@@ -128,6 +128,16 @@ export function sideHTML(site, root) {
 const logoName = (name, esc) => esc(name).replace(/\./, '<span class="logo-dot">.</span>');
 
 /** Documento completo de uma página gerada. `root` é o caminho até a raiz ("../../" ou "/arcar-se/"). */
+/** Arquivos da barra de edição rápida nas páginas dos artigos, na ordem em que precisam ser carregados. */
+const EDIT_SCRIPTS = [
+  'js/vendor/supabase.js',
+  'js/data/api.js',
+  'js/utils/helpers.js',
+  'js/utils/markdown.js',
+  'js/views/featured-views.js',
+  'js/views/edit-bar.js',
+];
+
 export function pageShell({ site, root, title, head, main, adminHref, bodyAttrs = '', withViews = false, scripts = [] }) {
   const { esc } = site.helpers;
   const c = site.config;
@@ -154,6 +164,7 @@ export function pageShell({ site, root, title, head, main, adminHref, bodyAttrs 
     <link rel="stylesheet" href="${root}css/featured.css" />
     <link rel="stylesheet" href="${root}css/responsive.css" />
     <script src="${root}js/theme.js"></script>
+    <script src="${root}js/utils/suave.js"></script>
   </head>
   <body data-root="${esc(root)}"${bodyAttrs}>
     <header class="top">
@@ -166,6 +177,7 @@ export function pageShell({ site, root, title, head, main, adminHref, bodyAttrs 
       </div>
     </header>
     <div class="wrap">
+      <div id="staffbar" class="staffbar" hidden></div>
       <main id="main">${main}</main>
       <aside id="side">${sideHTML(site, root)}</aside>
     </div>
@@ -173,7 +185,14 @@ export function pageShell({ site, root, title, head, main, adminHref, bodyAttrs 
       adminHref ? ` · <a href="${esc(adminHref)}" rel="nofollow">Admin</a>` : ''
     }${c.version ? ` · <span class="ver">v${esc(c.version)}</span>` : ''}</footer>
     <script src="${root}js/config.js"></script>
-${scripts.map((s) => `    <script defer src="${root}${s}"></script>\n`).join('')}    <script defer src="${root}js/static-page.js"></script>${withViews ? `\n    <script defer src="${root}js/post-actions.js"></script>` : ''}
+${scripts.map((s) => `    <script defer src="${root}${s}"></script>\n`).join('')}    <script defer src="${root}js/static-page.js"></script>${withViews ? `\n    <script defer src="${root}js/post-actions.js"></script>` : ''}${
+      withViews
+        ? `
+    <!-- só para a equipe logada: static-page.js carrega estes arquivos para a barra de edição rápida -->
+    <template id="edicao-js">${EDIT_SCRIPTS.map((s) => `<script src="${root}${s}"></script>`).join('')}</template>`
+        : ''
+    }
+    <div id="toast" role="status"></div>
   </body>
 </html>
 `;
