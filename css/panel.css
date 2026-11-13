@@ -449,11 +449,58 @@
 
 /* ---------- Caixas da lateral (aba Caixas) ----------
    Cartões empilhados: recolhidos mostram ícone, título e situação; o aberto mostra o formulário de edição. */
+/* duas colunas: cartões à esquerda, prévia da lateral à direita (na largura da coluna lateral do site) */
+.cx-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 300px;
+  gap: 32px;
+  align-items: start;
+}
+.cx-layout .hint {
+  margin-top: 0;
+}
+.cx-previa {
+  position: sticky;
+  top: 16px;
+}
+.cx-previa-tit {
+  margin: 0 0 10px;
+  font-size: 12px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  color: var(--mut);
+}
+.cx-previa-tit span {
+  font-weight: 400;
+  letter-spacing: 0;
+  text-transform: none;
+}
+.cx-previa-side {
+  max-height: calc(100vh - 220px); /* cabe na tela já no topo do painel; o que passar disso rola só aqui dentro */
+  overflow: auto;
+  padding: 4px; /* espaço para o contorno da caixa em edição */
+}
+/* a caixa que está sendo editada fica marcada na prévia */
+.cx-previa-side .box.cx-previa-alvo {
+  outline: 2px solid var(--warm);
+  outline-offset: 2px;
+}
+@media (max-width: 900px) {
+  .cx-layout {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .cx-previa {
+    position: static;
+  }
+  .cx-previa-side {
+    max-height: none;
+  }
+}
 .cx-lista {
   display: flex;
   flex-direction: column;
   gap: 10px;
-  max-width: 760px;
   margin: 14px 0 18px;
 }
 .cx-sub {

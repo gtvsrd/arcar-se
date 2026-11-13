@@ -440,17 +440,66 @@ function panelBoxes() {
   function desenhar() {
     const a = avisos();
     const ls = livres();
-    $('#pbody').innerHTML = `<p class="hint">As caixas aparecem na coluna lateral de todas as páginas: <b>Avisos</b> logo abaixo da busca, e as caixas livres depois de todas as outras, nesta ordem. Clique numa caixa para editá-la.</p>
+    $('#pbody').innerHTML = `<div class="cx-layout"><div class="cx-col">
+     <p class="hint">As caixas aparecem na coluna lateral de todas as páginas: <b>Avisos</b> logo abaixo da busca, e as caixas livres depois de todas as outras, nesta ordem. Clique numa caixa para editá-la.</p>
      <div class="cx-lista" id="cx-lista">
        ${a ? cartao(a, 0, 1) : ''}
        ${ls.length ? '<h3 class="cx-sub">Caixas livres</h3>' : ''}
        ${ls.map((b, i) => cartao(b, i, ls.length)).join('')}
        <div id="cx-nova"></div>
      </div>
-     <button type="button" class="btn" id="cx-add">+ Adicionar caixa</button>`;
+     <button type="button" class="btn" id="cx-add">+ Adicionar caixa</button>
+    </div>
+    <aside class="cx-previa" aria-label="Prévia da coluna lateral">
+     <p class="cx-previa-tit">Prévia da lateral <span>(atualiza enquanto você edita)</span></p>
+     <div class="cx-previa-side" id="cx-previa" inert></div>
+    </aside></div>`;
     aberto = null;
     rte = null;
     $('#cx-add').onclick = adicionar;
+    previa();
+  }
+
+  /**
+   * Prévia da coluna lateral como os leitores vão ver. `rascunho`: a caixa aberta, com o que está no formulário
+   * (ainda não salvo), para a prévia acompanhar a edição.
+   */
+  function previa(rascunho) {
+    const el = $('#cx-previa');
+    if (!el) return;
+    let boxes = db.boxes.map((b) => ({ ...b }));
+    if (rascunho) {
+      const i = boxes.findIndex((b) => b.id === rascunho.id);
+      if (i >= 0) boxes[i] = { ...boxes[i], ...rascunho };
+      else boxes.push({ kind: 'livre', hidden: false, sort: Math.max(0, ...boxes.map((b) => b.sort)) + 10, created_at: '9', ...rascunho });
+    }
+    // sem ids repetidos (o campo de busca da prévia não pode roubar o da lateral de verdade)
+    el.innerHTML = sideBoxesHTML(boxes).replace(/ id="[^"]*"/g, '');
+    const alvo = rascunho && el.querySelector(`[data-lado="${rascunho.kind === 'avisos' ? 'avisos' : 'livre-' + (rascunho.id || 'undefined')}"]`);
+    el.querySelectorAll('.box').forEach((b) => b.classList.toggle('cx-previa-alvo', b === alvo));
+    // a caixa em edição fica à vista dentro da prévia (só a prévia rola, a página fica onde está)
+    if (alvo) {
+      const topo = alvo.offsetTop - el.offsetTop - 8,
+        fim = topo + alvo.offsetHeight + 16;
+      const visivel = Math.min(el.clientHeight, innerHeight - el.getBoundingClientRect().top); // parte da prévia na tela
+      if (topo < el.scrollTop || fim > el.scrollTop + visivel) el.scrollTop = Math.max(0, topo);
+    }
+  }
+  /** Lê o formulário aberto e atualiza a prévia (com uma pequena pausa enquanto se digita). */
+  let previaTimer = null;
+  function previaDoFormulario(b, form) {
+    clearTimeout(previaTimer);
+    previaTimer = setTimeout(() => {
+      if (!form.isConnected) return; // o cartão foi recolhido (Cancelar): vale o que está salvo
+      const ed = form.querySelector('.rte');
+      previa({
+        id: b.id,
+        kind: b.kind || 'livre',
+        title: form.querySelector('#cx-t').value.trim() || 'Sem título',
+        icon: (form.querySelector('input[name="cx-i"]:checked') || {}).value || 'flecha',
+        body: ed ? htmlToMd(ed) : b.body || '',
+      });
+    }, 150);
   }
 
   /** Recolhe o cartão aberto (descarta o que não foi salvo). */
@@ -468,6 +517,8 @@ function panelBoxes() {
     }
     aberto = null;
     rte = null;
+    clearTimeout(previaTimer); // descarta a atualização pendente do formulário que acabou de fechar
+    previa(); // volta a mostrar o que está salvo
   }
 
   /** Expande o cartão `sec` da caixa `b` para editar. */
@@ -482,12 +533,19 @@ function panelBoxes() {
     rte = createRichEditor(corpo.querySelector('#cx-rte'), b.body || '', 'cx-bl');
     const form = corpo.querySelector('form');
     form.querySelector('[data-cx="fechar"]').onclick = recolher;
+    // a prévia acompanha o que se digita, o ícone escolhido e as formatações do texto
+    const atualizar = () => previaDoFormulario(b, form);
+    form.addEventListener('input', atualizar);
+    form.addEventListener('change', atualizar);
+    form.addEventListener('click', atualizar); // botões da barra do editor (negrito, listas…)
+    atualizar();
     const bv = form.querySelector('[data-cx="boasvindas"]');
     if (bv)
       bv.onclick = () => {
         form.querySelector('#cx-t').value = NOTICE_DEFAULT.title;
         corpo.querySelector('#cx-rte').innerHTML = '';
         rte = createRichEditor(corpo.querySelector('#cx-rte'), NOTICE_DEFAULT.body, 'cx-bl');
+        previaDoFormulario(b, form);
         toast('Texto de boas-vindas restaurado. Salve para aplicar.');
       };
     form.onsubmit = async (e) => {

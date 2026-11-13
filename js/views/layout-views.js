@@ -62,16 +62,16 @@ function renderStaffBar() {
   };
 }
 
-/** Desenha a coluna lateral: busca, quadro de avisos, categorias, recentes, páginas e painel admin. */
-function renderSide() {
+/**
+ * HTML das caixas da coluna lateral: busca, avisos, categorias, recentes, páginas e as caixas livres.
+ * `boxes`: as caixas editáveis a usar (a prévia do painel passa as que estão sendo editadas).
+ */
+function sideBoxesHTML(boxes = db.boxesOn ? db.boxes : null) {
   const ps = visible(),
     cats = {};
   ps.forEach((p) => catsOf(p).forEach((c) => (cats[c] = (cats[c] || 0) + 1)));
-  trocar(
-    '#side',
-    `${SIDE_TOGGLE}
-   ${sideBox('busca', 'Buscar', '<input type="text" id="q" placeholder="Digite e tecle Enter" aria-label="Buscar artigos">')}
-   ${avisosHTML(db.boxesOn ? db.boxes : null, db.pages.avisos)}
+  return `${sideBox('busca', 'Buscar', '<input type="text" id="q" placeholder="Digite e tecle Enter" aria-label="Buscar artigos">')}
+   ${avisosHTML(boxes, db.pages.avisos)}
    ${sideBox(
      'categorias',
      'Categorias',
@@ -97,8 +97,12 @@ function renderSide() {
        .map(([href, label]) => `<li><a href="${href}">${esc(label)}</a></li>`)
        .join('')}</ul>`,
    )}
-   ${livresHTML(db.boxesOn ? db.boxes : [])}`,
-  ); // a equipe usa o menu do topo (Painel, Novo artigo); a senha fica em Painel › Meu perfil
+   ${livresHTML(boxes || [])}`;
+}
+
+/** Desenha a coluna lateral (com o botão do modo leitura acima das caixas). */
+function renderSide() {
+  trocar('#side', SIDE_TOGGLE + sideBoxesHTML()); // a equipe usa a barra da equipe (Painel, Novo); a senha fica em Painel › Meu perfil
   $('#q').onkeydown = (e) => {
     if (e.key === 'Enter' && e.target.value.trim())
       location.hash = '#/busca/' + encodeURIComponent(e.target.value.trim());
