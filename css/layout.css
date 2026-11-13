@@ -118,10 +118,11 @@ header.top :focus-visible {
 .wrap > * {
   min-width: 0; /* impede que o conteúdo alargue a coluna e ultrapasse a tela */
 }
-/* Barra da equipe (só para quem está logado): ocupa a largura das duas colunas, acima delas */
-.staffbar {
-  grid-column: 1 / -1;
-  margin-bottom: -10px; /* fica mais perto do conteúdo do que o vão entre as colunas */
+/* Barras da equipe (só para quem está logado), com o mesmo visual:
+   - .staffbar: acima das duas colunas (perfil, Painel, Novo, Sair);
+   - .editbar: acima do artigo, na coluna dele (edição rápida: Editar, Excluir, Destaque, Publicado). */
+.staffbar,
+.editbar {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
@@ -134,18 +135,25 @@ header.top :focus-visible {
   border-radius: 6px;
   animation: surgir 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
+.staffbar {
+  grid-column: 1 / -1; /* largura das duas colunas */
+  margin-bottom: -10px; /* fica mais perto do conteúdo do que o vão entre as colunas */
+}
+.editbar {
+  margin-bottom: 18px;
+}
 .staffbar[hidden] {
   display: none;
 }
-.staffbar-links {
+.staffbar-links,
+.editbar-links {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 22px;
   margin-left: auto; /* atalhos sempre à direita, mesmo quando quebram para a linha de baixo */
 }
-.staffbar a,
-.staffbar button {
+:is(.staffbar, .editbar) :is(a, button) {
   color: var(--ac);
   font: inherit;
   font-weight: 600;
@@ -159,12 +167,63 @@ header.top :focus-visible {
   text-decoration-thickness: 2px;
   transition: text-decoration-color 0.2s ease;
 }
-.staffbar a:hover,
-.staffbar button:hover {
+:is(.staffbar, .editbar) :is(a, button):hover {
   text-decoration-color: var(--warm);
+}
+:is(.staffbar, .editbar) button:disabled {
+  opacity: 0.55;
+  cursor: wait;
 }
 .staffbar .nav-me {
   color: var(--ink);
+}
+.editbar-title {
+  font-weight: 600;
+  color: var(--ink);
+}
+.editbar-status {
+  font-weight: 400;
+  color: var(--mut);
+}
+.editbar [data-eb='del'][data-ok='1'] {
+  color: var(--err);
+}
+/* Destaque e Publicado: chave liga/desliga antes do nome; os dois ficam juntos quando a barra quebra de linha */
+.eb-toggles {
+  display: inline-flex;
+  flex-wrap: wrap;
+  gap: 4px 22px;
+}
+.eb-toggle {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+}
+.eb-switch {
+  position: relative;
+  width: 30px;
+  height: 18px;
+  border-radius: 999px;
+  background: var(--ln);
+  transition: background 0.2s;
+}
+.eb-switch::after {
+  content: '';
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: var(--sf);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.25);
+  transition: transform 0.2s;
+}
+.eb-toggle[aria-pressed='true'] .eb-switch {
+  background: var(--warm);
+}
+.eb-toggle[aria-pressed='true'] .eb-switch::after {
+  transform: translateX(12px);
 }
 .grid {
   display: grid;

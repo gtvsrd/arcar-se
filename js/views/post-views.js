@@ -48,8 +48,7 @@ function cardHTML(p, hero = false) {
    <article class="card">${coverHTML(p)}
    <div class="cb"><h2><a href="${postUrl(p)}">${esc(p.title)}</a>${badgeHTML(p)}</h2>
    ${metaHTML(p, !hero, false)}<p>${esc(p.excerpt)}</p>
-   <div class="card-foot"><a class="more" href="${postUrl(p)}">Ler artigo</a>${viewsHTML(p)}
-   ${canEdit(p) ? `<div class="acts"><a class="btn sm alt" href="#/editar/${p.id}">Editar</a><button class="btn sm del" data-del="${p.id}">Excluir</button></div>` : ''}</div></div></article>`;
+   <div class="card-foot"><a class="more" href="${postUrl(p)}">Ler artigo</a>${viewsHTML(p)}</div></div></article>`;
 }
 
 /** Desenha a grade de cards (home, categoria e busca). `prefix` é o HTML mostrado acima (destaques). */
@@ -60,7 +59,6 @@ function cards(list, title, prefix = '') {
       ? ''
       : '<div class="box">Nenhum artigo encontrado.</div>';
   trocar('#main', prefix + (title && (list.length || !prefix) ? `<h1>${title}</h1>` : '') + grid);
-  bindDel();
   initCarousel();
 }
 
@@ -118,13 +116,16 @@ function post(key) {
   }
   trocar(
     '#main',
-    `<article class="art">${coverHTML(p, true)}${metaHTML(p).replace('</div>', badgeHTML(p) + '</div>')}
+    editBarHTML(p, `#/editar/${p.id}`) +
+      `<article class="art">${coverHTML(p, true)}${metaHTML(p).replace('</div>', badgeHTML(p) + '</div>')}
    <h1>${esc(p.title)}</h1><div class="body">${hyphenateJustified(md(p.body))}</div>
    ${p.pub ? postActionsHTML({ id: p.id, slug: p.slug, url: shareUrl(p), title: p.title }) : ''}
-   ${canEdit(p) ? `<div class="acts"><a class="btn sm alt" href="#/editar/${p.id}">Editar</a><button class="btn sm del" data-del="${p.id}">Excluir</button></div>` : ''}
    <p><a href="#/">← Voltar aos artigos</a></p></article>`,
   );
-  bindDel();
+  initEditBar(document.querySelector('#main .editbar'), p, {
+    onChange: () => post(key),
+    onDelete: () => (location.hash = '#/'),
+  });
   initPostActions(document.querySelector('.art .post-actions'));
   registerView(p).then((n) => {
     const el = document.querySelector('.art [data-views]');

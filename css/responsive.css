@@ -157,10 +157,15 @@
 @media (max-width: 820px) {
   .staffbar {
     margin-bottom: -6px;
+  }
+  .staffbar,
+  .editbar {
     padding: 8px 14px;
     column-gap: 16px;
   }
-  .staffbar-links {
+  .staffbar-links,
+  .editbar-links,
+  .eb-toggles {
     column-gap: 16px;
   }
   .staffbar .nav-me-name {
@@ -168,7 +173,8 @@
   }
 }
 @media (prefers-reduced-motion: reduce) {
-  .staffbar {
+  .staffbar,
+  .editbar {
     animation: none;
   }
 }
