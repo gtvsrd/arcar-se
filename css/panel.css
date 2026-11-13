@@ -110,7 +110,7 @@
 }
 .ptable th,
 .ptable td {
-  padding: 8px 10px;
+  padding: 7px 10px;
   text-align: left;
   vertical-align: middle;
   border-bottom: 1px solid var(--ln);
@@ -138,8 +138,55 @@
   outline-offset: 2px;
 }
 .ptable .pt {
-  min-width: 200px;
+  min-width: 240px;
   font-weight: 600;
+}
+/* título com a capa à esquerda (miniatura 3:2; sem capa, a cor da categoria) */
+.pt-wrap {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.pt-capa {
+  flex: none;
+  display: block;
+  width: 66px;
+  height: 44px;
+  border-radius: 4px;
+  object-fit: cover;
+  background: var(--bg);
+}
+.pt-txt {
+  min-width: 0;
+  line-height: 1.35;
+}
+/* ações do artigo: links pequenos embaixo do título (a faixa fica baixa e a tabela cabe na largura) */
+.pt-acts {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 2px 14px;
+  margin-top: 3px;
+  font-size: 13px;
+  font-weight: 600;
+}
+.ptable .pt .pt-acts a,
+.pt-acts button {
+  padding: 0;
+  background: none;
+  border: 0;
+  font: inherit;
+  color: var(--ac);
+  text-decoration: none;
+  cursor: pointer;
+}
+.ptable .pt .pt-acts a:hover,
+.pt-acts button:hover {
+  text-decoration: underline;
+  text-decoration-color: var(--warm);
+  text-underline-offset: 3px;
+}
+.pt-acts .pt-del {
+  color: var(--err);
 }
 .ptable .pt a {
   color: var(--ink);
@@ -152,11 +199,6 @@
 .ptable .num {
   text-align: right;
   font-variant-numeric: tabular-nums;
-}
-.ptable .pa .acts {
-  margin: 0;
-  flex-wrap: wrap;
-  justify-content: flex-end;
 }
 .ptable .empty {
   text-align: center;
@@ -304,39 +346,43 @@
   .ptable td {
     display: block;
   }
+  /* cada artigo: título com capa e ações em cima; os dados embaixo, em três colunas (rótulo sobre o valor) */
   .ptable tr {
-    padding: 8px 10px;
+    display: grid;
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+    gap: 8px 12px;
+    padding: 12px;
     border-bottom: 1px solid var(--ln);
   }
   .ptable td {
     border: 0;
-    padding: 2px 0;
+    padding: 0;
     display: flex;
-    justify-content: space-between;
-    gap: 12px;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 2px;
+    min-width: 0;
   }
   .ptable td[data-l]::before {
     content: attr(data-l);
     color: var(--mut);
-    font-size: 12px;
+    font-size: 11px;
     text-transform: uppercase;
     letter-spacing: 0.05em;
   }
   .ptable .pt {
+    grid-column: 1 / -1;
     display: block;
     min-width: 0;
     font-size: 16px;
-    padding-bottom: 4px;
+    padding-bottom: 2px;
+  }
+  .ptable .pt .pt-capa {
+    width: 72px;
+    height: 48px;
   }
   .ptable td.pt[data-l]::before {
     content: none;
-  }
-  .ptable .pa {
-    display: block;
-    padding-top: 6px;
-  }
-  .ptable .pa .acts {
-    justify-content: flex-start;
   }
   .ptable .empty {
     display: block;
@@ -350,12 +396,11 @@
   border-radius: 4px;
 }
 
-/* Botões do painel: todos do mesmo tamanho */
+/* Botões do painel: mesma altura, largura do próprio texto (cabem lado a lado numa linha só) */
 .ptable .btn.sm {
   box-sizing: border-box;
-  width: 104px;
-  height: 32px;
-  padding: 0 8px;
+  height: 30px;
+  padding: 0 10px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -385,20 +430,6 @@
   /* primeira coluna: só o título do cabeçalho fica centralizado; o conteúdo alinha à esquerda */
   .ptable td:first-child {
     text-align: left;
-  }
-  /* ações: 2 botões por linha; se sobrar um sozinho (ex.: Excluir), ele ocupa a largura dos dois de cima */
-  .ptable .pa .acts {
-    display: grid;
-    grid-template-columns: repeat(2, 104px);
-    gap: 6px;
-    justify-content: center;
-    margin: 0 auto;
-  }
-  .ptable .pa .acts > .btn.sm {
-    width: 100%;
-  }
-  .ptable .pa .acts > :last-child:nth-child(odd) {
-    grid-column: 1 / -1;
   }
   .who {
     justify-content: center;

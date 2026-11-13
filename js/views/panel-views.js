@@ -115,7 +115,7 @@ function panelPosts() {
    <div class="pcount" id="pcount" role="status"></div>
    <div class="ptable-wrap"><table class="ptable">
      <caption class="sr">Artigos</caption>
-     <thead><tr>${cols.map(([k, l]) => `<th scope="col" data-k="${k}"><button type="button" data-sort="${k}">${l}<i aria-hidden="true"></i></button></th>`).join('')}<th scope="col">Ações</th></tr></thead>
+     <thead><tr>${cols.map(([k, l]) => `<th scope="col" data-k="${k}"><button type="button" data-sort="${k}">${l}<i aria-hidden="true"></i></button></th>`).join('')}</tr></thead>
      <tbody id="prows"></tbody>
    </table></div>`;
 
@@ -154,27 +154,34 @@ function panelPosts() {
       ? `${a.avatar_url ? `<img class="avatar" src="${esc(a.avatar_url)}" alt="" width="20" height="20" loading="lazy">` : `<span class="avatar avatar--ph" aria-hidden="true">${esc([...a.display_name][0].toUpperCase())}</span>`}${esc(a.display_name)}`
       : '<span class="mut">—</span>';
     return `<tr>
-     <td class="pt" data-l="Título"><a href="#/post/${esc(p.slug || p.id)}">${esc(p.title)}</a>${st === 'returned' ? `<div class="pnote">${esc(p.review_note)}</div>` : ''}</td>
+     <td class="pt" data-l="Título"><div class="pt-wrap">${
+       p.img
+         ? `<img class="pt-capa" src="${esc(p.img)}" alt="" loading="lazy">`
+         : `<span class="pt-capa pt-capa--cor" style="background:${colorOf(p.cat)}" aria-hidden="true"></span>` /* sem capa: a cor da categoria, como nos cards */
+     }<div class="pt-txt"><a href="#/post/${esc(p.slug || p.id)}">${esc(p.title)}</a>${st === 'returned' ? `<div class="pnote">${esc(p.review_note)}</div>` : ''}
+       <div class="pt-acts">${[
+         canEdit(p) ? `<a href="#/editar/${p.id}">Editar</a>` : '',
+         admin && p.pub ? `<button type="button" data-pact="unpub" data-id="${p.id}">Tirar do ar</button>` : '',
+         admin && !p.pub ? `<button type="button" data-pact="pub" data-id="${p.id}">Publicar</button>` : '',
+         admin && p.submitted && !p.pub ? `<button type="button" data-pact="ret" data-id="${p.id}">Devolver</button>` : '',
+         canEdit(p) ? `<button type="button" class="pt-del" data-del="${p.id}">Excluir</button>` : '',
+       ]
+         .filter(Boolean)
+         .join('')}</div></div></div></td>
      <td data-l="Categoria">${esc(catsOf(p).join(', '))}</td>
      ${admin ? `<td data-l="Autor"><span class="who">${who}</span></td>` : ''}
      <td data-l="Situação"><span class="st st--${st}">${STATUS_LABEL[st]}</span></td>
      <td data-l="Destaque">${p.featured ? '<span title="Em destaque">★</span>' : '<span class="mut">—</span>'}</td>
      <td data-l="Data">${shortDate(p.date)}</td>
      ${db.viewsOn ? `<td class="num" data-l="Leituras">${p.pub ? viewsOf(p).toLocaleString('pt-BR') : '<span class="mut">—</span>'}</td>` : ''}
-     <td class="pa"><div class="acts">
-       ${canEdit(p) ? `<a class="btn sm alt" href="#/editar/${p.id}">Editar</a>` : ''}
-       ${admin && p.pub ? `<button class="btn sm alt" data-pact="unpub" data-id="${p.id}">Tirar do ar</button>` : ''}
-       ${admin && !p.pub ? `<button class="btn sm alt" data-pact="pub" data-id="${p.id}">Publicar</button>` : ''}
-       ${admin && p.submitted && !p.pub ? `<button class="btn sm alt" data-pact="ret" data-id="${p.id}">Devolver</button>` : ''}
-       ${canEdit(p) ? `<button class="btn sm del" data-del="${p.id}">Excluir</button>` : ''}
-     </div></td></tr>`;
+    </tr>`;
   };
 
   const draw = () => {
     const l = list();
     $('#prows').innerHTML =
       l.map(row).join('') ||
-      `<tr><td class="empty" colspan="${cols.length + 1}">Nenhum artigo com esses filtros.</td></tr>`;
+      `<tr><td class="empty" colspan="${cols.length}">Nenhum artigo com esses filtros.</td></tr>`;
     $('#pcount').textContent = `${l.length} de ${mine.length} ${mine.length === 1 ? 'artigo' : 'artigos'}`;
     document.querySelectorAll('.ptable th[data-k]').forEach((th) => {
       const on = th.dataset.k === PF.sort;
