@@ -132,9 +132,9 @@ const SIDE_ICONS = {
   recentes: SIDE_SVG('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
   paginas: SIDE_SVG('<path d="M6 3.5h8l4 4v13H6z"/><path d="M14 3.5v4h4M9 12h6M9 16h6"/>'),
 };
-/** Caixa da lateral: o conteúdo de sempre e, para o modo leitura, um botão com ícone que o abre ao lado. */
+/** Caixa da lateral: título com o ícone antes do nome e, para o modo leitura, um botão com o mesmo ícone que a abre ao lado. */
 function sideBox(key, title, inner, cls = '') {
-  return `<div class="box${cls ? ' ' + cls : ''}" data-lado="${key}"><button type="button" class="side-btn" aria-label="${esc(title)}" title="${esc(title)}">${SIDE_ICONS[key] || ''}</button><div class="box-conteudo"><h3>${esc(title)}</h3>${inner}</div></div>`;
+  return `<div class="box${cls ? ' ' + cls : ''}" data-lado="${key}"><button type="button" class="side-btn" aria-label="${esc(title)}" title="${esc(title)}">${SIDE_ICONS[key] || ''}</button><div class="box-conteudo"><h3>${SIDE_ICONS[key] ? `<span class="box-ico">${SIDE_ICONS[key]}</span>` : ''}${esc(title)}</h3>${inner}</div></div>`;
 }
 /** Botão que recolhe e mostra a coluna lateral (só em telas grandes). Fica acima de todas as caixas. */
 const SIDE_TOGGLE = `<button type="button" class="side-toggle" data-k="side-toggle" aria-label="Modo leitura: recolher ou mostrar a coluna lateral" title="Modo leitura"><span class="side-toggle-txt">Modo leitura</span>${SIDE_SVG('<path d="M9 5l7 7-7 7"/>')}</button>`;
