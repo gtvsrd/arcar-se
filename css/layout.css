@@ -351,7 +351,12 @@ footer {
     transition: transform 0.3s;
   }
   .side-toggle-txt {
+    /* a mesma fonte dos títulos das caixas (Fraunces semibold, 17px) */
+    font-family: Fraunces, Georgia, serif;
     font-weight: 600;
+    font-size: 17px;
+    font-size-adjust: 0.52;
+    letter-spacing: -0.005em;
     color: var(--ink);
   }
   html.lado-recolhido .side-toggle {
