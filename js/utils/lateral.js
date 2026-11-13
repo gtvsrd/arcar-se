@@ -1,20 +1,16 @@
 /**
  * Modo leitura (só em telas grandes): a coluna lateral recolhe e a coluna principal ocupa o lugar das duas.
  * As caixas da lateral viram botões com ícone, empilhados à direita; cada um abre a sua caixa ao lado.
- * O botão com a seta, acima das caixas, recolhe e mostra a coluna. A escolha fica guardada neste navegador.
+ * O botão com a seta, acima das caixas, recolhe e mostra a coluna. Não fica guardado: toda página que abre
+ * (ou recarrega) começa com as duas colunas; dentro do app, a escolha vale enquanto a pessoa navega por ele.
  *
- * Carregado no <head> (sem defer), para a página já abrir no modo escolhido, sem piscar.
  * Os cliques são ouvidos no documento: funciona mesmo quando o app redesenha a lateral.
  * O visual fica em css/layout.css (procure por "Modo leitura").
  */
 (function () {
   const raiz = document.documentElement;
-  const CHAVE = 'arcar:lateral';
   const telaGrande = window.matchMedia('(min-width: 821px)');
   const reduz = window.matchMedia('(prefers-reduced-motion: reduce)');
-  try {
-    if (localStorage.getItem(CHAVE) === 'recolhida') raiz.classList.add('lado-recolhido');
-  } catch (e) {}
 
   const recolhida = () => raiz.classList.contains('lado-recolhido') && telaGrande.matches;
   const fecharCaixas = () =>
@@ -26,10 +22,7 @@
   function alternar() {
     const trocar = () => {
       fecharCaixas();
-      const agora = raiz.classList.toggle('lado-recolhido');
-      try {
-        localStorage.setItem(CHAVE, agora ? 'recolhida' : 'aberta');
-      } catch (e) {}
+      raiz.classList.toggle('lado-recolhido');
     };
     // a coluna principal estica (ou volta) deslizando, em vez de pular
     if (document.startViewTransition && !reduz.matches) document.startViewTransition(trocar);

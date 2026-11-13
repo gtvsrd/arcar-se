@@ -107,6 +107,7 @@ A versão aparece no rodapé (ex.: `v1.0.1`) e fica em `site.config.json`, no ca
 
 Histórico:
 
+- `1.1.0` — modo leitura (telas grandes): a seta acima da coluna lateral a recolhe em botões com ícones, e a coluna principal ocupa o lugar das duas; cada ícone abre a sua caixa ao lado. Toda página abre com as duas colunas.
 - `1.0.3` — todos os laranjas do site no ocre da logomarca (`#E0A84A`), nos dois temas: ponto do nome, filetes, sublinhados, chaves, selos e contadores (os selos usam o mesmo tom clareado ou escurecido).
 - `1.0.2` — Entrar abre a janela de login na própria página em que a pessoa está (artigos, Sobre, Escritores), sem passar pela página inicial; depois de entrar, continua ali, já com as barras da equipe. Janela redesenhada: X de fechar no alto, links à esquerda e Entrar à direita. Topo sem o slogan, com símbolo, nome e menu alinhados.
 - `1.0.1` — elementos surgem com esmaecer suave e em sequência; imagens aparecem aos poucos; o que muda de lugar desliza. Também: nova descrição do site, links de artigos sem `#` e imagem de prévia mais leve. Botão de tema só com o símbolo (sol ou lua), na mesma linha do menu no celular. Para a equipe logada, perfil, Painel, Novo e Sair saem do topo e vão para uma barra própria acima das duas colunas; acima de cada artigo, uma barra de edição rápida (Editar, Excluir, Destaque, Publicado) substitui os botões dos cards.
