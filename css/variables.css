@@ -7,15 +7,14 @@
   --mut: #566663;
   --ac: #2f5e5b;
   --ac2: #ffffff;
-  --warm: #c98a2b;
+  --warm: #e0a84a; /* ocre da logomarca (flecha e ponto do símbolo): o único laranja do site, igual nos dois temas */
   --ln: #ddd8cc;
   --err: #b4472f;
   --hd: #1e3b3a;
   --hd-ink: #f3f1ec;
   --hd-mut: #bccfcb;
-  --hd-warm: #e0a84a; /* ocre do topo: o mesmo do símbolo (flecha e ponto do SVG), igual nos dois temas */
-  --chip: #f4e5c2;
-  --chip-ink: #6a4408;
+  --chip: #f6e5c9; /* selos (rascunho, situação, iniciais): o mesmo ocre clareado (30% sobre branco) */
+  --chip-ink: #654c21; /* e escurecido (45% sobre preto) para o texto */
   color-scheme: light;
   box-sizing: border-box;
   padding-top: env(safe-area-inset-top, 0px);
@@ -35,8 +34,8 @@
     --hd: #0a1311;
     --hd-ink: #f3f1ec;
     --hd-mut: #a9bfb9;
-    --chip: #3a2e15;
-    --chip-ink: #f2ddae;
+    --chip: #3a2c13;
+    --chip-ink: #f3dcb7;
     color-scheme: dark;
   }
 }
@@ -53,7 +52,7 @@
   --hd: #0a1311;
   --hd-ink: #f3f1ec;
   --hd-mut: #a9bfb9;
-  --chip: #3a2e15;
-  --chip-ink: #f2ddae;
+  --chip: #3a2c13; /* ocre da logo escurecido (26% sobre preto) */
+  --chip-ink: #f3dcb7; /* e clareado (40% sobre branco) */
   color-scheme: dark;
 }
