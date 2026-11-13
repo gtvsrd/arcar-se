@@ -42,20 +42,25 @@
     <div id="toast" role="status"></div>
 
     <dialog id="dlg">
-      <h2 id="ltitle">Entrar</h2>
+      <div class="dlg-head">
+        <h2 id="ltitle">Entrar</h2>
+        <button class="dlg-x" id="lcancel" type="button" aria-label="Fechar" title="Fechar">
+          <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18" /></svg>
+        </button>
+      </div>
       <p class="hint" id="lhelp" hidden>
         Use o e-mail que o administrador liberou e escolha uma senha. Depois confirme pelo link que chegar no seu e-mail.
       </p>
       <label for="u">E-mail</label><input type="email" id="u" autocomplete="username" /> <label for="p" id="plabel">Senha</label
       ><input type="password" id="p" autocomplete="current-password" />
       <div class="err" id="lerr" role="status"></div>
-      <div class="acts">
-        <button class="btn" id="lok">Entrar</button><button class="btn alt" id="lcancel">Cancelar</button>
+      <div class="dlg-foot">
+        <p class="dlg-links">
+          <button class="linkbtn" id="lfirst" type="button">Primeiro acesso</button>
+          <button class="linkbtn" id="lforgot" type="button">Esqueci a senha</button>
+        </p>
+        <button class="btn" id="lok">Entrar</button>
       </div>
-      <p class="hint">
-        <button class="linkbtn" id="lfirst" type="button">Primeiro acesso</button> ·
-        <button class="linkbtn" id="lforgot" type="button">Esqueci a senha</button>
-      </p>
     </dialog>
     <dialog id="rdlg">
       <h2>Devolver ao criador</h2>
