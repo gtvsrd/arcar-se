@@ -23,7 +23,7 @@ function panel(v) {
     ['', 'Artigos'],
     ...(admin ? [['categorias', 'Categorias']] : []),
     ['perfil', 'Meu perfil'],
-    ...(admin ? [['avisos', 'Quadro de avisos'], ['escritores', 'Escritores'], ['equipe', 'Equipe']] : []),
+    ...(admin ? [['avisos', 'Avisos'], ['escritores', 'Escritores'], ['equipe', 'Equipe']] : []),
   ];
   $('#main').innerHTML = `<div class="panel"><h1>Painel</h1>
    <nav class="ptabs" aria-label="Seções do painel">${tabs
@@ -404,7 +404,7 @@ function panelNotice() {
       await savePage('avisos', title, body);
       deleteUnusedImages(old);
       renderSide();
-      toast(body ? 'Quadro de avisos salvo' : 'Quadro de avisos escondido');
+      toast(body ? 'Avisos salvos' : 'Avisos escondidos');
     } catch (err) {
       uploaded.forEach(deleteCover);
       toast('Não foi possível salvar: ' + (err.message || 'erro'));

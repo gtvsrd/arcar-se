@@ -108,7 +108,7 @@ const HIDDEN_PAGES = ['contato', 'avisos'];
 
 /** Quadro de avisos da lateral: texto padrão até o administrador editar no painel (fica em pages, slug "avisos"). */
 const NOTICE_DEFAULT = {
-  title: 'Quadro de avisos',
+  title: 'Avisos',
   body: '**Boas-vindas ao Arcar.se!** O blog acaba de ser inaugurado.\n\nAqui você encontra textos de psicologia para se entender melhor e assumir a própria história, escritos para o público em geral, estudantes e profissionais. Leia, curta e compartilhe com quem possa gostar. Novos artigos chegam em breve.',
 };
 /** HTML do quadro de avisos (vazio se o administrador apagou o texto). */
