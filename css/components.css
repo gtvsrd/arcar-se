@@ -454,6 +454,13 @@ dialog::backdrop {
 .dlg-foot .btn {
   flex: none;
 }
+.dlg-links .linkbtn {
+  text-decoration: none; /* links da janela sem sublinhado */
+  font-weight: 600;
+}
+.dlg-links .linkbtn:hover {
+  color: var(--ink);
+}
 .err {
   color: var(--err);
   min-height: 1.4em;
