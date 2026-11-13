@@ -479,7 +479,8 @@
 .cx-previa-side {
   max-height: calc(100vh - 220px); /* cabe na tela já no topo do painel; o que passar disso rola só aqui dentro */
   overflow: auto;
-  padding: 4px; /* espaço para o contorno da caixa em edição */
+  padding: 4px; /* espaço para o contorno da caixa em edição… */
+  margin: 0 -4px; /* …sem estreitar as caixas: ficam com a mesma largura e posição da lateral do site */
 }
 /* a caixa que está sendo editada fica marcada na prévia */
 .cx-previa-side .box.cx-previa-alvo {
