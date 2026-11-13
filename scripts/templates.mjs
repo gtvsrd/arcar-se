@@ -259,7 +259,7 @@ export function postPage(p, site) {
     head,
     main,
     adminHref: `${root}#/editar/${p.slug}`,
-    bodyAttrs: ` data-post="${esc(p.id)}" data-slug="${esc(p.slug)}"`,
+    bodyAttrs: ` class="pagina-artigo" data-post="${esc(p.id)}" data-slug="${esc(p.slug)}"`, // pagina-artigo: tem o modo leitura
     withViews: true,
   });
 }

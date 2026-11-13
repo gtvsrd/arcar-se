@@ -9,6 +9,9 @@ function route() {
     v = decodeURIComponent(h.slice(1).join('/'));
   stopCarousel();
   document.body.classList.toggle('on-panel', a === 'painel');
+  // modo leitura só nas páginas dos artigos; fora delas a coluna lateral volta sempre ao normal
+  document.body.classList.toggle('pagina-artigo', a === 'post');
+  if (a !== 'post') document.documentElement.classList.remove('lado-recolhido');
   renderNav();
   renderSide();
   window.scrollTo(0, 0);

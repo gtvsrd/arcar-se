@@ -316,7 +316,7 @@ footer {
 }
 
 /* ---------- Modo leitura (js/utils/lateral.js) ----------
-   Só em telas grandes: a seta acima das caixas recolhe a coluna lateral; as caixas viram botões com ícone
+   Só nas páginas dos artigos (body.pagina-artigo) e em telas grandes: a seta acima das caixas recolhe a coluna lateral; as caixas viram botões com ícone
    empilhados à direita, e cada um abre a sua caixa ao lado. Em telas pequenas nada disso aparece. */
 .side-btn,
 .side-toggle {
@@ -324,7 +324,7 @@ footer {
 }
 @media (min-width: 821px) {
   /* "Modo leitura" com a seta, na largura de uma caixa; recolhida, só a seta no tamanho dos ícones */
-  .side-toggle {
+  .pagina-artigo .side-toggle {
     display: flex;
     align-items: center;
     justify-content: space-between;
@@ -359,31 +359,31 @@ footer {
     letter-spacing: -0.005em;
     color: var(--ink);
   }
-  html.lado-recolhido .side-toggle {
+  html.lado-recolhido .pagina-artigo .side-toggle {
     width: 44px;
     justify-content: center;
     padding: 0;
   }
-  html.lado-recolhido .side-toggle-txt {
+  html.lado-recolhido .pagina-artigo .side-toggle-txt {
     display: none;
   }
-  html.lado-recolhido .side-toggle svg {
+  html.lado-recolhido .pagina-artigo .side-toggle svg {
     transform: rotate(180deg); /* recolhida: a seta aponta para dentro, para mostrar de novo */
   }
-  html.lado-recolhido .wrap {
+  html.lado-recolhido .pagina-artigo .wrap {
     grid-template-columns: minmax(0, 1fr) 44px;
   }
-  html.lado-recolhido #side .box {
+  html.lado-recolhido .pagina-artigo #side .box {
     position: relative;
     padding: 0;
     margin-bottom: 10px;
     background: none;
     border: 0;
   }
-  html.lado-recolhido #side .box-conteudo {
+  html.lado-recolhido .pagina-artigo #side .box-conteudo {
     display: none;
   }
-  html.lado-recolhido #side .side-btn {
+  html.lado-recolhido .pagina-artigo #side .side-btn {
     display: flex;
     align-items: center;
     justify-content: center;
@@ -399,15 +399,15 @@ footer {
       color 0.2s,
       border-color 0.2s;
   }
-  html.lado-recolhido #side .side-btn:hover,
-  html.lado-recolhido #side .box.aberta .side-btn {
+  html.lado-recolhido .pagina-artigo #side .side-btn:hover,
+  html.lado-recolhido .pagina-artigo #side .box.aberta .side-btn {
     border-color: var(--warm);
   }
-  html.lado-recolhido #side .box.aberta .side-btn {
+  html.lado-recolhido .pagina-artigo #side .box.aberta .side-btn {
     box-shadow: inset 0 -3px 0 var(--warm);
   }
   /* caixa aberta: aparece ao lado do botão, por cima do conteúdo */
-  html.lado-recolhido #side .box.aberta .box-conteudo {
+  html.lado-recolhido .pagina-artigo #side .box.aberta .box-conteudo {
     display: block;
     position: absolute;
     top: 0;
@@ -425,10 +425,10 @@ footer {
     animation: surgir 0.2s ease-out both;
   }
   /* na troca, as duas colunas deslizam para o novo tamanho (View Transitions) */
-  #main {
+  .pagina-artigo #main {
     view-transition-name: coluna-principal;
   }
-  #side {
+  .pagina-artigo #side {
     view-transition-name: coluna-lateral;
   }
   ::view-transition-group(*) {
