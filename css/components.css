@@ -330,6 +330,10 @@ input:-webkit-autofill:focus {
   display: inline-flex;
   gap: 2px;
 }
+.rte-ref-ico {
+  font: 600 12px/1 'Source Sans 3', system-ui, sans-serif;
+  letter-spacing: 0.02em;
+}
 .rte-btn {
   display: inline-flex;
   align-items: center;
@@ -735,6 +739,18 @@ dialog [hidden] {
 .art .body ul,
 .art .body ol {
   margin: 0 0 calc(1.3em - 4px); /* ~20px no texto do artigo */
+}
+/* Referências bibliográficas (botão "Ref." do editor): letra menor, alinhadas à esquerda, espaço simples,
+   um pequeno respiro entre uma e outra; endereços longos quebram em vez de vazar da coluna */
+.body p.ref {
+  font-size: 0.85em;
+  line-height: 1.45;
+  text-align: left;
+  text-indent: 0;
+  margin: 0 0 0.85em;
+  -webkit-hyphens: manual;
+  hyphens: manual;
+  overflow-wrap: anywhere;
 }
 .art .body li + li {
   margin-top: 0.4em;

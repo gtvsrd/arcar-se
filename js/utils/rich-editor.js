@@ -20,7 +20,7 @@ const rteEscape = (t) =>
 /** Escapa o começo das linhas que virariam título, lista, citação ou alinhamento sem ninguém pedir. */
 const rteEscapeStarts = (t) =>
   t
-    .replace(/^(#{2,3} |- |> |\{(?:centro|direita|justificado)\})/gm, '\\$1')
+    .replace(/^(#{2,3} |- |> |\{(?:centro|direita|justificado|referencia)\})/gm, '\\$1')
     .replace(/^(\d+)\. /gm, '$1\\. ');
 
 /** Codifica o que encerraria o endereço antes da hora no Markdown: espaços e parênteses. */
@@ -93,8 +93,9 @@ const rteClean = (s) =>
     .replace(/ {2,}/g, ' ')
     .replace(/^[ \n]+|[ \n]+$/g, ''); // não usa trim(): ele apagaria o Tab do começo do parágrafo
 
-/** Prefixo de alinhamento de um elemento ("" se for o padrão, à esquerda). */
+/** Prefixo de alinhamento de um elemento ("" se for o padrão, à esquerda), ou o de referência bibliográfica. */
 function rteAlign(el, inherited = '') {
+  if (el.classList && el.classList.contains('ref')) return '{referencia} ';
   const a = (el.style && el.style.textAlign) || (el.getAttribute && el.getAttribute('align')) || '';
   if (a === 'center') return '{centro} ';
   if (a === 'right' || a === 'end') return '{direita} ';
@@ -205,6 +206,7 @@ const RTE_TOOLS = [
     ['link', 'Inserir link (Ctrl+K)', rteIcon('M10 14a4 4 0 0 0 6 0l3-3a4 4 0 0 0-6-6l-1 1M14 10a4 4 0 0 0-6 0l-3 3a4 4 0 0 0 6 6l1-1')],
     ['image', 'Inserir imagem', rteIcon('M4 5h16v14H4zM4 16l5-5 4 4 3-3 4 4M15 9h.01')],
   ],
+  [['ref', 'Referências: letra menor, no formato das referências bibliográficas', '<span class="rte-ref-ico" aria-hidden="true">Ref.</span>']],
   [['clear', 'Limpar formatação', rteIcon('M6 5h12M12 5v14M4 20 20 4')]],
 ];
 
@@ -509,6 +511,55 @@ function createRichEditor(mount, body, labelId) {
     syncState();
   }
 
+  /**
+   * Referências: liga (ou desliga) o formato das referências bibliográficas nos parágrafos selecionados.
+   * Num passo só do Ctrl+Z. `ligar` omitido: liga se algum ainda não estiver no formato, senão desliga.
+   */
+  function toggleRef(ligar) {
+    const s = selectionInside();
+    if (!s) return;
+    const r = s.getRangeAt(0);
+    const kids = [...root.children];
+    const idx = kids
+      .map((c, i) => (r.intersectsNode(c) && /^(P|DIV|H[1-6]|BLOCKQUOTE)$/.test(c.tagName) ? i : -1))
+      .filter((i) => i >= 0);
+    if (!idx.length) return;
+    if (ligar === undefined) ligar = idx.some((i) => !kids[i].classList.contains('ref'));
+    if (!ligar && !idx.some((i) => kids[i].classList.contains('ref'))) return;
+    const { copy } = copyWith(null);
+    idx.forEach((i) => {
+      let el = copy.children[i];
+      if (ligar) {
+        if (el.tagName !== 'P') {
+          const p = document.createElement('p'); // título ou citação vira parágrafo de referência
+          p.innerHTML = el.innerHTML;
+          el.replaceWith(p);
+          el = p;
+        }
+        el.classList.add('ref');
+        el.style.textAlign = ''; // referência é sempre alinhada à esquerda
+        if (!el.getAttribute('style')) el.removeAttribute('style');
+      } else {
+        el.classList.remove('ref');
+        if (!el.classList.length) el.removeAttribute('class');
+      }
+    });
+    const n = idx.length;
+    commit(copy);
+    // seleciona de novo os mesmos parágrafos
+    const a = root.children[idx[0]],
+      z = root.children[Math.min(idx[0] + n - 1, root.children.length - 1)];
+    if (a && z) {
+      const nr = document.createRange();
+      nr.setStart(a, 0);
+      nr.setEnd(z, z.childNodes.length);
+      const sel = getSelection();
+      sel.removeAllRanges();
+      sel.addRange(nr);
+    }
+    syncState();
+  }
+
   /** Muda a figura de lugar: `where` é 'up', 'down' ou o índice do bloco antes do qual ela deve ficar. Só entre parágrafos. */
   function moveImage(f, where) {
     const { copy, cf } = copyWith(f);
@@ -677,6 +728,7 @@ function createRichEditor(mount, body, labelId) {
       let on = false;
       if (a === 'link') on = !!closestInEditor('a');
       else if (a === 'image') on = !!selectedImg;
+      else if (a === 'ref') on = !!closestInEditor('p.ref');
       else if (!['undo', 'redo', 'clear'].includes(a)) {
         try {
           on = document.queryCommandState(a);
@@ -898,7 +950,12 @@ function createRichEditor(mount, body, labelId) {
       } else if (a === 'image') {
         restore();
         openImageDialog();
+      } else if (a === 'ref') {
+        restore();
+        toggleRef();
       } else if (a === 'clear') {
+        restore();
+        toggleRef(false);
         exec('removeFormat');
         exec('unlink');
         exec('formatBlock', '<p>');

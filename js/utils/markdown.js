@@ -6,7 +6,8 @@
  * imagem do artigo num bloco só dela, com tamanho, corte e legenda: ![descrição](endereço){w=60 c=10,5,80,90 r=66.67}
  * e a legenda na linha de baixo (w = largura em % da coluna; c = corte x,y,largura,altura em % da imagem original;
  * r = altura/largura da imagem original em %),
- * e "{centro} ", "{direita} " ou "{justificado} " no começo do bloco (alinhamento). A barra invertida mantém um símbolo literal: \*
+ * e "{centro} ", "{direita} " ou "{justificado} " no começo do bloco (alinhamento), e "{referencia} " (parágrafo no
+ * formato das referências bibliográficas: letra menor, alinhado à esquerda, espaço simples). A barra invertida mantém um símbolo literal: \*
  */
 
 const MD_MARKS = { '**': 'b', '*': 'i', '++': 'u', '~~': 's' };
@@ -111,9 +112,10 @@ function md(t) {
     .map((b) => {
       b = b.replace(/^[ \r\n]+|[ \r\n]+$/g, ''); // não usa trim(): ele apagaria o Tab do começo do parágrafo
       if (!b.trim()) return '';
-      const al = b.match(/^\{(centro|direita|justificado)\} */);
-      const st = al ? ` style="text-align:${{ centro: 'center', direita: 'right', justificado: 'justify' }[al[1]]}"` : '';
+      const al = b.match(/^\{(centro|direita|justificado|referencia)\} */);
       if (al) b = b.slice(al[0].length);
+      if (al && al[1] === 'referencia') return '<p class="ref">' + mdInline(b).replace(/\n/g, '<br>') + '</p>';
+      const st = al ? ` style="text-align:${{ centro: 'center', direita: 'right', justificado: 'justify' }[al[1]]}"` : '';
       // imagem num bloco só dela (com ajustes e legenda opcionais): vira figura centralizada
       const fg = b.match(/^!\[([^\]]*)\]\((https?:\/\/[^)\s]+)\)(?:\{([^}]*)\})?(?:\n([\s\S]*))?$/);
       if (fg) return figureHTML({ src: fg[2], alt: fg[1], ...figAttrs(fg[3]), cap: (fg[4] || '').replace(/\n+/g, ' ').trim() });
@@ -137,7 +139,7 @@ function plainText(t) {
   return String(t)
     .replace(/!\[[^\]]*\]\([^)\s]*\)(\{[^}]*\})?/g, ' ')
     .replace(/\[([^\]]+)\]\([^)\s]*\)/g, '$1')
-    .replace(/^\{(centro|direita|justificado)\} */gm, '')
+    .replace(/^\{(centro|direita|justificado|referencia)\} */gm, '')
     .replace(/^(#{2,3} |- |> |\d+\. )/gm, '')
     .replace(/\\([\\*\[\]~+#\-.{>])|\*+|\+\+|~~/g, (_, c) => c || '')
     .replace(/\s+/g, ' ')
