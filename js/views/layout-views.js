@@ -69,21 +69,34 @@ function renderSide() {
   ps.forEach((p) => catsOf(p).forEach((c) => (cats[c] = (cats[c] || 0) + 1)));
   trocar(
     '#side',
-    `<div class="box"><h3>Buscar</h3><input type="text" id="q" placeholder="Digite e tecle Enter" aria-label="Buscar artigos"></div>
+    `${SIDE_TOGGLE}
+   ${sideBox('busca', 'Buscar', '<input type="text" id="q" placeholder="Digite e tecle Enter" aria-label="Buscar artigos">')}
    ${noticeHTML(db.pages.avisos)}
-   <div class="box"><h3>Categorias</h3><ul>${
-     Object.keys(cats)
-       .sort()
-       .map((c) => `<li><a href="#/cat/${encodeURIComponent(c)}">${esc(c)}</a><span>${cats[c]}</span></li>`)
-       .join('') || '<li>Nenhuma ainda</li>'
-   }</ul></div>
-   <div class="box"><h3>Artigos recentes</h3><ul>${ps
-     .slice(0, 5)
-     .map((p) => `<li><a href="${postUrl(p)}">${esc(p.title)}</a></li>`)
-     .join('')}</ul></div>
-   <div class="box"><h3>Páginas</h3><ul>${navPages()
-     .map(([href, label]) => `<li><a href="${href}">${esc(label)}</a></li>`)
-     .join('')}</ul></div>`,
+   ${sideBox(
+     'categorias',
+     'Categorias',
+     `<ul>${
+       Object.keys(cats)
+         .sort()
+         .map((c) => `<li><a href="#/cat/${encodeURIComponent(c)}">${esc(c)}</a><span>${cats[c]}</span></li>`)
+         .join('') || '<li>Nenhuma ainda</li>'
+     }</ul>`,
+   )}
+   ${sideBox(
+     'recentes',
+     'Artigos recentes',
+     `<ul>${ps
+       .slice(0, 5)
+       .map((p) => `<li><a href="${postUrl(p)}">${esc(p.title)}</a></li>`)
+       .join('')}</ul>`,
+   )}
+   ${sideBox(
+     'paginas',
+     'Páginas',
+     `<ul>${navPages()
+       .map(([href, label]) => `<li><a href="${href}">${esc(label)}</a></li>`)
+       .join('')}</ul>`,
+   )}`,
   ); // a equipe usa o menu do topo (Painel, Novo artigo); a senha fica em Painel › Meu perfil
   $('#q').onkeydown = (e) => {
     if (e.key === 'Enter' && e.target.value.trim())

@@ -107,21 +107,35 @@ export function sideHTML(site, root) {
   const { esc } = site.helpers;
   const cats = {};
   site.posts.forEach((p) => site.helpers.catsOf(p).forEach((c) => (cats[c] = (cats[c] || 0) + 1)));
-  return `<div class="box"><h3>Buscar</h3><input type="text" id="q" placeholder="Digite e tecle Enter" aria-label="Buscar artigos"></div>
+  const { sideBox, SIDE_TOGGLE } = site.helpers;
+  return `${SIDE_TOGGLE}
+   ${sideBox('busca', 'Buscar', '<input type="text" id="q" placeholder="Digite e tecle Enter" aria-label="Buscar artigos">')}
    ${site.helpers.noticeHTML(site.notice)}
-   <div class="box"><h3>Categorias</h3><ul>${
-     Object.keys(cats)
-       .sort()
-       .map((c) => `<li><a href="${root}#/cat/${encodeURIComponent(c)}">${esc(c)}</a><span>${cats[c]}</span></li>`)
-       .join('') || '<li>Nenhuma ainda</li>'
-   }</ul></div>
-   <div class="box"><h3>Artigos recentes</h3><ul>${site.posts
-     .slice(0, 5)
-     .map((p) => `<li><a href="${root}post/${p.slug}/">${esc(p.title)}</a></li>`)
-     .join('')}</ul></div>
-   <div class="box"><h3>Páginas</h3><ul>${navPages(site, root)
-     .map(([href, label]) => `<li><a href="${href}">${esc(label)}</a></li>`)
-     .join('')}</ul></div>`;
+   ${sideBox(
+     'categorias',
+     'Categorias',
+     `<ul>${
+       Object.keys(cats)
+         .sort()
+         .map((c) => `<li><a href="${root}#/cat/${encodeURIComponent(c)}">${esc(c)}</a><span>${cats[c]}</span></li>`)
+         .join('') || '<li>Nenhuma ainda</li>'
+     }</ul>`,
+   )}
+   ${sideBox(
+     'recentes',
+     'Artigos recentes',
+     `<ul>${site.posts
+       .slice(0, 5)
+       .map((p) => `<li><a href="${root}post/${p.slug}/">${esc(p.title)}</a></li>`)
+       .join('')}</ul>`,
+   )}
+   ${sideBox(
+     'paginas',
+     'Páginas',
+     `<ul>${navPages(site, root)
+       .map(([href, label]) => `<li><a href="${href}">${esc(label)}</a></li>`)
+       .join('')}</ul>`,
+   )}`;
 }
 
 /** Nome com o ponto em destaque (ocre): "Arcar.se" vira Arcar<span>.</span>se. */
@@ -169,6 +183,7 @@ export function pageShell({ site, root, title, head, main, adminHref, bodyAttrs 
     <link rel="stylesheet" href="${root}css/responsive.css" />
     <script src="${root}js/theme.js"></script>
     <script src="${root}js/utils/suave.js"></script>
+    <script src="${root}js/utils/lateral.js"></script>
   </head>
   <body data-root="${esc(root)}"${bodyAttrs}>
     <header class="top">
