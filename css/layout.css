@@ -59,7 +59,8 @@ header.top :focus-visible {
   color: var(--hd-mut);
 }
 /* Quem está logado: foto e nome no menu do topo */
-#nav .nav-me {
+/* (no menu do topo e na barra da equipe) */
+.nav-me {
   display: inline-flex;
   align-items: center;
   gap: 8px;
@@ -116,6 +117,54 @@ header.top :focus-visible {
 }
 .wrap > * {
   min-width: 0; /* impede que o conteúdo alargue a coluna e ultrapasse a tela */
+}
+/* Barra da equipe (só para quem está logado): ocupa a largura das duas colunas, acima delas */
+.staffbar {
+  grid-column: 1 / -1;
+  margin-bottom: -10px; /* fica mais perto do conteúdo do que o vão entre as colunas */
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px 24px;
+  padding: 8px 18px;
+  background: var(--sf);
+  border: 1px solid var(--ln);
+  border-left: 4px solid var(--warm);
+  border-radius: 6px;
+  animation: surgir 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+.staffbar[hidden] {
+  display: none;
+}
+.staffbar-links,
+.staffbar-me {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 22px;
+}
+.staffbar a,
+.staffbar button {
+  color: var(--ac);
+  font: inherit;
+  font-weight: 600;
+  background: none;
+  border: 0;
+  padding: 4px 0;
+  cursor: pointer;
+  text-decoration: underline;
+  text-decoration-color: transparent;
+  text-underline-offset: 5px;
+  text-decoration-thickness: 2px;
+  transition: text-decoration-color 0.2s ease;
+}
+.staffbar a:hover,
+.staffbar button:hover {
+  text-decoration-color: var(--warm);
+}
+.staffbar .nav-me {
+  color: var(--ink);
 }
 .grid {
   display: grid;

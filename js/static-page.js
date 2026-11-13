@@ -10,10 +10,12 @@ initThemeToggle();
 /**
  * Entrar / Sair no cabeçalho das páginas geradas.
  * - Sem sessão: "Entrar" abre o app com a janela de login e, depois de entrar, volta para esta mesma página.
- * - Com sessão (equipe logada neste navegador): "Painel", "Novo artigo" e "Sair" (que encerra a sessão aqui mesmo).
+ * - Com sessão (equipe logada neste navegador): o "Entrar" sai do cabeçalho e aparece a barra da equipe acima das
+ *   duas colunas, com "Painel", "Novo artigo" (e "Editar", na página de um artigo), o perfil e "Sair".
  */
 (function authNav() {
   const box = document.getElementById('authnav');
+  const bar = document.getElementById('staffbar');
   if (!box) return;
   const tokenKey = () => {
     try {
@@ -26,6 +28,10 @@ initThemeToggle();
     const k = tokenKey();
     if (!k) {
       box.innerHTML = `<a href="${ROOT}#/entrar/${encodeURIComponent(location.pathname)}">Entrar</a>`;
+      if (bar) {
+        bar.hidden = true;
+        bar.innerHTML = '';
+      }
       return;
     }
     let sess = {};
@@ -43,8 +49,12 @@ initThemeToggle();
     const fallback = user.email ? user.email.split('@')[0] : 'Meu perfil';
     // Na página de um artigo, a equipe ganha o atalho para editá-lo
     const slug = document.body.dataset.slug;
-    const editar = slug ? `<a href="${ROOT}#/editar/${encodeURIComponent(slug)}">Editar</a>` : '';
-    box.innerHTML = `${editar}<a href="${ROOT}#/painel">Painel</a><a href="${ROOT}#/novo">Novo artigo</a>${meLink(fallback, '')}<button type="button" id="out">Sair</button>`;
+    const editar = slug ? `<a href="${ROOT}#/editar/${encodeURIComponent(slug)}">Editar este artigo</a>` : '';
+    box.innerHTML = '';
+    if (!bar) return;
+    bar.innerHTML = `<div class="staffbar-links"><a href="${ROOT}#/painel">Painel</a><a href="${ROOT}#/novo">Novo artigo</a>${editar}</div>
+     <div class="staffbar-me">${meLink(fallback, '')}<button type="button" id="out">Sair</button></div>`;
+    bar.hidden = false;
     // nome e foto do perfil (tabela pública "profiles")
     if (user.id && typeof SUPABASE_URL !== 'undefined')
       fetch(`${SUPABASE_URL}/rest/v1/profiles?select=display_name,avatar_url&user_id=eq.${encodeURIComponent(user.id)}`, {
@@ -53,7 +63,7 @@ initThemeToggle();
         .then((r) => (r.ok ? r.json() : []))
         .then((d) => {
           const p = d[0];
-          const cur = box.querySelector('.nav-me');
+          const cur = bar.querySelector('.nav-me');
           if (p && cur && (p.display_name || p.avatar_url))
             cur.outerHTML = meLink(p.display_name || fallback, /^https?:\/\//.test(p.avatar_url || '') ? p.avatar_url : '');
         })

@@ -27,32 +27,41 @@ const navPages = () => [
   [staff() ? '#/escritores' : 'escritores/', 'Escritores'],
 ];
 
-/** Desenha o menu do topo (muda conforme o admin está logado ou não). */
+/** Desenha o menu do topo e, para a equipe logada, a barra com Painel, Novo artigo, perfil e Sair. */
 function renderNav() {
   $('#nav').innerHTML =
     '<a href="#/">Início</a>' +
     navPages()
       .map(([href, label]) => `<a href="${href}">${esc(label)}</a>`)
       .join('') +
-    (staff()
-      ? `<a href="#/painel">Painel${pendingReview() ? ` <span class="pill">${pendingReview()}</span>` : ''}</a><a href="#/novo">Novo artigo</a>${meHTML()}<button id="out">Sair</button>`
-      : '<button id="in">Entrar</button>');
-  const i = $('#in'),
-    o = $('#out');
+    (staff() ? '' : '<button id="in">Entrar</button>');
+  renderStaffBar();
+  const i = $('#in');
   if (i)
     i.onclick = () => {
       $('#lerr').textContent = '';
       $('#dlg').showModal();
       $('#u').focus();
     };
-  if (o)
-    o.onclick = async () => {
-      await logout();
-      location.hash = '#/';
-      route();
-      toast('Você saiu');
-    };
 }
+
+/** Barra da equipe, acima das duas colunas: atalhos à esquerda, perfil e Sair à direita. Some para visitantes. */
+function renderStaffBar() {
+  const bar = $('#staffbar');
+  if (!bar) return;
+  bar.hidden = !staff();
+  if (bar.hidden) return (bar.innerHTML = '');
+  const n = pendingReview();
+  bar.innerHTML = `<div class="staffbar-links"><a href="#/painel">Painel${n ? ` <span class="pill">${n}</span>` : ''}</a><a href="#/novo">Novo artigo</a></div>
+   <div class="staffbar-me">${meHTML()}<button type="button" id="out">Sair</button></div>`;
+  $('#out').onclick = async () => {
+    await logout();
+    location.hash = '#/';
+    route();
+    toast('Você saiu');
+  };
+}
+
 /** Desenha a coluna lateral: busca, quadro de avisos, categorias, recentes, páginas e painel admin. */
 function renderSide() {
   const ps = visible(),

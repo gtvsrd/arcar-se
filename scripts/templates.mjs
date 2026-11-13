@@ -167,6 +167,7 @@ export function pageShell({ site, root, title, head, main, adminHref, bodyAttrs 
       </div>
     </header>
     <div class="wrap">
+      <div id="staffbar" class="staffbar" hidden></div>
       <main id="main">${main}</main>
       <aside id="side">${sideHTML(site, root)}</aside>
     </div>
