@@ -23,7 +23,7 @@ function panel(v) {
     ['', 'Artigos'],
     ...(admin ? [['categorias', 'Categorias']] : []),
     ['perfil', 'Meu perfil'],
-    ...(admin ? [['avisos', 'Quadro de avisos'], ['escritores', 'Escritores'], ['equipe', 'Equipe']] : []),
+    ...(admin ? [['avisos', 'Caixas'], ['escritores', 'Escritores'], ['equipe', 'Equipe']] : []),
   ];
   $('#main').innerHTML = `<div class="panel"><h1>Painel</h1>
    <nav class="ptabs" aria-label="Seções do painel">${tabs
@@ -36,7 +36,7 @@ function panel(v) {
   else if (tab === 'equipe') panelTeam();
   else if (tab === 'categorias') panelCategories();
   else if (tab === 'escritores') panelWriters(sub);
-  else if (tab === 'avisos') panelNotice();
+  else if (tab === 'avisos') panelBoxes();
   else panelPosts();
 }
 
@@ -371,47 +371,199 @@ function profileForm(userId, { back, after, who = '' }) {
   };
 }
 
-/* ------------------------------------------------------- Quadro de avisos */
+/* ---------------------------------------------------------------- Caixas */
 
-/** Edita o quadro de avisos da coluna lateral (título e texto). Só administrador. Texto vazio esconde o quadro. */
-function panelNotice() {
-  const cur = db.pages.avisos || NOTICE_DEFAULT;
-  $('#pbody').innerHTML = `<form id="nf" class="art art--edit" style="max-width:720px">
-   <p class="hint">O quadro aparece na coluna lateral de todas as páginas, logo abaixo da busca. Para escondê-lo, apague todo o texto e salve.</p>
-   <label for="nt">Título</label><input type="text" id="nt" required maxlength="60" value="${esc(cur.title)}">
-   <label id="nlabel">Texto</label>
-   <div class="rte-wrap" id="nrte"></div>
-   <div class="acts" style="margin-top:18px"><button class="btn" type="submit">Salvar aviso</button>
-   <button class="btn alt" type="button" id="ndef">Voltar ao texto de boas-vindas</button></div>
-  </form>`;
-  let rte = createRichEditor($('#nrte'), cur.body, 'nlabel');
-  $('#ndef').onclick = () => {
-    $('#nt').value = NOTICE_DEFAULT.title;
-    $('#nrte').innerHTML = '';
-    rte = createRichEditor($('#nrte'), NOTICE_DEFAULT.body, 'nlabel');
-    toast('Texto de boas-vindas restaurado. Salve para aplicar.');
+/**
+ * Caixas da coluna lateral: Avisos (fixa, logo abaixo da busca) e as caixas livres (depois de todas as outras).
+ * Cada caixa é um cartão empilhado: recolhido mostra ícone, título e situação; expandido, edita título, ícone e texto.
+ * Só um cartão fica aberto por vez (o editor de texto é um só). Só administrador.
+ */
+function panelBoxes() {
+  if (!db.boxesOn) {
+    $('#pbody').innerHTML = `<div class="box"><h3>Falta um passo no Supabase</h3>
+      <p>Para criar caixas livres na lateral, rode o arquivo <code>supabase/caixas-da-lateral.sql</code> no SQL Editor do Supabase e recarregue esta página. O Avisos de hoje passa a ser a primeira caixa, com o mesmo texto.</p></div>`;
+    return;
+  }
+  let aberto = null; // id do cartão expandido ('novo' para uma caixa ainda não salva)
+  let rte = null;
+  const livres = () => db.boxes.filter((b) => b.kind === 'livre').sort((x, y) => x.sort - y.sort || String(x.created_at).localeCompare(String(y.created_at)));
+  const avisos = () => db.boxes.find((b) => b.kind === 'avisos');
+  const icone = (k) => SIDE_ICONS[k] || SIDE_ICONS.flecha;
+  const SETA = '<svg viewBox="0 0 24 24" width="18" height="18" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+
+  /** Cartão (recolhido) de uma caixa. */
+  const cartao = (b, i, n) => {
+    const fixa = b.kind === 'avisos';
+    const vazio = !String(b.body || '').trim();
+    const tag = b.hidden ? 'Oculta' : vazio ? 'Sem texto (não aparece)' : fixa ? 'Fixa · abaixo da busca' : 'No fim da lateral';
+    return `<section class="cx${b.hidden ? ' cx--oculta' : ''}" data-id="${b.id}">
+     <div class="cx-cab">
+       <button type="button" class="cx-abrir" aria-expanded="false" aria-controls="cx-corpo-${b.id}">
+         <span class="cx-ico">${icone(b.icon)}</span><span class="cx-nome">${esc(b.title || 'Sem título')}</span>
+         <span class="cx-tag">${tag}</span><span class="cx-seta">${SETA}</span>
+       </button>
+       <span class="cx-acts">${
+         fixa
+           ? ''
+           : `<button type="button" class="btn sm alt" data-cx="up" title="Subir" aria-label="Subir"${i === 0 ? ' disabled' : ''}>↑</button><button type="button" class="btn sm alt" data-cx="down" title="Descer" aria-label="Descer"${i === n - 1 ? ' disabled' : ''}>↓</button>`
+       }<button type="button" class="btn sm alt" data-cx="vis">${b.hidden ? 'Mostrar' : 'Ocultar'}</button>${
+         fixa ? '' : '<button type="button" class="btn sm del" data-cx="del">Excluir</button>'
+       }</span>
+     </div>
+     <div class="cx-corpo" id="cx-corpo-${b.id}" hidden></div>
+    </section>`;
   };
-  $('#nf').onsubmit = async (e) => {
-    e.preventDefault();
-    const title = $('#nt').value.trim();
-    if (!title) return $('#nt').focus();
-    const btn = $('#nf button[type=submit]');
-    btn.disabled = true;
-    const uploaded = [];
-    const old = mdImages((db.pages.avisos || {}).body || '');
+
+  /** Formulário de edição dentro do cartão expandido. */
+  const formulario = (b) => `<form class="art art--edit cx-form">
+     <label for="cx-t">Título</label><input type="text" id="cx-t" required maxlength="60" value="${esc(b.title || '')}">
+     <span class="lbl" id="cx-il">Ícone (no modo leitura e antes do título)</span>
+     <div class="cx-icones" role="radiogroup" aria-labelledby="cx-il">${BOX_ICONS.map(
+       ([k, nome]) =>
+         `<label class="cx-icone" title="${nome}"><input type="radio" name="cx-i" value="${k}"${(b.icon || 'flecha') === k ? ' checked' : ''}><span aria-hidden="true">${icone(k)}</span><span class="sr">${nome}</span></label>`,
+     ).join('')}</div>
+     <label id="cx-bl">Texto</label>
+     <div class="rte-wrap" id="cx-rte"></div>
+     <div class="acts"><button class="btn" type="submit">Salvar</button><button class="btn alt" type="button" data-cx="fechar">Cancelar</button>${
+       b.kind === 'avisos' ? '<button class="btn alt" type="button" data-cx="boasvindas">Voltar ao texto de boas-vindas</button>' : ''
+     }</div>
+    </form>`;
+
+  /** Desenha a lista inteira (Avisos primeiro, depois as livres na ordem). */
+  function desenhar() {
+    const a = avisos();
+    const ls = livres();
+    $('#pbody').innerHTML = `<p class="hint">As caixas aparecem na coluna lateral de todas as páginas: <b>Avisos</b> logo abaixo da busca, e as caixas livres depois de todas as outras, nesta ordem. Clique numa caixa para editá-la.</p>
+     <div class="cx-lista" id="cx-lista">
+       ${a ? cartao(a, 0, 1) : ''}
+       ${ls.length ? '<h3 class="cx-sub">Caixas livres</h3>' : ''}
+       ${ls.map((b, i) => cartao(b, i, ls.length)).join('')}
+       <div id="cx-nova"></div>
+     </div>
+     <button type="button" class="btn" id="cx-add">+ Adicionar caixa</button>`;
+    aberto = null;
+    rte = null;
+    $('#cx-add').onclick = adicionar;
+  }
+
+  /** Recolhe o cartão aberto (descarta o que não foi salvo). */
+  function recolher() {
+    const sec = aberto && document.querySelector(`.cx[data-id="${aberto}"]`);
+    if (sec) {
+      if (aberto === 'novo') sec.remove();
+      else {
+        const corpo = sec.querySelector('.cx-corpo');
+        corpo.innerHTML = '';
+        corpo.hidden = true;
+        sec.classList.remove('cx--aberta');
+        sec.querySelector('.cx-abrir').setAttribute('aria-expanded', 'false');
+      }
+    }
+    aberto = null;
+    rte = null;
+  }
+
+  /** Expande o cartão `sec` da caixa `b` para editar. */
+  function expandir(sec, b) {
+    recolher();
+    aberto = b.id || 'novo';
+    const corpo = sec.querySelector('.cx-corpo');
+    corpo.innerHTML = formulario(b);
+    corpo.hidden = false;
+    sec.classList.add('cx--aberta');
+    sec.querySelector('.cx-abrir')?.setAttribute('aria-expanded', 'true');
+    rte = createRichEditor(corpo.querySelector('#cx-rte'), b.body || '', 'cx-bl');
+    const form = corpo.querySelector('form');
+    form.querySelector('[data-cx="fechar"]').onclick = recolher;
+    const bv = form.querySelector('[data-cx="boasvindas"]');
+    if (bv)
+      bv.onclick = () => {
+        form.querySelector('#cx-t').value = NOTICE_DEFAULT.title;
+        corpo.querySelector('#cx-rte').innerHTML = '';
+        rte = createRichEditor(corpo.querySelector('#cx-rte'), NOTICE_DEFAULT.body, 'cx-bl');
+        toast('Texto de boas-vindas restaurado. Salve para aplicar.');
+      };
+    form.onsubmit = async (e) => {
+      e.preventDefault();
+      const title = form.querySelector('#cx-t').value.trim();
+      if (!title) return form.querySelector('#cx-t').focus();
+      const btn = form.querySelector('button[type=submit]');
+      btn.disabled = true;
+      const uploaded = [];
+      const old = mdImages(b.body || '');
+      try {
+        const body = (await rte.getBody(uploaded)).trim();
+        const icon = (form.querySelector('input[name="cx-i"]:checked') || {}).value || 'flecha';
+        const fields = { title, body, icon };
+        if (!b.id) Object.assign(fields, { kind: 'livre', sort: (Math.max(0, ...livres().map((x) => x.sort)) || 0) + 10 });
+        await saveBox(b.id ? { id: b.id, ...fields } : fields);
+        deleteUnusedImages(old);
+        renderSide();
+        desenhar();
+        toast(body ? 'Caixa salva' : 'Caixa salva (sem texto, não aparece na lateral)');
+      } catch (err) {
+        uploaded.forEach(deleteCover);
+        btn.disabled = false;
+        toast('Não foi possível salvar: ' + (err.message || 'erro'));
+      }
+    };
+    form.querySelector('#cx-t').focus();
+  }
+
+  /** Nova caixa: um cartão já aberto no fim da lista; só vai para o banco ao salvar. */
+  function adicionar() {
+    recolher();
+    const slot = $('#cx-nova');
+    slot.innerHTML = `<section class="cx cx--aberta cx--nova" data-id="novo"><div class="cx-cab"><span class="cx-nome">Nova caixa</span></div><div class="cx-corpo"></div></section>`;
+    expandir(slot.querySelector('.cx'), { title: '', body: '', icon: 'flecha' });
+    slot.scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  }
+
+  $('#pbody').onclick = async (e) => {
+    const sec = e.target.closest('.cx');
+    if (!sec || sec.dataset.id === 'novo') return;
+    const b = db.boxes.find((x) => x.id === sec.dataset.id);
+    if (!b) return;
+    if (e.target.closest('.cx-abrir')) return aberto === b.id ? recolher() : expandir(sec, b);
+    const act = e.target.closest('[data-cx]')?.dataset.cx;
+    if (!act || e.target.closest('.cx-corpo')) return;
     try {
-      const body = (await rte.getBody(uploaded)).trim();
-      await savePage('avisos', title, body);
-      deleteUnusedImages(old);
-      renderSide();
-      toast(body ? 'Quadro de avisos salvo' : 'Quadro de avisos escondido');
+      if (act === 'vis') {
+        await saveBox({ id: b.id, hidden: !b.hidden });
+        renderSide();
+        toast(b.hidden ? `"${b.title}" aparece na lateral` : `"${b.title}" oculta`);
+        desenhar();
+      } else if (act === 'up' || act === 'down') {
+        const ids = livres().map((x) => x.id);
+        const i = ids.indexOf(b.id),
+          j = act === 'up' ? i - 1 : i + 1;
+        if (j < 0 || j >= ids.length) return;
+        [ids[i], ids[j]] = [ids[j], ids[i]];
+        await saveBoxOrder(ids);
+        renderSide();
+        desenhar();
+      } else if (act === 'del') {
+        const btn = e.target.closest('[data-cx]');
+        if (btn.dataset.ok !== '1') {
+          btn.dataset.ok = '1';
+          btn.textContent = 'Confirmar exclusão';
+          setTimeout(() => {
+            btn.dataset.ok = '';
+            btn.textContent = 'Excluir';
+          }, 3000);
+          return;
+        }
+        await deleteBox(b.id);
+        deleteUnusedImages(mdImages(b.body || ''));
+        renderSide();
+        toast('Caixa excluída');
+        desenhar();
+      }
     } catch (err) {
-      uploaded.forEach(deleteCover);
       toast('Não foi possível salvar: ' + (err.message || 'erro'));
-    } finally {
-      btn.disabled = false;
     }
   };
+  desenhar();
 }
 
 /* ------------------------------------------------------------- Escritores */

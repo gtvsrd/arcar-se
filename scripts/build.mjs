@@ -45,7 +45,7 @@ if (!SUPABASE_URL || !SUPABASE_KEY || /SEU-PROJETO|SUA-CHAVE/.test(SUPABASE_URL 
 
 // ---------- funções compartilhadas com o app (mesmo código do navegador, para o texto sair idêntico) ----------
 const helpers = vm.runInNewContext(
-  read('js/utils/helpers.js') + '\n' + read('js/utils/markdown.js') + '\n({ esc, fmt, fmtShort, colorOf, md, plainText, slugify, catsOf, hyphenateJustified, pageLabel, noticeHTML, sideBox, SIDE_TOGGLE })',
+  read('js/utils/helpers.js') + '\n' + read('js/utils/markdown.js') + '\n({ esc, fmt, fmtShort, colorOf, md, plainText, slugify, catsOf, hyphenateJustified, pageLabel, noticeHTML, avisosHTML, livresHTML, sideBox, SIDE_TOGGLE })',
   {},
 );
 
@@ -89,6 +89,14 @@ try {
 } catch (e) {
   console.warn('Aviso: lista de escritores indisponível (rode supabase/escritores.sql). A página sai sem cards.');
 }
+// caixas da lateral (aba Caixas do painel): opcional; sem o supabase/caixas-da-lateral.sql vale o Avisos antigo (pages)
+let boxes = null;
+try {
+  boxes = await getJson(`${SUPABASE_URL}/rest/v1/side_boxes?select=*&order=sort,created_at`, 1);
+  if (!Array.isArray(boxes)) boxes = null;
+} catch (e) {
+  console.warn('Aviso: caixas da lateral indisponíveis (rode supabase/caixas-da-lateral.sql). Vale o Avisos antigo.');
+}
 const SLUG = /^[a-z0-9]+(-[a-z0-9]+)*$/;
 for (const p of posts)
   if (!SLUG.test(p.slug || '')) fail(`o artigo "${p.title}" não tem um slug válido. Rode supabase/migracao-slugs.sql no Supabase.`);
@@ -110,7 +118,7 @@ vm.runInContext(
   fs.readFileSync(path.join(ROOT, 'js/views/featured-views.js'), 'utf8') + '\n;this.featuredHTML = featuredHTML; this.HERO_MAX = HERO_MAX;',
   featCtx,
 );
-const site = { config, base, basePath, helpers, posts, pages, profiles, notice, year: new Date().getFullYear() };
+const site = { config, base, basePath, helpers, posts, pages, profiles, notice, boxes, year: new Date().getFullYear() };
 featCtx.cardHTML = (p, hero) => cardHTML(p, { root: '', site, hero });
 // faixa de curtir/compartilhar: mesmo HTML do app (js/post-actions.js)
 const paCtx = { document: { addEventListener() {} } };

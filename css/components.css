@@ -188,9 +188,22 @@ a.cover-cat:hover {
   margin-bottom: 22px;
 }
 .box h3 {
+  display: flex;
+  align-items: center;
+  gap: 8px;
   font-size: 17px;
   border-bottom: 2px solid var(--warm);
   padding-bottom: 6px;
+}
+/* ícone antes do título (o mesmo do botão do modo leitura) */
+.box-ico {
+  display: inline-flex;
+  flex: none;
+  color: var(--ac);
+}
+.box-ico svg {
+  width: 18px;
+  height: 18px;
 }
 .box--avisos p {
   margin: 0 0 0.6em;

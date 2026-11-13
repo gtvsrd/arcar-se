@@ -41,12 +41,13 @@ const postStatus = (p) => (p.pub ? 'published' : p.submitted ? 'review' : p.revi
 
 /** Carrega artigos, páginas, perfis e visualizações do banco para o cache (perfis e visualizações são opcionais). */
 async function loadAll() {
-  const [p, g, pr, v, ct] = await Promise.all([
+  const [p, g, pr, v, ct, cx] = await Promise.all([
     sb.from('posts').select('*').order('date', { ascending: false }),
     sb.from('pages').select('*'),
     sb.from('profiles').select('*'),
     sb.from('post_views').select('*'),
     sb.from('categories').select('name').order('name'),
+    sb.from('side_boxes').select('*').order('sort').order('created_at'),
   ]);
   if (p.error || g.error) throw p.error || g.error;
   db.posts = p.data;
@@ -57,6 +58,8 @@ async function loadAll() {
   db.categories = (ct.data || []).map((x) => x.name);
   db.categoriesOn = !ct.error; // false se o SQL das categorias ainda não foi aplicado
   db.viewsOn = !v.error; // false se o SQL do contador ainda não foi aplicado
+  db.boxesOn = !cx.error && Array.isArray(cx.data); // false sem o SQL das caixas da lateral (vale o Avisos antigo, em pages)
+  db.boxes = db.boxesOn ? cx.data : [];
   db.views = {};
   (v.data || []).forEach((x) => (db.views[x.post_id] = Number(x.views)));
 }
@@ -216,6 +219,31 @@ async function deletePost(id) {
   await loadAll();
 }
 
+/** Cria (sem id) ou atualiza (com id) uma caixa da coluna lateral. Devolve a caixa salva. */
+async function saveBox({ id, ...fields }) {
+  const { data, error } = id
+    ? await sb.from('side_boxes').update(fields).eq('id', id).select().single()
+    : await sb.from('side_boxes').insert(fields).select().single();
+  if (error) throw error;
+  await loadAll();
+  return data;
+}
+
+/** Exclui uma caixa livre da coluna lateral. */
+async function deleteBox(id) {
+  const { error } = await sb.from('side_boxes').delete().eq('id', id).eq('kind', 'livre');
+  if (error) throw error;
+  await loadAll();
+}
+
+/** Grava a ordem das caixas livres (ids na ordem nova). */
+async function saveBoxOrder(ids) {
+  const res = await Promise.all(ids.map((id, i) => sb.from('side_boxes').update({ sort: (i + 1) * 10 }).eq('id', id)));
+  const err = res.find((r) => r.error);
+  if (err) throw err.error;
+  await loadAll();
+}
+
 /** Atualiza uma página fixa (Sobre). */
 async function savePage(slug, title, body) {
   const { error } = await sb.from('pages').upsert({ slug, title, body }); // cria se ainda não existir (ex.: quadro de avisos)
@@ -320,6 +348,7 @@ async function deleteUnusedImages(urls) {
   const inUse = new Set([
     ...db.posts.flatMap((p) => [p.img, ...mdImages(p.body)]),
     ...Object.values(db.pages).flatMap((g) => mdImages(g.body)),
+    ...(db.boxes || []).flatMap((b) => mdImages(b.body)),
   ]);
   await Promise.all(urls.filter((u) => u && !inUse.has(u)).map(deleteCover));
 }

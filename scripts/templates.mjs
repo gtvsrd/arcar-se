@@ -110,7 +110,7 @@ export function sideHTML(site, root) {
   const { sideBox, SIDE_TOGGLE } = site.helpers;
   return `${SIDE_TOGGLE}
    ${sideBox('busca', 'Buscar', '<input type="text" id="q" placeholder="Digite e tecle Enter" aria-label="Buscar artigos">')}
-   ${site.helpers.noticeHTML(site.notice)}
+   ${site.helpers.avisosHTML(site.boxes, site.notice)}
    ${sideBox(
      'categorias',
      'Categorias',
@@ -135,7 +135,8 @@ export function sideHTML(site, root) {
      `<ul>${navPages(site, root)
        .map(([href, label]) => `<li><a href="${href}">${esc(label)}</a></li>`)
        .join('')}</ul>`,
-   )}`;
+   )}
+   ${site.helpers.livresHTML(site.boxes || [])}`;
 }
 
 /** Nome com o ponto em destaque (ocre): "Arcar.se" vira Arcar<span>.</span>se. */

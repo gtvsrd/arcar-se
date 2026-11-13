@@ -9,9 +9,11 @@ function route() {
     v = decodeURIComponent(h.slice(1).join('/'));
   stopCarousel();
   document.body.classList.toggle('on-panel', a === 'painel');
-  // modo leitura só nas páginas dos artigos; fora delas a coluna lateral volta sempre ao normal
-  document.body.classList.toggle('pagina-artigo', a === 'post');
-  if (a !== 'post') document.documentElement.classList.remove('lado-recolhido');
+  // modo leitura só nas páginas dos artigos e na edição deles; no editor ele já começa ligado (mais espaço para
+  // escrever), no artigo começa desligado, e fora deles a coluna lateral volta sempre ao normal
+  const editando = a === 'novo' || a === 'editar';
+  document.body.classList.toggle('pagina-artigo', a === 'post' || editando);
+  document.documentElement.classList.toggle('lado-recolhido', editando);
   renderNav();
   renderSide();
   window.scrollTo(0, 0);
