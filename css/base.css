@@ -58,3 +58,62 @@ body {
     background-color 0.25s,
     color 0.25s;
 }
+
+/* ---------- Suavidade (js/utils/suave.js) ----------
+   Os blocos da página surgem com um esmaecer rápido e uma leve subida, em fila (--i = lugar na fila).
+   As imagens esmaecem quando terminam de carregar. ".fixo" = já apareceu, não refaz a entrada. */
+@keyframes surgir {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+}
+#main > :not(.grid),
+.grid > *,
+.writers > *,
+#side > * {
+  animation: surgir 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation-delay: calc(var(--i, 0) * 55ms);
+}
+#main > :nth-child(2) { --i: 1; }
+#main > :nth-child(n + 3) { --i: 2; }
+.grid > :nth-child(1) { --i: 2; }
+.grid > :nth-child(2) { --i: 3; }
+.grid > :nth-child(3) { --i: 4; }
+.grid > :nth-child(4) { --i: 5; }
+.grid > :nth-child(5) { --i: 6; }
+.grid > :nth-child(6) { --i: 7; }
+.grid > :nth-child(7) { --i: 8; }
+.grid > :nth-child(n + 8) { --i: 9; }
+.writers > :nth-child(2),
+#side > :nth-child(2) { --i: 1; }
+.writers > :nth-child(3),
+#side > :nth-child(3) { --i: 2; }
+.writers > :nth-child(4),
+#side > :nth-child(4) { --i: 3; }
+.writers > :nth-child(n + 5),
+#side > :nth-child(n + 5) { --i: 4; }
+#main > .fixo,
+.grid > .fixo,
+.writers > .fixo,
+#side > .fixo {
+  animation: none;
+}
+html.suave :is(#main, #side) img {
+  opacity: 0;
+  transition: opacity 0.45s ease;
+}
+html.suave :is(#main, #side) img.img-ok {
+  opacity: 1;
+}
+@media (prefers-reduced-motion: reduce) {
+  #main > :not(.grid),
+  .grid > *,
+  .writers > *,
+  #side > * {
+    animation: none;
+  }
+  html.suave :is(#main, #side) img {
+    opacity: 1;
+  }
+}

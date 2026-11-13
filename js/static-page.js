@@ -132,6 +132,6 @@ document.getElementById('q').addEventListener('keydown', (e) => {
   if (!box || typeof writersHTML !== 'function' || typeof SUPABASE_URL === 'undefined') return;
   fetch(`${SUPABASE_URL}/rest/v1/rpc/writers`, { headers: { apikey: SUPABASE_ANON_KEY } })
     .then((r) => (r.ok ? r.json() : Promise.reject()))
-    .then((list) => (box.innerHTML = writersHTML(list)))
+    .then((list) => trocar(box, writersHTML(list)))
     .catch(() => {});
 })();

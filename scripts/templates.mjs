@@ -154,6 +154,7 @@ export function pageShell({ site, root, title, head, main, adminHref, bodyAttrs 
     <link rel="stylesheet" href="${root}css/featured.css" />
     <link rel="stylesheet" href="${root}css/responsive.css" />
     <script src="${root}js/theme.js"></script>
+    <script src="${root}js/utils/suave.js"></script>
   </head>
   <body data-root="${esc(root)}"${bodyAttrs}>
     <header class="top">

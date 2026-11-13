@@ -58,7 +58,8 @@ function renderSide() {
   const ps = visible(),
     cats = {};
   ps.forEach((p) => catsOf(p).forEach((c) => (cats[c] = (cats[c] || 0) + 1)));
-  $('#side').innerHTML =
+  trocar(
+    '#side',
     `<div class="box"><h3>Buscar</h3><input type="text" id="q" placeholder="Digite e tecle Enter" aria-label="Buscar artigos"></div>
    ${noticeHTML(db.pages.avisos)}
    <div class="box"><h3>Categorias</h3><ul>${
@@ -73,7 +74,8 @@ function renderSide() {
      .join('')}</ul></div>
    <div class="box"><h3>Páginas</h3><ul>${navPages()
      .map(([href, label]) => `<li><a href="${href}">${esc(label)}</a></li>`)
-     .join('')}</ul></div>`; // a equipe usa o menu do topo (Painel, Novo artigo); a senha fica em Painel › Meu perfil
+     .join('')}</ul></div>`,
+  ); // a equipe usa o menu do topo (Painel, Novo artigo); a senha fica em Painel › Meu perfil
   $('#q').onkeydown = (e) => {
     if (e.key === 'Enter' && e.target.value.trim())
       location.hash = '#/busca/' + encodeURIComponent(e.target.value.trim());
