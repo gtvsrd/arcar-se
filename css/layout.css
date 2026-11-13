@@ -215,6 +215,32 @@ header.top :focus-visible {
   margin-left: 0;
   justify-content: center;
 }
+/* Duas linhas (telas estreitas): situação à esquerda e Editar/Excluir à direita; as chaves embaixo, no centro */
+.editbar.duas-linhas {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto auto;
+  grid-template-areas:
+    'situacao editar excluir'
+    'chaves chaves chaves';
+  align-items: center;
+  gap: 6px 16px;
+}
+.editbar.duas-linhas .editbar-links {
+  display: contents; /* Editar, Excluir e as chaves viram itens da grade */
+}
+.editbar.duas-linhas .editbar-title {
+  grid-area: situacao;
+}
+.editbar.duas-linhas .editbar-links > a {
+  grid-area: editar;
+}
+.editbar.duas-linhas [data-eb='del'] {
+  grid-area: excluir;
+}
+.editbar.duas-linhas .eb-toggles {
+  grid-area: chaves;
+  justify-self: center;
+}
 .editbar [data-eb='del'][data-ok='1'] {
   color: var(--err);
 }

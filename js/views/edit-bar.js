@@ -90,20 +90,26 @@ function initEditBar(el, p, { onChange, onDelete }) {
 }
 
 /**
- * Barra compacta (sem o título "Edição rápida" e com tudo centralizado) enquanto o conteúdo completo não cabe
- * numa linha só. Mede de verdade, a cada mudança de largura: o ponto de troca acompanha os atalhos que a barra tem
+ * Barra compacta enquanto o conteúdo completo não cabe numa linha só: sai o título "Edição rápida" e tudo vai
+ * para o centro. Se nem assim couber, fica em duas linhas: a situação e Editar/Excluir em pontas opostas em cima,
+ * as chaves Destaque e Publicado centralizadas embaixo. Mede de verdade, a cada mudança de largura: o ponto de troca acompanha os atalhos que a barra tem
  * (o do administrador é mais largo que o do autor) e o tamanho da fonte.
  */
 function ajustarEditBar(el) {
   if (el._medirBarra) return el._medirBarra(); // já ligada (a tela foi redesenhada): só mede de novo
-  const medir = (el._medirBarra = () => {
-    el.classList.remove('compacta');
-    const disponivel = el.getBoundingClientRect().width;
-    el.classList.add('eb-medir'); // largura de tudo numa linha só, para medir (não chega a ser pintado)
+  // cabe tudo numa linha só? (mede a largura de tudo lado a lado; nada disso chega a ser pintado)
+  const cabe = (disponivel) => {
+    el.classList.add('eb-medir');
     const precisa = el.getBoundingClientRect().width;
     el.classList.remove('eb-medir');
-    const cabe = precisa <= disponivel + 0.5;
-    el.classList.toggle('compacta', !cabe);
+    return precisa <= disponivel + 0.5;
+  };
+  const medir = (el._medirBarra = () => {
+    el.classList.remove('compacta', 'duas-linhas');
+    const disponivel = el.getBoundingClientRect().width;
+    if (cabe(disponivel)) return; // completa, numa linha
+    el.classList.add('compacta'); // sem o título
+    if (!cabe(disponivel)) el.classList.add('duas-linhas'); // situação | Editar Excluir  /  chaves embaixo
   });
   medir();
   if (window.ResizeObserver) {
