@@ -107,6 +107,7 @@ A versão aparece no rodapé (ex.: `v1.0.1`) e fica em `site.config.json`, no ca
 
 Histórico:
 
+- `1.3.4` — prévia da aba Caixas com as caixas exatamente na largura e posição da lateral do site.
 - `1.3.3` — aba Caixas do painel com a prévia da coluna lateral à direita, que acompanha a edição (título, ícone e texto) antes de salvar.
 - `1.3.2` — painel, aba Artigos: miniatura da capa ao lado do título e ações (Editar, Publicar, Excluir…) como links embaixo dele; a faixa de cada artigo ficou bem mais baixa, e no celular os dados vão em três colunas.
 - `1.3.1` — painel (e as outras telas do app) abre mais rápido: papel do usuário e dados carregados ao mesmo tempo; enquanto carrega, a tela já tem o formato certo e um esqueleto do conteúdo no lugar de "Carregando…".
