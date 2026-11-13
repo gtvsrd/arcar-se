@@ -27,7 +27,7 @@ const navPages = () => [
   [staff() ? '#/escritores' : 'escritores/', 'Escritores'],
 ];
 
-/** Desenha o menu do topo e, para a equipe logada, a barra com Painel, Novo artigo, perfil e Sair. */
+/** Desenha o menu do topo e, para a equipe logada, a barra com perfil, Painel, Novo e Sair. */
 function renderNav() {
   $('#nav').innerHTML =
     '<a href="#/">Início</a>' +
@@ -45,15 +45,15 @@ function renderNav() {
     };
 }
 
-/** Barra da equipe, acima das duas colunas: atalhos à esquerda, perfil e Sair à direita. Some para visitantes. */
+/** Barra da equipe, acima das duas colunas: foto e nome à esquerda, atalhos e Sair à direita. Some para visitantes. */
 function renderStaffBar() {
   const bar = $('#staffbar');
   if (!bar) return;
   bar.hidden = !staff();
   if (bar.hidden) return (bar.innerHTML = '');
   const n = pendingReview();
-  bar.innerHTML = `<div class="staffbar-links"><a href="#/painel">Painel${n ? ` <span class="pill">${n}</span>` : ''}</a><a href="#/novo">Novo artigo</a></div>
-   <div class="staffbar-me">${meHTML()}<button type="button" id="out">Sair</button></div>`;
+  bar.innerHTML = `${meHTML()}
+   <div class="staffbar-links"><a href="#/painel">Painel${n ? ` <span class="pill">${n}</span>` : ''}</a><a href="#/novo" title="Novo artigo">Novo</a><button type="button" id="out">Sair</button></div>`;
   $('#out').onclick = async () => {
     await logout();
     location.hash = '#/';

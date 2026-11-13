@@ -130,19 +130,19 @@ header.top :focus-visible {
   padding: 8px 18px;
   background: var(--sf);
   border: 1px solid var(--ln);
-  border-left: 4px solid var(--warm);
+  border-bottom: 3px solid var(--warm);
   border-radius: 6px;
   animation: surgir 0.42s cubic-bezier(0.2, 0.7, 0.2, 1) both;
 }
 .staffbar[hidden] {
   display: none;
 }
-.staffbar-links,
-.staffbar-me {
+.staffbar-links {
   display: flex;
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 22px;
+  margin-left: auto; /* atalhos sempre à direita, mesmo quando quebram para a linha de baixo */
 }
 .staffbar a,
 .staffbar button {

@@ -153,15 +153,18 @@
   }
 }
 
-/* Celular: barra da equipe com os atalhos em cima e o perfil embaixo, centralizados */
+/* Celular: barra da equipe mais compacta (perfil à esquerda, atalhos à direita, como no computador) */
 @media (max-width: 820px) {
   .staffbar {
-    justify-content: center;
     margin-bottom: -6px;
+    padding: 8px 14px;
+    column-gap: 16px;
   }
-  .staffbar-links,
-  .staffbar-me {
-    justify-content: center;
+  .staffbar-links {
+    column-gap: 16px;
+  }
+  .staffbar .nav-me-name {
+    max-width: 110px;
   }
 }
 @media (prefers-reduced-motion: reduce) {

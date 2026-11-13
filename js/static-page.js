@@ -11,7 +11,7 @@ initThemeToggle();
  * Entrar / Sair no cabeçalho das páginas geradas.
  * - Sem sessão: "Entrar" abre o app com a janela de login e, depois de entrar, volta para esta mesma página.
  * - Com sessão (equipe logada neste navegador): o "Entrar" sai do cabeçalho e aparece a barra da equipe acima das
- *   duas colunas, com "Painel", "Novo artigo" (e "Editar", na página de um artigo), o perfil e "Sair".
+ *   duas colunas, com o perfil à esquerda e "Painel", "Novo" (e "Editar este artigo", na página de um artigo) e "Sair".
  */
 (function authNav() {
   const box = document.getElementById('authnav');
@@ -52,8 +52,8 @@ initThemeToggle();
     const editar = slug ? `<a href="${ROOT}#/editar/${encodeURIComponent(slug)}">Editar este artigo</a>` : '';
     box.innerHTML = '';
     if (!bar) return;
-    bar.innerHTML = `<div class="staffbar-links"><a href="${ROOT}#/painel">Painel</a><a href="${ROOT}#/novo">Novo artigo</a>${editar}</div>
-     <div class="staffbar-me">${meLink(fallback, '')}<button type="button" id="out">Sair</button></div>`;
+    bar.innerHTML = `${meLink(fallback, '')}
+     <div class="staffbar-links"><a href="${ROOT}#/painel">Painel</a><a href="${ROOT}#/novo" title="Novo artigo">Novo</a>${editar}<button type="button" id="out">Sair</button></div>`;
     bar.hidden = false;
     // nome e foto do perfil (tabela pública "profiles")
     if (user.id && typeof SUPABASE_URL !== 'undefined')
