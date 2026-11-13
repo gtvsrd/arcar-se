@@ -71,7 +71,7 @@ function renderSide() {
     '#side',
     `${SIDE_TOGGLE}
    ${sideBox('busca', 'Buscar', '<input type="text" id="q" placeholder="Digite e tecle Enter" aria-label="Buscar artigos">')}
-   ${noticeHTML(db.pages.avisos)}
+   ${avisosHTML(db.boxesOn ? db.boxes : null, db.pages.avisos)}
    ${sideBox(
      'categorias',
      'Categorias',
@@ -96,7 +96,8 @@ function renderSide() {
      `<ul>${navPages()
        .map(([href, label]) => `<li><a href="${href}">${esc(label)}</a></li>`)
        .join('')}</ul>`,
-   )}`,
+   )}
+   ${livresHTML(db.boxesOn ? db.boxes : [])}`,
   ); // a equipe usa o menu do topo (Painel, Novo artigo); a senha fica em Painel › Meu perfil
   $('#q').onkeydown = (e) => {
     if (e.key === 'Enter' && e.target.value.trim())
