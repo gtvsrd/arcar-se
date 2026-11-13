@@ -173,7 +173,7 @@ export function pageShell({ site, root, title, head, main, adminHref, bodyAttrs 
   <body data-root="${esc(root)}"${bodyAttrs}>
     <header class="top">
       <div class="bar">
-        <a class="logo" href="${root}" aria-label="${esc(c.siteName)}, ${esc(c.tagline.toLowerCase())}"><img class="logo-mark" src="${root}assets/logo/arcar-se-simbolo-negativo.svg" alt="" /><span class="logo-text"><span class="logo-name">${logoName(c.siteName, esc)}</span><small>${esc(c.tagline.toLowerCase())}</small></span></a>
+        <a class="logo" href="${root}" aria-label="${esc(c.siteName)}, ${esc(c.tagline.toLowerCase())}"><img class="logo-mark" src="${root}assets/logo/arcar-se-simbolo-negativo.svg" alt="" /><span class="logo-text"><span class="logo-name">${logoName(c.siteName, esc)}</span></span></a>
         <div class="bar-actions">
           <nav id="nav">${navHTML(site, root)}</nav>
           <button id="theme-toggle" class="theme-btn" type="button"></button>
