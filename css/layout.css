@@ -185,6 +185,36 @@ header.top :focus-visible {
   font-weight: 400;
   color: var(--mut);
 }
+.editbar-status::before {
+  content: '· ';
+}
+/* Medição (js/views/edit-bar.js): tudo numa linha, para saber se cabe sem quebrar */
+.editbar.eb-medir,
+.editbar.eb-medir .editbar-links,
+.editbar.eb-medir .eb-toggles {
+  flex-wrap: nowrap;
+}
+.editbar.eb-medir {
+  width: max-content;
+}
+.editbar.eb-medir * {
+  white-space: nowrap;
+}
+/* Compacta: quando não cabe tudo numa linha, sai o título, fica só a situação, e tudo vai para o centro */
+.editbar.compacta {
+  justify-content: center;
+}
+.editbar.compacta .eb-label {
+  display: none;
+}
+.editbar.compacta .editbar-status::before {
+  content: none;
+}
+.editbar.compacta .editbar-links,
+.editbar.compacta .eb-toggles {
+  margin-left: 0;
+  justify-content: center;
+}
 .editbar [data-eb='del'][data-ok='1'] {
   color: var(--err);
 }

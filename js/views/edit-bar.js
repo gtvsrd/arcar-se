@@ -18,7 +18,7 @@ function editBarHTML(p, editHref) {
   const toggle = (k, on, label, hint) =>
     `<button type="button" class="eb-toggle" data-eb="${k}" aria-pressed="${on}" title="${hint}"><span class="eb-switch" aria-hidden="true"></span>${label}</button>`;
   return `<div class="editbar" role="toolbar" aria-label="Edição rápida do artigo">
-   <span class="editbar-title">Edição rápida <span class="editbar-status">· ${editBarStatus(p)}</span></span>
+   <span class="editbar-title"><span class="eb-label">Edição rápida</span> <span class="editbar-status">${editBarStatus(p)}</span></span>
    <div class="editbar-links"><a href="${esc(editHref)}">Editar</a><button type="button" data-eb="del">Excluir</button>${
      admin
        ? `<span class="eb-toggles">${toggle('feat', !!p.featured, 'Destaque', 'Mostrar no carrossel da página inicial')}${toggle('pub', !!p.pub, 'Publicado', 'Visível para os leitores')}</span>`
@@ -33,6 +33,7 @@ function editBarHTML(p, editHref) {
  */
 function initEditBar(el, p, { onChange, onDelete }) {
   if (!el || !p) return;
+  ajustarEditBar(el);
   const del = el.querySelector('[data-eb="del"]');
   del.onclick = async () => {
     if (del.dataset.ok !== '1') {
@@ -69,7 +70,7 @@ function initEditBar(el, p, { onChange, onDelete }) {
         const novo = db.posts.find((x) => x.id === p.id) || { ...p, [k === 'feat' ? 'featured' : 'pub']: on };
         Object.assign(p, novo);
         b.setAttribute('aria-pressed', String(on));
-        el.querySelector('.editbar-status').textContent = '· ' + editBarStatus(p);
+        el.querySelector('.editbar-status').textContent = editBarStatus(p);
         toast(
           k === 'feat'
             ? on
@@ -86,4 +87,32 @@ function initEditBar(el, p, { onChange, onDelete }) {
       b.disabled = false;
     };
   });
+}
+
+/**
+ * Barra compacta (sem o título "Edição rápida" e com tudo centralizado) enquanto o conteúdo completo não cabe
+ * numa linha só. Mede de verdade, a cada mudança de largura: o ponto de troca acompanha os atalhos que a barra tem
+ * (o do administrador é mais largo que o do autor) e o tamanho da fonte.
+ */
+function ajustarEditBar(el) {
+  if (el._medirBarra) return el._medirBarra(); // já ligada (a tela foi redesenhada): só mede de novo
+  const medir = (el._medirBarra = () => {
+    el.classList.remove('compacta');
+    const disponivel = el.getBoundingClientRect().width;
+    el.classList.add('eb-medir'); // largura de tudo numa linha só, para medir (não chega a ser pintado)
+    const precisa = el.getBoundingClientRect().width;
+    el.classList.remove('eb-medir');
+    const cabe = precisa <= disponivel + 0.5;
+    el.classList.toggle('compacta', !cabe);
+  });
+  medir();
+  if (window.ResizeObserver) {
+    let largura = el.clientWidth;
+    new ResizeObserver(() => {
+      if (el.clientWidth !== largura) {
+        largura = el.clientWidth;
+        medir();
+      }
+    }).observe(el);
+  }
 }
