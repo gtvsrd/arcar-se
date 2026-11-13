@@ -115,5 +115,23 @@ const NOTICE_DEFAULT = {
 function noticeHTML(page) {
   const n = page || NOTICE_DEFAULT;
   if (!String(n.body || '').trim()) return '';
-  return `<div class="box box--avisos"><h3>${esc(n.title || NOTICE_DEFAULT.title)}</h3><div class="avisos-body">${md(n.body)}</div></div>`;
+  return sideBox('avisos', n.title || NOTICE_DEFAULT.title, `<div class="avisos-body">${md(n.body)}</div>`, 'box--avisos');
 }
+
+/* ---------- Coluna lateral e modo leitura (js/utils/lateral.js) ---------- */
+const SIDE_SVG = (d) =>
+  `<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">${d}</svg>`;
+/** Ícone de cada caixa da lateral: aparece no lugar da caixa quando a coluna está recolhida (modo leitura). */
+const SIDE_ICONS = {
+  busca: SIDE_SVG('<circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/>'),
+  avisos: SIDE_SVG('<path d="M4 10v4a1 1 0 0 0 1 1h2l5 4V5L7 9H5a1 1 0 0 0-1 1z"/><path d="M16 8.5a5 5 0 0 1 0 7"/><path d="M18.5 6a8.5 8.5 0 0 1 0 12"/>'),
+  categorias: SIDE_SVG('<path d="M3.5 12.5V4.5a1 1 0 0 1 1-1h8l8 8-9 9z"/><circle cx="8.5" cy="8.5" r="1.5"/>'),
+  recentes: SIDE_SVG('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
+  paginas: SIDE_SVG('<path d="M6 3.5h8l4 4v13H6z"/><path d="M14 3.5v4h4M9 12h6M9 16h6"/>'),
+};
+/** Caixa da lateral: o conteúdo de sempre e, para o modo leitura, um botão com ícone que o abre ao lado. */
+function sideBox(key, title, inner, cls = '') {
+  return `<div class="box${cls ? ' ' + cls : ''}" data-lado="${key}"><button type="button" class="side-btn" aria-label="${esc(title)}" title="${esc(title)}">${SIDE_ICONS[key] || ''}</button><div class="box-conteudo"><h3>${esc(title)}</h3>${inner}</div></div>`;
+}
+/** Botão que recolhe e mostra a coluna lateral (só em telas grandes). Fica acima de todas as caixas. */
+const SIDE_TOGGLE = `<button type="button" class="side-toggle" data-k="side-toggle" aria-label="Modo leitura: recolher ou mostrar a coluna lateral" title="Modo leitura">${SIDE_SVG('<path d="M9 5l7 7-7 7"/>')}</button>`;
