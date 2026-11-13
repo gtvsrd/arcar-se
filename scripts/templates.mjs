@@ -128,14 +128,18 @@ export function sideHTML(site, root) {
 const logoName = (name, esc) => esc(name).replace(/\./, '<span class="logo-dot">.</span>');
 
 /** Documento completo de uma página gerada. `root` é o caminho até a raiz ("../../" ou "/arcar-se/"). */
-/** Arquivos da barra de edição rápida nas páginas dos artigos, na ordem em que precisam ser carregados. */
-const EDIT_SCRIPTS = [
+/**
+ * Código da equipe nas páginas geradas, na ordem em que precisa ser carregado: janela de login (Entrar abre ali
+ * mesmo) e barra de edição rápida dos artigos. static-page.js só carrega quando alguém vai entrar ou já está logado.
+ */
+const EQUIPE_SCRIPTS = [
   'js/vendor/supabase.js',
   'js/data/api.js',
   'js/utils/helpers.js',
   'js/utils/markdown.js',
   'js/views/featured-views.js',
   'js/views/edit-bar.js',
+  'js/auth.js',
 ];
 
 export function pageShell({ site, root, title, head, main, adminHref, bodyAttrs = '', withViews = false, scripts = [] }) {
@@ -185,13 +189,10 @@ export function pageShell({ site, root, title, head, main, adminHref, bodyAttrs 
       adminHref ? ` · <a href="${esc(adminHref)}" rel="nofollow">Admin</a>` : ''
     }${c.version ? ` · <span class="ver">v${esc(c.version)}</span>` : ''}</footer>
     <script src="${root}js/config.js"></script>
-${scripts.map((s) => `    <script defer src="${root}${s}"></script>\n`).join('')}    <script defer src="${root}js/static-page.js"></script>${withViews ? `\n    <script defer src="${root}js/post-actions.js"></script>` : ''}${
-      withViews
-        ? `
-    <!-- só para a equipe logada: static-page.js carrega estes arquivos para a barra de edição rápida -->
-    <template id="edicao-js">${EDIT_SCRIPTS.map((s) => `<script src="${root}${s}"></script>`).join('')}</template>`
-        : ''
-    }
+${scripts.map((s) => `    <script defer src="${root}${s}"></script>\n`).join('')}    <script defer src="${root}js/static-page.js"></script>${withViews ? `\n    <script defer src="${root}js/post-actions.js"></script>` : ''}
+    <!-- só para a equipe (Entrar, barra de edição rápida): static-page.js carrega estes arquivos quando precisa -->
+    <template id="equipe-js">${EQUIPE_SCRIPTS.map((s) => `<script src="${root}${s}"></script>`).join('')}</template>
+    ${site.loginDialog || ''}
     <div id="toast" role="status"></div>
   </body>
 </html>

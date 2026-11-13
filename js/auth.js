@@ -2,8 +2,11 @@
  * Entrada da equipe (janela modal): login de administradores e criadores, primeiro acesso e "esqueci a senha"
  */
 
-/** Liga os eventos da janela de login. */
-function initAuth() {
+/**
+ * Liga os eventos da janela de login.
+ * `aoEntrar(papel)`: o que fazer depois de entrar. Sem ele (no app), redesenha a tela atual.
+ */
+function initAuth({ aoEntrar } = {}) {
   const ok = $('#lok'),
     first = $('#lfirst'),
     forgot = $('#lforgot');
@@ -60,7 +63,8 @@ function initAuth() {
           $('#dlg').close();
           $('#p').value = '';
           toast(r === 'admin' ? 'Bem-vindo, administrador' : 'Bem-vindo');
-          if (loginReturn) {
+          if (aoEntrar) aoEntrar(r);
+          else if (loginReturn) {
             const back = loginReturn;
             loginReturn = '';
             location.href = back; // volta para a página de onde clicou em Entrar

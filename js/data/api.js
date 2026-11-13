@@ -13,6 +13,9 @@ const AUTH_LINK = {
   error: /[#&]error_code=/.test(location.hash),
 };
 
+/** Endereço do app (raiz do site), também quando o código roda numa página gerada (post/…, pagina/…). */
+const appUrl = () => new URL(document.body.dataset.root || './', location.href).href;
+
 const sb = isConfigured() ? supabase.createClient(SUPABASE_URL, SUPABASE_ANON_KEY) : null;
 let db = { posts: [], pages: {}, profiles: {}, views: {}, categories: [] }; // cache usado pelas telas
 let admin = false; // true se o administrador está logado
@@ -184,7 +187,7 @@ async function firstAccess(email, password) {
   const { error } = await sb.auth.signUp({
     email,
     password,
-    options: { emailRedirectTo: location.origin + location.pathname },
+    options: { emailRedirectTo: appUrl() },
   });
   if (error) throw error;
 }
@@ -282,7 +285,7 @@ async function cancelInvite(email) {
 
 /** Envia por e-mail o link para criar uma nova senha. A resposta é a mesma exista ou não a conta (não revela quem tem acesso). */
 async function sendPasswordReset(email) {
-  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: location.origin + location.pathname });
+  const { error } = await sb.auth.resetPasswordForEmail(email, { redirectTo: appUrl() });
   if (error) throw error;
 }
 

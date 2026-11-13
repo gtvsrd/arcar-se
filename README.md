@@ -107,6 +107,7 @@ A versão aparece no rodapé (ex.: `v1.0.1`) e fica em `site.config.json`, no ca
 
 Histórico:
 
+- `1.0.2` — Entrar abre a janela de login na própria página em que a pessoa está (artigos, Sobre, Escritores), sem passar pela página inicial; depois de entrar, continua ali, já com as barras da equipe.
 - `1.0.1` — elementos surgem com esmaecer suave e em sequência; imagens aparecem aos poucos; o que muda de lugar desliza. Também: nova descrição do site, links de artigos sem `#` e imagem de prévia mais leve. Botão de tema só com o símbolo (sol ou lua), na mesma linha do menu no celular. Para a equipe logada, perfil, Painel, Novo e Sair saem do topo e vão para uma barra própria acima das duas colunas; acima de cada artigo, uma barra de edição rápida (Editar, Excluir, Destaque, Publicado) substitui os botões dos cards.
 - `1.0.0` — primeira versão numerada.
 
