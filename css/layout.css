@@ -49,15 +49,6 @@ header.top :focus-visible {
 .logo-dot {
   color: var(--warm);
 }
-.logo small {
-  font:
-    500 10px/1 'DM Sans',
-    Arial,
-    sans-serif;
-  letter-spacing: 0.22em;
-  text-transform: uppercase;
-  color: var(--hd-mut);
-}
 /* Quem está logado: foto e nome no menu do topo */
 /* (no menu do topo e na barra da equipe) */
 .nav-me {

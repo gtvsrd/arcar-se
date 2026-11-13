@@ -139,6 +139,9 @@ const bust = (html) =>
     /((?:href|src)=")([^"#?]*?)((?:css|js|assets)\/[^"#?]+\.(?:css|js|svg|png|ico))"/g,
     (m, attr, prefix, rel) => (fs.existsSync(path.join(ROOT, rel)) ? `${attr}${prefix}${rel}?v=${versionOf(rel)}"` : m),
   );
+// janela de login: copiada do index.html para as páginas geradas (Entrar abre ali mesmo, sem ir para o app)
+const loginDialog = (read('index.html').match(/<dialog id="dlg">[\s\S]*?<\/dialog>/) || [''])[0];
+site.loginDialog = loginDialog;
 const write = (rel, text) => {
   if (rel.endsWith('.html')) text = bust(text);
   const f = path.join(OUT, rel);

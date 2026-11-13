@@ -404,6 +404,63 @@ dialog {
 dialog::backdrop {
   background: rgba(0, 0, 0, 0.55);
 }
+/* Janela de login: título com o X de fechar à direita; embaixo, os links à esquerda e o botão Entrar à direita */
+.dlg-head {
+  display: flex;
+  align-items: flex-start; /* com título de duas linhas, o X fica na altura da primeira */
+  justify-content: space-between;
+  gap: 12px;
+}
+.dlg-head h2 {
+  margin: 0;
+}
+.dlg-x {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 36px;
+  height: 36px;
+  margin-right: -8px; /* o X fica alinhado à borda do conteúdo, não ao miolo do botão */
+  margin-top: -2px; /* centrado na primeira linha do título (32px de altura) */
+  padding: 0;
+  border: 0;
+  border-radius: 50%;
+  background: none;
+  color: var(--mut);
+  cursor: pointer;
+  transition:
+    background 0.2s,
+    color 0.2s;
+}
+.dlg-x:hover {
+  background: var(--bg);
+  color: var(--ink);
+}
+.dlg-foot {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  margin-top: 10px;
+}
+.dlg-links {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  margin: 0;
+  font-size: 14px;
+}
+.dlg-foot .btn {
+  flex: none;
+}
+.dlg-links .linkbtn {
+  text-decoration: none; /* links da janela sem sublinhado */
+  font-weight: 600;
+}
+.dlg-links .linkbtn:hover {
+  color: var(--ink);
+}
 .err {
   color: var(--err);
   min-height: 1.4em;

@@ -1,6 +1,6 @@
 /**
- * Comportamento mínimo das páginas geradas pelo build (artigos e páginas fixas):
- * botão de tema, ano do rodapé e busca (que leva ao app na rota #/busca/...).
+ * Comportamento das páginas geradas pelo build (artigos, páginas fixas, Escritores): botão de tema, ano do rodapé,
+ * busca (que leva ao app na rota #/busca/...) e, para a equipe, Entrar/Sair e as barras da equipe e de edição.
  */
 
 const ROOT = document.body.dataset.root || './';
@@ -8,15 +8,39 @@ const ROOT = document.body.dataset.root || './';
 initThemeToggle();
 
 /**
- * Entrar / Sair no cabeçalho das páginas geradas.
- * - Sem sessão: "Entrar" abre o app com a janela de login e, depois de entrar, volta para esta mesma página.
- * - Com sessão (equipe logada neste navegador): o "Entrar" sai do cabeçalho e aparece a barra da equipe acima das
- *   duas colunas, com o perfil à esquerda e "Painel", "Novo" e "Sair". Na página de um artigo, quem pode editá-lo ganha também a barra de edição rápida (editBar, abaixo).
+ * Código da equipe (Supabase, dados, janela de login, barra de edição), listado no <template id="equipe-js">.
+ * Carregado uma vez só, quando alguém vai entrar ou já está logado: visitantes não baixam nada disso.
  */
-(function authNav() {
+let equipePronta = null;
+function carregarEquipe() {
+  const tpl = document.getElementById('equipe-js');
+  if (!tpl || typeof SUPABASE_URL === 'undefined') return Promise.reject(new Error('sem código da equipe'));
+  return (equipePronta ??= (async () => {
+    for (const s of tpl.content.querySelectorAll('script')) {
+      await new Promise((ok, falha) => {
+        const el = document.createElement('script');
+        el.src = s.getAttribute('src');
+        el.onload = ok;
+        el.onerror = falha;
+        document.head.appendChild(el);
+      });
+    }
+  })().catch((e) => {
+    equipePronta = null; // falhou (rede): tenta de novo na próxima vez
+    throw e;
+  }));
+}
+
+/**
+ * Entrar / Sair no cabeçalho das páginas geradas.
+ * - Sem sessão: "Entrar" abre a janela de login aqui mesmo, por cima desta página (a mesma janela do app).
+ * - Com sessão (equipe logada neste navegador): o "Entrar" sai do cabeçalho e aparece a barra da equipe acima das
+ *   duas colunas, com o perfil à esquerda e "Painel", "Novo" e "Sair". Na página de um artigo, quem pode editá-lo
+ *   ganha também a barra de edição rápida (editBar, abaixo).
+ */
+const authNav = (function () {
   const box = document.getElementById('authnav');
   const bar = document.getElementById('staffbar');
-  if (!box) return;
   const tokenKey = () => {
     try {
       return Object.keys(localStorage).find((k) => /^sb-.+-auth-token$/.test(k));
@@ -25,9 +49,22 @@ initThemeToggle();
     }
   };
   const render = () => {
+    if (!box) return;
     const k = tokenKey();
     if (!k) {
-      box.innerHTML = `<a href="${ROOT}#/entrar/${encodeURIComponent(location.pathname)}">Entrar</a>`;
+      // o endereço é a reserva para quando o código da página não roda; com ele, a janela abre aqui mesmo
+      box.innerHTML = `<a href="${ROOT}#/entrar/${encodeURIComponent(location.pathname)}" id="in">Entrar</a>`;
+      const entrar = document.getElementById('in');
+      entrar.onclick = (e) => {
+        if (!document.getElementById('dlg')) return; // página antiga, sem a janela: segue o link
+        e.preventDefault();
+        abrirLogin();
+      };
+      // já vai baixando o código da janela enquanto a pessoa aponta para o botão
+      const adiantar = () => carregarEquipe().catch(() => {});
+      entrar.addEventListener('pointerenter', adiantar, { once: true });
+      entrar.addEventListener('focus', adiantar, { once: true });
+      entrar.addEventListener('touchstart', adiantar, { once: true, passive: true });
       if (bar) {
         bar.hidden = true;
         bar.innerHTML = '';
@@ -67,49 +104,74 @@ initThemeToggle();
         .catch(() => {});
     document.getElementById('out').onclick = async () => {
       try {
-        const s = JSON.parse(localStorage.getItem(k) || '{}');
-        if (typeof SUPABASE_URL !== 'undefined' && s.access_token)
-          await fetch(SUPABASE_URL + '/auth/v1/logout', {
-            method: 'POST',
-            headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + s.access_token },
-          });
+        if (typeof sb !== 'undefined' && sb) await sb.auth.signOut(); // código da equipe já carregado
+        else {
+          const s = JSON.parse(localStorage.getItem(k) || '{}');
+          if (typeof SUPABASE_URL !== 'undefined' && s.access_token)
+            await fetch(SUPABASE_URL + '/auth/v1/logout', {
+              method: 'POST',
+              headers: { apikey: SUPABASE_ANON_KEY, Authorization: 'Bearer ' + s.access_token },
+            });
+        }
       } catch (e) {}
       try {
         localStorage.removeItem(k);
       } catch (e) {}
       document.querySelector('#main .editbar')?.remove();
       render();
+      if (typeof toast === 'function') toast('Você saiu');
     };
   };
   render();
   if (tokenKey()) editBar();
+  return { render };
 })();
+
+/** Abre a janela de login por cima desta página. Os botões passam a funcionar assim que o código chega. */
+let loginLigado = false;
+function abrirLogin() {
+  const dlg = document.getElementById('dlg');
+  const ok = document.getElementById('lok');
+  document.getElementById('lerr').textContent = '';
+  if (!loginLigado) ok.disabled = true;
+  dlg.showModal();
+  document.getElementById('u').focus();
+  carregarEquipe()
+    .then(() => {
+      if (!loginLigado) {
+        loginLigado = true;
+        initAuth({
+          aoEntrar: () => {
+            authNav.render(); // barra da equipe no lugar do Entrar
+            editBar(); // e, se for um artigo que a pessoa pode editar, a barra de edição rápida
+          },
+        });
+      }
+      ok.disabled = false;
+    })
+    .catch(() => {
+      ok.disabled = false;
+      document.getElementById('lerr').textContent = 'Não foi possível carregar. Verifique a conexão e tente de novo.';
+      ok.onclick = () => location.reload();
+    });
+}
 
 /**
  * Barra de edição rápida acima do artigo (Editar, Excluir, Destaque, Publicado), para quem pode editá-lo.
- * Só para quem tem sessão: carrega o Supabase e o mesmo código do app (listado no <template id="edicao-js">).
+ * Só para quem tem sessão: usa o mesmo código do app (carregarEquipe).
  */
 async function editBar() {
   const slug = document.body.dataset.slug;
-  const tpl = document.getElementById('edicao-js');
   const art = document.querySelector('#main .art');
-  if (!slug || !tpl || !art || typeof SUPABASE_URL === 'undefined') return;
+  if (!slug || !art || document.querySelector('#main .editbar')) return;
   try {
-    for (const s of tpl.content.querySelectorAll('script')) {
-      await new Promise((ok, falha) => {
-        const el = document.createElement('script');
-        el.src = s.getAttribute('src');
-        el.onload = ok;
-        el.onerror = falha;
-        document.head.appendChild(el);
-      });
-    }
+    await carregarEquipe();
     await checkRole();
     if (!staff()) return;
-    await loadAll();
+    if (!db.posts.length) await loadAll();
     const p = db.posts.find((x) => x.slug === slug);
     const html = editBarHTML(p, `${ROOT}#/editar/${encodeURIComponent(slug)}`);
-    if (!html) return;
+    if (!html || document.querySelector('#main .editbar')) return;
     art.insertAdjacentHTML('beforebegin', html);
     // o artigo desce para dar lugar à barra deslizando, em vez de pular
     const bar = document.querySelector('#main .editbar');
