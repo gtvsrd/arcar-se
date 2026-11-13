@@ -124,7 +124,10 @@ const SIDE_SVG = (d) =>
 /** Ícone de cada caixa da lateral: aparece no lugar da caixa quando a coluna está recolhida (modo leitura). */
 const SIDE_ICONS = {
   busca: SIDE_SVG('<circle cx="11" cy="11" r="6.5"/><path d="M20 20l-4.2-4.2"/>'),
-  avisos: SIDE_SVG('<path d="M4 10v4a1 1 0 0 0 1 1h2l5 4V5L7 9H5a1 1 0 0 0-1 1z"/><path d="M16 8.5a5 5 0 0 1 0 7"/><path d="M18.5 6a8.5 8.5 0 0 1 0 12"/>'),
+  // a flecha e o ponto da logomarca, que juntos lembram um ponto de exclamação
+  avisos: SIDE_SVG(
+    '<path d="M12 .8l3.2 5L12 8.8 8.8 5.8z" fill="currentColor" stroke="none"/><path d="M12 7.5v9" stroke-width="2.6" stroke-linecap="butt"/><circle cx="12" cy="20.6" r="2.4" fill="currentColor" stroke="none"/>',
+  ),
   categorias: SIDE_SVG('<path d="M3.5 12.5V4.5a1 1 0 0 1 1-1h8l8 8-9 9z"/><circle cx="8.5" cy="8.5" r="1.5"/>'),
   recentes: SIDE_SVG('<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>'),
   paginas: SIDE_SVG('<path d="M6 3.5h8l4 4v13H6z"/><path d="M14 3.5v4h4M9 12h6M9 16h6"/>'),
