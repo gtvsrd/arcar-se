@@ -316,7 +316,7 @@ footer {
 }
 
 /* ---------- Modo leitura (js/utils/lateral.js) ----------
-   Só nas páginas dos artigos (body.pagina-artigo) e em telas grandes: a seta acima das caixas recolhe a coluna lateral; as caixas viram botões com ícone
+   Só nas páginas dos artigos e na edição deles (body.pagina-artigo) e em telas grandes: a seta acima das caixas recolhe a coluna lateral; as caixas viram botões com ícone
    empilhados à direita, e cada um abre a sua caixa ao lado. Em telas pequenas nada disso aparece. */
 .side-btn,
 .side-toggle {

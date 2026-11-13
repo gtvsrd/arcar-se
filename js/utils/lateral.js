@@ -1,5 +1,6 @@
 /**
- * Modo leitura (só nas páginas dos artigos, body.pagina-artigo, e em telas grandes): a coluna lateral recolhe e a coluna principal ocupa o lugar das duas.
+ * Modo leitura (só nas páginas dos artigos e na edição deles, body.pagina-artigo, e em telas grandes; no editor
+ * já começa ligado, ver router.js): a coluna lateral recolhe e a coluna principal ocupa o lugar das duas.
  * As caixas da lateral viram botões com ícone, empilhados à direita; cada um abre a sua caixa ao lado.
  * O botão com a seta, acima das caixas, recolhe e mostra a coluna. Não fica guardado: toda página que abre
  * (ou recarrega) começa com as duas colunas; dentro do app, a escolha vale enquanto a pessoa navega por ele.

@@ -107,6 +107,7 @@ A versão aparece no rodapé (ex.: `v1.0.1`) e fica em `site.config.json`, no ca
 
 Histórico:
 
+- `1.2.1` — modo leitura também na edição de artigos (Novo e Editar), onde já abre com a coluna lateral recolhida.
 - `1.2.0` — modo leitura só nas páginas dos artigos. Botão "Ref." no editor: os parágrafos selecionados ficam no formato das referências bibliográficas (letra menor, alinhados à esquerda, espaço simples).
 - `1.1.0` — modo leitura (telas grandes): a seta acima da coluna lateral a recolhe em botões com ícones, e a coluna principal ocupa o lugar das duas; cada ícone abre a sua caixa ao lado. Toda página abre com as duas colunas.
 - `1.0.3` — todos os laranjas do site no ocre da logomarca (`#E0A84A`), nos dois temas: ponto do nome, filetes, sublinhados, chaves, selos e contadores (os selos usam o mesmo tom clareado ou escurecido).
