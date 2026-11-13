@@ -107,6 +107,7 @@ A versão aparece no rodapé (ex.: `v1.0.1`) e fica em `site.config.json`, no ca
 
 Histórico:
 
+- `1.3.1` — painel (e as outras telas do app) abre mais rápido: papel do usuário e dados carregados ao mesmo tempo; enquanto carrega, a tela já tem o formato certo e um esqueleto do conteúdo no lugar de "Carregando…".
 - `1.3.0` — caixas da lateral editáveis no painel (aba Caixas): Avisos fixo abaixo da busca, que pode ser ocultado, e caixas livres no fim da lateral, que podem ser adicionadas, excluídas, reordenadas e ocultadas, cada uma com seu ícone. Requer `supabase/caixas-da-lateral.sql`.
 - `1.2.1` — modo leitura também na edição de artigos (Novo e Editar), onde já abre com a coluna lateral recolhida. Quadro de avisos passa a se chamar "Avisos", com ícone da flecha e o ponto da logomarca; os ícones também aparecem antes dos títulos das caixas da lateral.
 - `1.2.0` — modo leitura só nas páginas dos artigos. Botão "Ref." no editor: os parágrafos selecionados ficam no formato das referências bibliográficas (letra menor, alinhados à esquerda, espaço simples).

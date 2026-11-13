@@ -1221,3 +1221,63 @@ dialog [hidden] {
     padding: 16px 16px 18px;
   }
 }
+
+/* ---------- Esqueleto de carregamento (js/main.js) ----------
+   Blocos cinza no formato da tela que vai abrir, pulsando de leve, enquanto os dados chegam. */
+.esq {
+  display: block;
+  border-radius: 6px;
+  background: var(--ln);
+  animation: esq-pulso 1.2s ease-in-out infinite;
+}
+@keyframes esq-pulso {
+  50% {
+    opacity: 0.45;
+  }
+}
+.esq-linha {
+  height: 14px;
+  margin: 0 0 12px;
+}
+.esq-titulo {
+  width: 55%;
+  height: 34px;
+  margin: 0 0 24px;
+}
+.esq-capa {
+  height: 130px;
+  border-radius: 0;
+}
+.esq-abas {
+  display: flex;
+  gap: 28px;
+  margin: 8px 0 24px;
+}
+.esq-abas .esq {
+  width: 80px;
+  height: 18px;
+}
+.esq-cards {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
+  gap: 12px;
+  margin-bottom: 20px;
+}
+.esq-card {
+  height: 74px;
+}
+.nav-me .esq {
+  display: inline-block;
+  margin: 0;
+}
+.avatar.esq {
+  border-radius: 50%;
+}
+.nav-me .esq-linha {
+  height: 12px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .esq {
+    animation: none;
+  }
+}
