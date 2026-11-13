@@ -30,7 +30,7 @@
     height: 180px;
   }
 
-  /* Cabeçalho centralizado: título, menu e botão de tema, um embaixo do outro */
+  /* Cabeçalho centralizado: título em cima; embaixo, o menu com o botão de tema na mesma linha */
   .bar {
     flex-direction: column;
     align-items: center;
@@ -39,10 +39,15 @@
     text-align: center;
   }
   .bar-actions {
-    flex-direction: column;
+    flex-direction: row;
+    flex-wrap: wrap;
     align-items: center;
     justify-content: center;
-    gap: 12px;
+    gap: 6px 20px;
+  }
+  /* os links do menu e o botão viram itens da mesma fila: se não couber, quebra entre os links, não sobra o botão sozinho */
+  .bar-actions nav {
+    display: contents;
   }
   /* Logo centralizada: símbolo rente ao nome e a frase centralizada embaixo de tudo */
   .logo {
@@ -134,5 +139,16 @@
   }
   .art > .meta .byline + span::before {
     content: none;
+  }
+}
+
+/* Celulares estreitos (360px): menu um pouco mais junto para o botão de tema caber na mesma linha */
+@media (max-width: 380px) {
+  .bar-actions {
+    column-gap: 14px;
+  }
+  .theme-btn {
+    width: 34px;
+    height: 34px;
   }
 }
