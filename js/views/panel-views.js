@@ -281,15 +281,15 @@ function profileForm(userId, { back, after, who = '', extra = '' }) {
    <div class="box pp-card pp-col1">
    ${who ? `<h2 class="pp-who">Card de ${esc(who)}</h2>` : ''}
    <p class="hint">${own ? 'Seu nome e sua foto aparecem nos artigos que você criar.' : 'O nome e a foto aparecem nos artigos dessa pessoa.'} Nome, foto, texto e redes formam o card da página <a href="#/escritores">Escritores</a>.</p>
-   <label for="pn">Nome de exibição</label>
-   <input type="text" id="pn" required maxlength="60" value="${esc(cur.display_name || '')}"${own ? ' autocomplete="name"' : ''}>
-   <label>Foto</label>
-   <div class="avatar-edit">
-     <div class="avatar avatar--lg" id="pav" aria-hidden="true"></div>
-     <div>
-       <input type="file" id="pfile" accept="image/*" aria-label="Escolher foto">
-       <div class="acts"><button type="button" class="btn sm del" id="prm" hidden>Remover foto</button></div>
-       <div class="hint">A foto é recortada em quadrado e reduzida automaticamente.</div>
+   <div class="pp-topo">
+     <div class="pp-foto" id="pav" aria-hidden="true"></div>
+     <div class="pp-topo-campos">
+       <label for="pn">Nome de exibição</label>
+       <input type="text" id="pn" required maxlength="60" value="${esc(cur.display_name || '')}"${own ? ' autocomplete="name"' : ''}>
+       <span class="lbl">Foto</span>
+       <input type="file" id="pfile" class="sr" accept="image/*">
+       <div class="acts"><label class="btn sm alt" for="pfile">Escolher foto</label><button type="button" class="btn sm del" id="prm" hidden>Remover foto</button></div>
+       <div class="hint">Aparece assim no card da página Escritores. É recortada e reduzida automaticamente.</div>
      </div>
    </div>
    <label for="pbio">Texto de apresentação</label>
@@ -313,7 +313,7 @@ function profileForm(userId, { back, after, who = '', extra = '' }) {
   const show = () => {
     const name = $('#pn').value.trim() || '?';
     const src = pending ? URL.createObjectURL(pending) : avatar;
-    $('#pav').innerHTML = src ? `<img src="${esc(src)}" alt="">` : esc([...name][0].toUpperCase());
+    $('#pav').innerHTML = src ? `<img src="${esc(src)}" alt="">` : `<span>${esc([...name][0].toUpperCase())}</span>`;
     $('#prm').hidden = !src;
   };
   const count = () => ($('#pbion').textContent = `${$('#pbio').value.length} de 1200 caracteres.`);

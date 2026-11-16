@@ -107,7 +107,7 @@ A versão aparece no rodapé (ex.: `v1.0.1`) e fica em `site.config.json`, no ca
 
 Histórico:
 
-- `1.3.5` — Meu perfil em duas colunas: nome, foto e apresentação à esquerda; redes sociais e, embaixo, a senha à direita.
+- `1.3.5` — Meu perfil em duas colunas da mesma altura: foto (no formato do card de Escritores) ao lado do nome e apresentação à esquerda; redes sociais e, embaixo, a senha à direita.
 - `1.3.4` — prévia da aba Caixas com as caixas exatamente na largura e posição da lateral do site.
 - `1.3.3` — aba Caixas do painel com a prévia da coluna lateral à direita, que acompanha a edição (título, ícone e texto) antes de salvar.
 - `1.3.2` — painel, aba Artigos: miniatura da capa ao lado do título e ações (Editar, Publicar, Excluir…) como links embaixo dele; a faixa de cada artigo ficou bem mais baixa, e no celular os dados vão em três colunas.
