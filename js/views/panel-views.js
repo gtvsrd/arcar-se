@@ -255,28 +255,30 @@ function panelPosts() {
 
 /** Meu perfil: nome, foto e o card da página Escritores (texto e redes), mais o atalho para trocar a senha. */
 function panelProfile() {
-  profileForm(me.id, { back: '#/painel', after: () => panel('perfil') });
-  $('#pbody').insertAdjacentHTML(
-    'beforeend',
-    `<div class="box" style="max-width:640px;margin-top:20px">
+  profileForm(me.id, {
+    back: '#/painel',
+    after: () => panel('perfil'),
+    extra: `<div class="box pp-card">
      <h3>Senha</h3>
      <p class="hint">Troque a senha que você usa para entrar no blog.</p>
      <div class="acts"><a class="btn alt" href="#/conta">Alterar senha</a></div>
     </div>`,
-  );
+  });
 }
 
 /**
  * Formulário do perfil de um escritor (o próprio ou, para o administrador, o de qualquer pessoa da equipe).
  * Nome e foto aparecem nos artigos; nome, foto, texto e redes formam o card da página Escritores.
  */
-function profileForm(userId, { back, after, who = '' }) {
+function profileForm(userId, { back, after, who = '', extra = '' }) {
   const cur = db.profiles[userId] || {};
   const links = cur.links || {};
   let avatar = cur.avatar_url || '';
   let pending = null; // nova foto escolhida, ainda não enviada
   const own = userId === me.id;
-  $('#pbody').innerHTML = `<form id="pp" class="art art--edit" style="max-width:640px" novalidate>
+  // duas colunas: à esquerda nome, foto e apresentação; à direita as redes e, embaixo, `extra` (no Meu perfil, a senha)
+  $('#pbody').innerHTML = `<form id="pp" class="pp-grid" novalidate>
+   <div class="box pp-card pp-col1">
    ${who ? `<h2 class="pp-who">Card de ${esc(who)}</h2>` : ''}
    <p class="hint">${own ? 'Seu nome e sua foto aparecem nos artigos que você criar.' : 'O nome e a foto aparecem nos artigos dessa pessoa.'} Nome, foto, texto e redes formam o card da página <a href="#/escritores">Escritores</a>.</p>
    <label for="pn">Nome de exibição</label>
@@ -293,15 +295,20 @@ function profileForm(userId, { back, after, who = '' }) {
    <label for="pbio">Texto de apresentação</label>
    <textarea id="pbio" rows="6" maxlength="1200" placeholder="Quem é você, sua formação, sobre o que escreve…">${esc(cur.bio || '')}</textarea>
    <div class="hint"><span id="pbion"></span> Deixe uma linha em branco para começar outro parágrafo.</div>
-   <fieldset class="pp-links"><legend>Redes sociais e site</legend>
-     <p class="hint">Preencha só o que quiser mostrar no card.</p>
+   <div class="acts" style="margin-top:18px"><button class="btn" type="submit">Salvar perfil</button><a class="btn alt" href="${back}">Cancelar</a></div>
+   </div>
+   <div class="pp-col2">
+   <fieldset class="box pp-card pp-links"><legend class="sr">Redes sociais e site</legend>
+     <h3 aria-hidden="true">Redes sociais e site</h3>
+     <p class="hint">Preencha só o que quiser mostrar no card. Elas são salvas junto com o perfil, no botão <b>Salvar perfil</b>.</p>
      ${WRITER_NETS.map(
        (n) => `<div class="pp-link"><label for="pl-${n.k}"><span class="wr-ico wr-ico--${n.k}" aria-hidden="true"></span>${n.label}</label>
        <input type="${n.k === 'email' ? 'email' : 'text'}" id="pl-${n.k}" data-net="${n.k}" maxlength="200" placeholder="${esc(n.ph)}" value="${esc(links[n.k] || '')}" aria-describedby="pe-${n.k}">
        <span class="pp-err" id="pe-${n.k}" role="alert"></span></div>`,
      ).join('')}
    </fieldset>
-   <div class="acts" style="margin-top:18px"><button class="btn" type="submit">Salvar</button><a class="btn alt" href="${back}">Cancelar</a></div>
+   ${extra}
+   </div>
   </form>`;
   const show = () => {
     const name = $('#pn').value.trim() || '?';
