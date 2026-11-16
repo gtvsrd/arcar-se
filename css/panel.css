@@ -256,14 +256,118 @@
   margin: 0 0 6px;
   font-size: 1.3rem;
 }
-.pp-links {
-  margin: 22px 0 0;
-  padding: 0;
-  border: 0;
+/* Meu perfil (e o card de um escritor): duas colunas — nome, foto e apresentação | redes e, embaixo, a senha */
+.pp-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  align-items: stretch; /* as duas colunas terminam na mesma altura */
 }
-.pp-links legend {
-  padding: 0;
+.pp-col1,
+.pp-col2 {
+  display: flex;
+  flex-direction: column;
+}
+.pp-col2 {
+  gap: 24px;
+}
+.pp-col2 > .pp-links {
+  flex: 1; /* se a coluna da esquerda for mais alta, o card das redes estica até ela */
+}
+/* o texto de apresentação ocupa a altura que sobra, para a coluna da esquerda terminar junto com a da direita */
+.pp-col1 textarea {
+  flex: 1 1 0; /* sem altura própria: só ocupa o que sobra (as linhas do textarea não empurram a coluna) */
+  min-height: 110px;
+  resize: vertical;
+}
+/* foto ao lado do nome, no mesmo formato do card da página Escritores (faixa 164 × 150, foto cortada do centro) */
+.pp-topo {
+  display: flex;
+  gap: 18px;
+  align-items: flex-start;
+  margin: 4px 0 6px;
+}
+.pp-topo-campos {
+  flex: 1;
+  min-width: 0;
+}
+.pp-topo-campos label:first-child {
+  margin-top: 0;
+}
+.pp-topo-campos .lbl {
+  display: block;
+  margin: 12px 0 6px;
   font-weight: 600;
+}
+.pp-topo-campos .acts {
+  margin: 0;
+}
+.pp-topo-campos .acts label.btn {
+  display: inline-flex;
+  align-items: center;
+  margin: 0;
+  cursor: pointer;
+}
+.pp-topo-campos input[type='file']:focus-visible + .acts label.btn {
+  outline: 3px solid var(--ac);
+  outline-offset: 2px;
+}
+.pp-topo-campos .hint {
+  margin-top: 6px;
+  font-size: 13px;
+}
+.pp-foto {
+  flex: 0 0 164px;
+  height: 150px;
+  overflow: hidden;
+  border-radius: 4px;
+  background: var(--ac);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+.pp-foto img {
+  display: block;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  object-position: center 30%;
+}
+.pp-foto span {
+  font-family: 'Fraunces', Georgia, serif;
+  font-weight: 600;
+  font-size: 46px;
+  color: var(--bg);
+}
+@media (max-width: 520px) {
+  /* no celular, como no card de Escritores: a foto em cima, larga, em 3:2 */
+  .pp-topo {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .pp-foto {
+    flex-basis: auto;
+    height: auto;
+    aspect-ratio: 3 / 2;
+  }
+}
+.pp-card {
+  margin: 0;
+}
+.pp-card > :last-child {
+  margin-bottom: 0;
+}
+.pp-col1 input[type='text'],
+.pp-col1 textarea {
+  width: 100%;
+}
+@media (max-width: 900px) {
+  .pp-grid {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+.pp-links {
+  min-width: 0;
 }
 .pp-link {
   display: grid;

@@ -255,58 +255,65 @@ function panelPosts() {
 
 /** Meu perfil: nome, foto e o card da página Escritores (texto e redes), mais o atalho para trocar a senha. */
 function panelProfile() {
-  profileForm(me.id, { back: '#/painel', after: () => panel('perfil') });
-  $('#pbody').insertAdjacentHTML(
-    'beforeend',
-    `<div class="box" style="max-width:640px;margin-top:20px">
+  profileForm(me.id, {
+    back: '#/painel',
+    after: () => panel('perfil'),
+    extra: `<div class="box pp-card">
      <h3>Senha</h3>
      <p class="hint">Troque a senha que você usa para entrar no blog.</p>
      <div class="acts"><a class="btn alt" href="#/conta">Alterar senha</a></div>
     </div>`,
-  );
+  });
 }
 
 /**
  * Formulário do perfil de um escritor (o próprio ou, para o administrador, o de qualquer pessoa da equipe).
  * Nome e foto aparecem nos artigos; nome, foto, texto e redes formam o card da página Escritores.
  */
-function profileForm(userId, { back, after, who = '' }) {
+function profileForm(userId, { back, after, who = '', extra = '' }) {
   const cur = db.profiles[userId] || {};
   const links = cur.links || {};
   let avatar = cur.avatar_url || '';
   let pending = null; // nova foto escolhida, ainda não enviada
   const own = userId === me.id;
-  $('#pbody').innerHTML = `<form id="pp" class="art art--edit" style="max-width:640px" novalidate>
+  // duas colunas: à esquerda nome, foto e apresentação; à direita as redes e, embaixo, `extra` (no Meu perfil, a senha)
+  $('#pbody').innerHTML = `<form id="pp" class="pp-grid" novalidate>
+   <div class="box pp-card pp-col1">
    ${who ? `<h2 class="pp-who">Card de ${esc(who)}</h2>` : ''}
    <p class="hint">${own ? 'Seu nome e sua foto aparecem nos artigos que você criar.' : 'O nome e a foto aparecem nos artigos dessa pessoa.'} Nome, foto, texto e redes formam o card da página <a href="#/escritores">Escritores</a>.</p>
-   <label for="pn">Nome de exibição</label>
-   <input type="text" id="pn" required maxlength="60" value="${esc(cur.display_name || '')}"${own ? ' autocomplete="name"' : ''}>
-   <label>Foto</label>
-   <div class="avatar-edit">
-     <div class="avatar avatar--lg" id="pav" aria-hidden="true"></div>
-     <div>
-       <input type="file" id="pfile" accept="image/*" aria-label="Escolher foto">
-       <div class="acts"><button type="button" class="btn sm del" id="prm" hidden>Remover foto</button></div>
-       <div class="hint">A foto é recortada em quadrado e reduzida automaticamente.</div>
+   <div class="pp-topo">
+     <div class="pp-foto" id="pav" aria-hidden="true"></div>
+     <div class="pp-topo-campos">
+       <label for="pn">Nome de exibição</label>
+       <input type="text" id="pn" required maxlength="60" value="${esc(cur.display_name || '')}"${own ? ' autocomplete="name"' : ''}>
+       <span class="lbl">Foto</span>
+       <input type="file" id="pfile" class="sr" accept="image/*">
+       <div class="acts"><label class="btn sm alt" for="pfile">Escolher foto</label><button type="button" class="btn sm del" id="prm" hidden>Remover foto</button></div>
+       <div class="hint">Aparece assim no card da página Escritores. É recortada e reduzida automaticamente.</div>
      </div>
    </div>
    <label for="pbio">Texto de apresentação</label>
    <textarea id="pbio" rows="6" maxlength="1200" placeholder="Quem é você, sua formação, sobre o que escreve…">${esc(cur.bio || '')}</textarea>
    <div class="hint"><span id="pbion"></span> Deixe uma linha em branco para começar outro parágrafo.</div>
-   <fieldset class="pp-links"><legend>Redes sociais e site</legend>
-     <p class="hint">Preencha só o que quiser mostrar no card.</p>
+   <div class="acts" style="margin-top:18px"><button class="btn" type="submit">Salvar perfil</button><a class="btn alt" href="${back}">Cancelar</a></div>
+   </div>
+   <div class="pp-col2">
+   <fieldset class="box pp-card pp-links"><legend class="sr">Redes sociais e site</legend>
+     <h3 aria-hidden="true">Redes sociais e site</h3>
+     <p class="hint">Preencha só o que quiser mostrar no card. Elas são salvas junto com o perfil, no botão <b>Salvar perfil</b>.</p>
      ${WRITER_NETS.map(
        (n) => `<div class="pp-link"><label for="pl-${n.k}"><span class="wr-ico wr-ico--${n.k}" aria-hidden="true"></span>${n.label}</label>
        <input type="${n.k === 'email' ? 'email' : 'text'}" id="pl-${n.k}" data-net="${n.k}" maxlength="200" placeholder="${esc(n.ph)}" value="${esc(links[n.k] || '')}" aria-describedby="pe-${n.k}">
        <span class="pp-err" id="pe-${n.k}" role="alert"></span></div>`,
      ).join('')}
    </fieldset>
-   <div class="acts" style="margin-top:18px"><button class="btn" type="submit">Salvar</button><a class="btn alt" href="${back}">Cancelar</a></div>
+   ${extra}
+   </div>
   </form>`;
   const show = () => {
     const name = $('#pn').value.trim() || '?';
     const src = pending ? URL.createObjectURL(pending) : avatar;
-    $('#pav').innerHTML = src ? `<img src="${esc(src)}" alt="">` : esc([...name][0].toUpperCase());
+    $('#pav').innerHTML = src ? `<img src="${esc(src)}" alt="">` : `<span>${esc([...name][0].toUpperCase())}</span>`;
     $('#prm').hidden = !src;
   };
   const count = () => ($('#pbion').textContent = `${$('#pbio').value.length} de 1200 caracteres.`);
