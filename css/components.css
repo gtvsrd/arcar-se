@@ -254,6 +254,9 @@ a.cover-cat:hover {
 }
 .art .body {
   font-family: Literata, Georgia, 'Times New Roman', serif; /* texto do artigo e do editor */
+  /* itálico: a Literata é carregada só na versão reta, de propósito; o itálico vira as mesmas letras inclinadas,
+     bem mais fácil de ler do que o desenho cursivo do itálico original (ver index.html, link das fontes) */
+  font-synthesis: weight style;
   font-size: 17px;
   line-height: 1.85;
   max-width: 68ch;
