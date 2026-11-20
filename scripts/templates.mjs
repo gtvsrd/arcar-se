@@ -185,6 +185,7 @@ export function pageShell({ site, root, title, head, main, adminHref, bodyAttrs 
     <script src="${root}js/theme.js"></script>
     <script src="${root}js/utils/suave.js"></script>
     <script src="${root}js/utils/lateral.js"></script>
+    <script src="${root}js/utils/titulo-flutuante.js"></script>
   </head>
   <body data-root="${esc(root)}"${bodyAttrs}>
     <header class="top">
