@@ -380,6 +380,15 @@ input:-webkit-autofill:focus {
 .rte:focus-visible {
   outline-offset: -3px;
 }
+/* o texto escrito fica centralizado na caixa do editor, na mesma largura da leitura (a coluna de 700px) */
+.art--edit .rte-wrap .rte {
+  margin-inline: auto;
+  background: transparent;
+  border: 0;
+}
+.art--edit .rte-wrap {
+  background: var(--bg);
+}
 .rte img {
   cursor: pointer;
 }

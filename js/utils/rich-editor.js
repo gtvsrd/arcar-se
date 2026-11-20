@@ -249,6 +249,12 @@ function createRichEditor(mount, body, labelId) {
    </div>
    <div class="rte-drop" id="rte-drop" hidden></div>`;
   const root = mount.querySelector('#b');
+  // as laterais da caixa (ao lado da coluna de escrita) também levam o cursor para o texto
+  mount.addEventListener('mousedown', (e) => {
+    if (e.target !== mount) return;
+    e.preventDefault();
+    root.focus();
+  });
   const blockSel = mount.querySelector('#rte-block');
   const imgBar = mount.querySelector('#rte-imgbar');
   const handles = mount.querySelector('#rte-handles');
