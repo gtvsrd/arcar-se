@@ -32,7 +32,8 @@ function editor(kind, id) {
       : '';
   $('#main').innerHTML = `<div class="art art--edit"><h1>${isPage ? 'Editar página' : id ? 'Editar artigo' : 'Novo artigo'}</h1>${note}${noName}
   <form id="f">
-   <label for="t">Título</label><input type="text" id="t" required value="${esc(it.title)}">
+   <label for="t">Título</label><input type="text" id="t" required value="${esc(it.title)}"${isPage ? '' : ' aria-describedby="slhint"'}>
+   ${isPage ? '' : '<div class="hint" id="slhint" role="status"></div>'}
    ${
      isPage
        ? ''
@@ -46,8 +47,6 @@ function editor(kind, id) {
                  .join('')}</div><div class="hint" id="cathint" role="status"></div>`
              : `<div class="hint">Nenhuma categoria cadastrada.${admin ? ' Crie em <a href="#/painel/categorias">Painel › Categorias</a>.' : ' Peça ao administrador para criar.'}</div>`
          }</fieldset>
-   <label for="sl">Endereço do artigo (slug)</label><input type="text" id="sl" value="${esc(it.slug || '')}" autocomplete="off" spellcheck="false">
-   <div class="hint" id="slhint"></div>
    <label for="e">Resumo (aparece no card)</label><input type="text" id="e" maxlength="160" value="${esc(it.excerpt)}">
    <label for="imgfile">Imagem de capa (opcional)</label>
    <div class="img-field">
@@ -124,32 +123,15 @@ function editor(kind, id) {
     };
     showPreview();
   }
+  // endereço do artigo (slug): gerado do título, as palavras separadas por tracinho; depois da primeira publicação
+  // fica fixo (mudar quebraria os links já compartilhados), mesmo que o título mude
+  const slugFixo = !isPage && !!it.slug && (it.pub || temPaginaGerada(it.slug));
+  const slugFinal = () => (slugFixo ? it.slug : uniqueSlug(slugify($('#t').value), pid));
   if (!isPage) {
-    // endereço (slug): novo artigo acompanha o título até você editar o campo; artigo existente mantém o endereço
-    const sl = $('#sl'),
-      slh = $('#slhint'),
-      title = $('#t');
-    let slugEdited = !!it.slug;
-    const finalSlug = () => uniqueSlug(slugify(sl.value) || slugify(title.value), pid);
-    const showSlug = () => {
-      const f = finalSlug();
-      slh.textContent =
-        `Endereço final: …/post/${f}/` +
-        (it.slug && f !== it.slug ? ' — atenção: mudar o endereço quebra links já compartilhados.' : '');
-    };
-    title.addEventListener('input', () => {
-      if (!slugEdited) sl.value = slugify(title.value);
-      showSlug();
-    });
-    sl.addEventListener('input', () => {
-      slugEdited = true;
-      showSlug();
-    });
-    sl.addEventListener('blur', () => {
-      sl.value = slugify(sl.value);
-      showSlug();
-    });
-    showSlug();
+    const mostrar = () =>
+      ($('#slhint').textContent = `Endereço: ${location.host}/post/${slugFinal()}/` + (slugFixo ? ' (fixo desde a publicação, para não quebrar links)' : ' (gerado do título)'));
+    $('#t').addEventListener('input', mostrar);
+    mostrar();
   }
   if (!isPage && $('#catpick .chips')) {
     // categorias: até MAX_CATS; a primeira escolhida é a principal (mostrada em destaque na capa)
@@ -205,7 +187,7 @@ function editor(kind, id) {
       }
       const d = {
         title: $('#t').value.trim(),
-        slug: uniqueSlug(slugify($('#sl').value) || slugify($('#t').value), pid),
+        slug: slugFinal(),
         cat: picked[0],
         cats: picked,
         excerpt: $('#e').value.trim() || plainText(body).slice(0, 130).trim() + '…',
