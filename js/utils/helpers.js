@@ -33,15 +33,16 @@ const toast = (m) => {
   setTimeout(() => t.classList.remove('on'), 2200);
 };
 /** Transforma um título em endereço legível: "Cinco hábitos!" vira "cinco-habitos". */
-function slugify(text, max = 80) {
-  return String(text || '')
+function slugify(text, max = 90) {
+  const s = String(text || '')
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toLowerCase()
     .replace(/[^a-z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .slice(0, max)
-    .replace(/-+$/g, '');
+    .replace(/^-+|-+$/g, '');
+  if (s.length <= max) return s;
+  const corte = s.slice(0, max + 1).lastIndexOf('-'); // título muito longo: corta entre palavras, nunca no meio de uma
+  return s.slice(0, corte > 0 ? corte : max).replace(/-+$/g, '');
 }
 
 /** Reduz a imagem enviada (máx. 1600px de largura) e devolve um Blob JPEG. */
