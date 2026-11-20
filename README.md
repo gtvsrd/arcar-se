@@ -108,6 +108,7 @@ A versão aparece no rodapé (ex.: `v1.0.1`) e fica em `site.config.json`, no ca
 Histórico:
 
 - `1.3.7` — endereço (slug) dos artigos gerado automaticamente do título, as palavras separadas por tracinho; fica fixo depois da primeira publicação. O campo de editar o slug saiu do editor.
+- `1.4.0` — título flutuante no celular: ao rolar um artigo, uma faixa fixa no topo mostra o título (numa linha) e um filete de progresso da leitura; tocar nela volta ao começo. Só em telas de até 820px.
 - `1.3.6` — itálico do texto dos artigos mais legível: as letras normais da Literata inclinadas, no lugar do itálico cursivo (e duas fontes a menos para baixar).
 - `1.3.5` — Meu perfil em duas colunas da mesma altura: foto (no formato do card de Escritores) ao lado do nome e apresentação à esquerda; redes sociais e, embaixo, a senha à direita.
 - `1.3.4` — prévia da aba Caixas com as caixas exatamente na largura e posição da lateral do site.
