@@ -13,6 +13,7 @@ function route() {
   // escrever), no artigo começa desligado, e fora deles a coluna lateral volta sempre ao normal
   const editando = a === 'novo' || a === 'editar';
   document.body.classList.toggle('pagina-artigo', a === 'post' || editando);
+  document.body.classList.toggle('editando', editando);
   document.documentElement.classList.toggle('lado-recolhido', editando);
   renderNav();
   renderSide();

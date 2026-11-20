@@ -373,6 +373,11 @@ footer {
   html.lado-recolhido .pagina-artigo .wrap {
     grid-template-columns: minmax(0, 1fr) 44px;
   }
+  /* editor: com a lateral recolhida, o artigo fica centralizado, com uma borda de cada lado
+     (a da esquerda tem a largura da coluna de botões + o espaço entre as colunas, igual à da direita) */
+  html.lado-recolhido body.editando #main {
+    margin-left: 76px;
+  }
   html.lado-recolhido .pagina-artigo #side .box {
     position: relative;
     padding: 0;
