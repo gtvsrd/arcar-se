@@ -107,6 +107,7 @@ A versão aparece no rodapé (ex.: `v1.0.1`) e fica em `site.config.json`, no ca
 
 Histórico:
 
+- `1.4.1` — editor de artigo no modo leitura centralizado: uma borda igual de cada lado e o texto escrito centralizado na caixa (clicar nas laterais leva o cursor ao texto).
 - `1.4.0` — título flutuante no celular: ao rolar um artigo, uma faixa fixa no topo mostra o título (numa linha) e um filete de progresso da leitura; tocar nela volta ao começo. Só em telas de até 820px.
 - `1.3.7` — endereço (slug) dos artigos gerado automaticamente do título, as palavras separadas por tracinho; fica fixo depois da primeira publicação. O campo de editar o slug saiu do editor.
 - `1.3.6` — itálico do texto dos artigos mais legível: as letras normais da Literata inclinadas, no lugar do itálico cursivo (e duas fontes a menos para baixar).
